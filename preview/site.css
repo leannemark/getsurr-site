@@ -181,7 +181,7 @@ form.list input::placeholder{color:var(--grey)}
 .ssplash{--open:-12deg}.ssplash.cut{--open:-30deg}
 .ssplash svg.one{width:78%;height:39vw;transform:rotate(-38deg);filter:drop-shadow(0 28px 30px rgba(0,0,0,1));transition:transform .7s cubic-bezier(.3,0,.2,1),opacity .5s .4s}
 .ssplash .cum{position:absolute;right:12%;bottom:22%;height:12px;width:auto;transition:opacity .4s}
-.ssplash.cut svg.one{transform:rotate(-42deg) translate(-8%,7%);opacity:0}
+.ssplash.cut svg.one{transform:rotate(-40deg) translate(14%,0);opacity:0}
 .ssplash.cut .cum{opacity:0}
 .s0{border-top:0!important}
 .s0.arrive{-webkit-animation:arrive .6s cubic-bezier(.2,.8,.2,1);animation:arrive .6s cubic-bezier(.2,.8,.2,1)}
