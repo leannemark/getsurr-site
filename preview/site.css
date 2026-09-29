@@ -100,7 +100,7 @@ body.is-desk{overflow:hidden}
 .br-surr .dl{font-family:var(--mono);font-size:11px;color:var(--grey2);line-height:1.6}
 /* mood rings: above the band, on the button's lines */
 .br-rings{left:21.57%;right:21.57%;top:2%;bottom:67%;flex-direction:row;padding:0;border-bottom:0}
-.br-rings .aura{flex:0 0 42%;min-width:0;height:100%;border-right:1px solid var(--line)}
+.br-rings .aura{flex:0 0 calc(100vw / 5.1 - 1px);min-width:0;height:100%;border-right:1px solid var(--line)}
 .br-rings .txt{flex:1 1 58%;min-width:0;min-height:0;padding:14px 18px 12px}
 .br-rings .txt h3{font-size:19px;padding-right:56px}
 .br-rings .txt .body{margin-top:8px;font-size:13px;line-height:1.45}
