@@ -3,8 +3,8 @@
    The key is the public (publishable) one the app itself ships with — never a service key. */
 window.SURR = {
   BASE: '/',
-  SUPABASE_URL: 'https://yvgaajzgrkeyzsztedvh.supabase.co',
-  SUPABASE_ANON_KEY: 'sb_publishable_Fqr-XXQVymA7AFwVqtqhDA_C_-6VlzY',
+  SUPABASE_URL: 'https://wdhfuqxkjxwecpmhdujk.supabase.co',
+  SUPABASE_ANON_KEY: 'sb_publishable_WHUyr1I_RYZudp92L9rDuw_GS58dyWi',
 
   /* the public TestFlight link for "open in testflight →". empty = the line is hidden. */
   APP_URL: '',
