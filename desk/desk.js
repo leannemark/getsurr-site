@@ -18,7 +18,9 @@
     failed: "that didn't go through. try again.",
     empty: 'nothing waiting.',
     gone: 'someone who has left',
+    emailFailed: "the email didn't go out. nothing was sent.",
   };
+  var TITLES = { applications: 'applications', reports: 'reports', list: 'the list', feedback: 'feedback' };
 
   /* ---------- tiny dom ---------- */
 
@@ -282,6 +284,11 @@
       case 'lift': return who + 'lifted the freeze on ' + at(l.handle);
       case 'dismiss': return who + 'dismissed a report about ' + at(l.handle);
       case 'remove': return who + 'removed someone from surr';
+      case 'send': return who + 'sent a code to someone on the list';
+      case 'pass': return who + 'passed on someone on the list';
+      case 'done': return who + 'marked feedback from ' + at(l.handle) + ' done';
+      case 'keep': return who + 'kept a quote from ' + at(l.handle);
+      case 'takedown': return who + 'took a quote down';
       default: return who + l.action;
     }
   }
@@ -292,7 +299,7 @@
     var my = ++gen;
     desk('home').then(function (d) {
       if (my !== gen) return;
-      var rep = d.reports, apps = d.applications;
+      var rep = d.reports, apps = d.applications, list = d.list, fb = d.feedback;
       function pile(title, n, lineText, hot, go) {
         var zero = !n;
         return h('button', { class: 'pile' + (zero ? ' zero' : ''), type: 'button', disabled: !go, onclick: go },
@@ -318,8 +325,13 @@
         h('div', { class: 'bar' }, h('span', { class: 'name', text: 'the desk' }), h('span', { text: today() })),
         pile('reports', rep.count, rep.count ? 'waiting ' + since(rep.oldest) : 'nothing waiting', true, function () { location.hash = 'reports'; }),
         pile('applications', apps.count, apps.count ? 'oldest ' + since(apps.oldest) + ' ago' : 'nothing waiting', false, function () { location.hash = 'applications'; }),
-        pile('the list', null, 'soon', false, null),
-        pile('feedback', null, 'soon', false, null),
+        pile('the list', list.count, list.count ? list.new + ' new since yesterday' : 'nothing waiting', false, function () { location.hash = 'list'; }),
+        pile('feedback', fb.count,
+          fb.takedowns ? fb.takedowns + (fb.takedowns === 1 ? ' quote' : ' quotes') + ' to take down'
+            : fb.count ? 'oldest ' + since(fb.oldest) + ' ago' : 'nothing waiting',
+          false, function () { location.hash = 'feedback'; }),
+        h('div', { class: 'kick', text: '// quotes' }),
+        h('div', { class: 'acts left' }, h('a', { class: 'link', href: '#quotes', text: d.quotes + ' kept →' })),
         frozen.length ? [h('div', { class: 'kick', text: '// frozen' }), frozen] : null,
         todayLines.length ? [h('div', { class: 'kick', text: '// handled today' }), h('div', { class: 'log' }, todayLines)] : null,
         h('div', { class: 'grow' }),
@@ -356,7 +368,8 @@
 
   /* ---------- a pile, one at a time ---------- */
 
-  // pile: 'applications' | 'reports'. queue: ids. pos: where we are.
+  // pile: 'applications' | 'reports' | 'list' | 'feedback'. queue: ids (for
+  // feedback, items: a take-down with its words, or a note's id). pos: where we are.
   var run = null;
 
   function openPile(pile) {
@@ -381,13 +394,13 @@
   }
   function next() {
     if (run.pos >= run.queue.length) {
-      show(h('div', { class: 'bar' }, h('a', { class: 'back', href: '#', text: '‹ the desk' }), h('span', { text: run.pile })),
+      show(h('div', { class: 'bar' }, h('a', { class: 'back', href: '#', text: '‹ the desk' }), h('span', { text: TITLES[run.pile] })),
         h('p', { class: 'line', text: COPY.empty }),
         h('div', { class: 'acts left' }, h('a', { class: 'link', href: '#', text: '‹ the desk' })));
       return;
     }
     var id = run.queue[run.pos];
-    (run.pile === 'applications' ? application : report)(id);
+    ({ applications: application, reports: report, list: person, feedback: feedbackItem })[run.pile](id);
   }
   function counter() {
     return run.single ? '' : (run.pos + 1) + ' of ' + run.queue.length;
@@ -566,6 +579,164 @@
     }).catch(function (err) { if (my === gen && !guard(err)) failed(function () { report(id); }); });
   }
 
+  /* ---------- the list: one person at a time ---------- */
+
+  // Her link, as she typed it: a web address, or an instagram handle. Only
+  // http(s) ever becomes a link.
+  function linkHref(v) {
+    var s = String(v || '').trim();
+    if (/^https?:\/\//i.test(s)) return s;
+    if (/^[a-z0-9.-]+\.[a-z]{2,}(\/.*)?$/i.test(s) && s.charAt(0) !== '@') return 'https://' + s;
+    var handle = s.replace(/^@/, '');
+    return /^[a-z0-9._]{1,30}$/i.test(handle) ? 'https://www.instagram.com/' + handle + '/' : null;
+  }
+
+  function person(id) {
+    var my = ++gen;
+    desk('person', { id: id }).then(function (p) {
+      if (my !== gen) return;
+      if (!p) { advance(); return; }
+      if (p.state !== 'waiting') {
+        show(itemBar(), h('p', { class: 'line', text: 'code sent by ' + (p.sent_by || '') + ' · ' + (p.sent_at ? stamp(p.sent_at) : '') }),
+          h('div', { class: 'acts left' }, later()));
+        return;
+      }
+      var href = p.link ? linkHref(p.link) : null;
+      var linkBit = !p.link ? 'no link'
+        : href ? h('a', { class: 'link', href: href, target: '_blank', rel: 'noopener noreferrer', text: p.link })
+        : h('b', { text: p.link });
+      var note = h('p', { class: 'line err', hidden: true });
+      var send = h('button', { class: 'btn go', type: 'button', text: 'send a code', disabled: !p.can_send });
+      var pass = h('button', { class: 'btn', type: 'button', text: 'not now' });
+      send.onclick = function () {
+        var mine = gen;
+        send.disabled = pass.disabled = true;
+        note.hidden = true;
+        desk('send', { id: p.id }).then(function () {
+          if (mine !== gen) return;
+          note.textContent = 'code sent.';
+          note.className = 'line';
+          note.hidden = false;
+          setTimeout(function () { if (mine === gen) advance(); }, 1200);
+        }).catch(function (err) {
+          if (mine !== gen || guard(err)) return;
+          send.disabled = pass.disabled = false;
+          note.textContent = err && err.message === 'email_failed' ? COPY.emailFailed : COPY.failed;
+          note.className = 'line err';
+          note.hidden = false;
+        });
+      };
+      pass.onclick = function () {
+        act([send, pass], note, function () { return desk('pass', { id: p.id }); });
+      };
+      show(itemBar(),
+        h('div', { class: 'who' }, h('strong', { text: p.email })),
+        h('div', { class: 'facts' }, h('div', null, p.city || '', ' · ', 'joined ' + day(p.joined), ' · ', linkBit)),
+        h('div', { class: 'grow' }),
+        p.can_send ? null : h('p', { class: 'line', text: 'no link to the app yet.' }),
+        note,
+        h('div', { class: 'acts dock' }, send, pass));
+    }).catch(function (err) { if (my === gen && !guard(err)) failed(function () { person(id); }); });
+  }
+
+  /* ---------- feedback: one note (or take-down) at a time ---------- */
+
+  var QUOTE_WISH = { username: 'quote me, with my name', anonymous: 'quote me, no name' };
+
+  function feedbackItem(item) {
+    if (item && item.kind === 'takedown') { takedown(item); return; }
+    note(item && item.id);
+  }
+
+  function takedown(item) {
+    ++gen;
+    var msg = h('p', { class: 'line err', hidden: true });
+    var done = h('button', { class: 'btn go', type: 'button', text: 'done' });
+    done.onclick = function () {
+      act([done], msg, function () { return desk('takedown', { id: item.id }); });
+    };
+    show(itemBar(),
+      h('div', { class: 'who' }, h('strong', { text: 'take this quote down' })),
+      h('p', { class: 'line', text: 'she has left surr. remove it from the website, then tap done.' }),
+      h('div', { class: 'quote it', text: item.words || '' }),
+      h('div', { class: 'grow' }),
+      msg,
+      h('div', { class: 'acts dock' }, done));
+  }
+
+  function note(id) {
+    var my = ++gen;
+    desk('note', { id: id }).then(function (n) {
+      if (my !== gen) return;
+      if (!n || n.state !== 'new') { advance(); return; }
+      var compliment = n.category === 'compliment';
+      var wish = compliment ? QUOTE_WISH[n.quote] : null;
+      var meta = [since(n.at) + ' ago', n.app_version ? 'build ' + n.app_version : null].filter(Boolean).join(' · ');
+      var shot = safeImg(n.screenshot_url);
+      var msg = h('p', { class: 'line err', hidden: true });
+      var keep = wish ? h('button', { class: 'btn go', type: 'button', text: 'keep as a quote' }) : null;
+      var done = h('button', { class: 'btn' + (wish ? '' : ' go'), type: 'button', text: 'done' });
+      var all = [keep, done].filter(Boolean);
+      if (keep) keep.onclick = function () { act(all, msg, function () { return desk('keep', { id: n.id }); }); };
+      done.onclick = function () { act(all, msg, function () { return desk('done', { id: n.id }); }); };
+      show(itemBar(),
+        h('div', { class: 'row' },
+          h('div', { class: 't' }, h('strong', { text: at(n.handle) }), h('span', { text: meta })),
+          h('span', { class: 'tag', text: n.category })),
+        wish ? h('p', { class: 'line', text: wish }) : null,
+        h('div', { class: 'quote' + (compliment ? ' it' : ''), text: n.body }),
+        shot ? h('a', { class: 'ph shot', href: shot, target: '_blank', rel: 'noopener noreferrer' },
+          h('img', { src: shot, alt: 'screenshot' }), h('span', { text: 'screenshot' })) : null,
+        h('div', { class: 'grow' }),
+        msg,
+        h('div', { class: 'acts dock' }, all));
+    }).catch(function (err) { if (my === gen && !guard(err)) failed(function () { note(id); }); });
+  }
+
+  /* ---------- kept quotes ---------- */
+
+  // The clipboard, or the older select-and-copy when the browser refuses it.
+  function copyText(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(text).catch(function () { return copyOld(text); });
+    }
+    return copyOld(text);
+  }
+  function copyOld(text) {
+    return new Promise(function (resolve, reject) {
+      var t = h('textarea', { readonly: true, class: 'offscreen' });
+      t.value = text;
+      document.body.appendChild(t);
+      t.select();
+      var ok = false;
+      try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+      document.body.removeChild(t);
+      if (ok) resolve(); else reject(new Error('copy'));
+    });
+  }
+
+  function quotesView() {
+    var my = ++gen;
+    desk('quotes').then(function (list) {
+      if (my !== gen) return;
+      var rows = (list || []).map(function (q) {
+        var credit = q.credit ? '@' + q.credit : 'no name';
+        var btn = h('button', { class: 'btn', type: 'button', text: 'copy' });
+        btn.onclick = function () {
+          copyText(q.credit ? q.words + '\n— @' + q.credit : q.words).then(function () {
+            btn.textContent = 'copied';
+            setTimeout(function () { btn.textContent = 'copy'; }, 1500);
+          }).catch(function () {});
+        };
+        return h('div', { class: 'kept' },
+          h('div', { class: 'quote it', text: q.words }),
+          h('div', { class: 'acts left' }, h('span', { class: 'credit', text: credit + ' · ' + day(q.kept_at) }), btn));
+      });
+      show(h('div', { class: 'bar' }, h('a', { class: 'back', href: '#', text: '‹ the desk' }), h('span', { text: 'quotes' })),
+        rows.length ? rows : h('p', { class: 'line', text: 'nothing yet.' }));
+    }).catch(function (err) { if (my === gen && !guard(err)) failed(quotesView); });
+  }
+
   /* ---------- routing ---------- */
 
   var DEEP = new RegExp('^#(application|report)-(' + UUID + ')$');
@@ -575,7 +746,8 @@
     var hash = location.hash;
     var m = DEEP.exec(hash);
     if (m) openOne(m[1] + 's', m[2]);
-    else if (hash === '#applications' || hash === '#reports') openPile(hash.slice(1));
+    else if (/^#(applications|reports|list|feedback)$/.test(hash)) openPile(hash.slice(1));
+    else if (hash === '#quotes') quotesView();
     else if (hash === '#history') historyView();
     else home();
   }
