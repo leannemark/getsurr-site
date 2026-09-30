@@ -581,12 +581,13 @@
 
   /* ---------- the list: one person at a time ---------- */
 
-  // Her link, as she typed it: a web address, or an instagram handle. Only
-  // http(s) ever becomes a link.
+  // Her link, as she typed it: a web address (with https://, www. or a path),
+  // or an instagram handle (lou.berlin is a handle, not a site). Only http(s)
+  // ever becomes a link; anything else is shown as plain text.
   function linkHref(v) {
     var s = String(v || '').trim();
     if (/^https?:\/\//i.test(s)) return s;
-    if (/^[a-z0-9.-]+\.[a-z]{2,}(\/.*)?$/i.test(s) && s.charAt(0) !== '@') return 'https://' + s;
+    if (/^www\.[a-z0-9.-]+\.[a-z]{2,}(\/\S*)?$/i.test(s) || /^[a-z0-9.-]+\.[a-z]{2,}\/\S*$/i.test(s)) return 'https://' + s;
     var handle = s.replace(/^@/, '');
     return /^[a-z0-9._]{1,30}$/i.test(handle) ? 'https://www.instagram.com/' + handle + '/' : null;
   }
@@ -620,10 +621,26 @@
           setTimeout(function () { if (mine === gen) advance(); }, 1200);
         }).catch(function (err) {
           if (mine !== gen || guard(err)) return;
-          send.disabled = pass.disabled = false;
-          note.textContent = err && err.message === 'email_failed' ? COPY.emailFailed : COPY.failed;
-          note.className = 'line err';
-          note.hidden = false;
+          function again(text) {
+            send.disabled = pass.disabled = false;
+            note.textContent = text;
+            note.className = 'line err';
+            note.hidden = false;
+          }
+          if (err && err.message === 'email_failed') { again(COPY.emailFailed); return; }
+          // The answer was lost, not necessarily the send: look again before
+          // offering the button, so a code that went out is never sent twice.
+          desk('person', { id: p.id }).then(function (now) {
+            if (mine !== gen) return;
+            if (now && now.state === 'sent') {
+              note.textContent = 'code sent.';
+              note.className = 'line';
+              note.hidden = false;
+              setTimeout(function () { if (mine === gen) advance(); }, 1200);
+            } else {
+              again(COPY.failed);
+            }
+          }).catch(function (e2) { if (mine === gen && !guard(e2)) again(COPY.failed); });
         });
       };
       pass.onclick = function () {
@@ -695,12 +712,13 @@
 
   /* ---------- kept quotes ---------- */
 
-  // The clipboard, or the older select-and-copy when the browser refuses it.
+  // The older select-and-copy first, while the tap still counts; the
+  // clipboard only when that is refused.
   function copyText(text) {
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      return navigator.clipboard.writeText(text).catch(function () { return copyOld(text); });
-    }
-    return copyOld(text);
+    return copyOld(text).catch(function () {
+      if (navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(text);
+      throw new Error('copy');
+    });
   }
   function copyOld(text) {
     return new Promise(function (resolve, reject) {
@@ -726,11 +744,11 @@
           copyText(q.credit ? q.words + '\n— @' + q.credit : q.words).then(function () {
             btn.textContent = 'copied';
             setTimeout(function () { btn.textContent = 'copy'; }, 1500);
-          }).catch(function () {});
+          }).catch(function () { /* nothing copied; the button stays `copy` */ });
         };
         return h('div', { class: 'kept' },
           h('div', { class: 'quote it', text: q.words }),
-          h('div', { class: 'acts left' }, h('span', { class: 'credit', text: credit + ' · ' + day(q.kept_at) }), btn));
+          h('div', { class: 'acts left' }, h('span', { class: 'credit', text: credit }), btn));
       });
       show(h('div', { class: 'bar' }, h('a', { class: 'back', href: '#', text: '‹ the desk' }), h('span', { text: 'quotes' })),
         rows.length ? rows : h('p', { class: 'line', text: 'nothing yet.' }));
