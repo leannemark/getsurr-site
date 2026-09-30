@@ -257,3 +257,12 @@ button, input { font: inherit; color: inherit; }
 }
 .sheet-q { margin: 0; padding: 0 18px 6px; font-size: 17px; line-height: 1.45; overflow-wrap: anywhere; }
 .sheet .acts { border-top: 0; }
+
+/* desk-two: a note's screenshot, kept quotes */
+.ph.shot { margin: 0 18px 14px; height: 320px; max-width: 220px; border-radius: 4px; }
+.ph.shot img { object-fit: contain; background: var(--raised); }
+.quote.it { font-style: italic; }
+.kept { border-top: 1px solid var(--rule); padding-top: 14px; }
+.kept .acts { align-items: center; }
+.credit { font-family: var(--mono); font-size: 13px; color: var(--ink-3); margin-right: auto; }
+.offscreen { position: fixed; left: -9999px; top: 0; opacity: 0; }
