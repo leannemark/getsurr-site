@@ -18,7 +18,7 @@ The whole site, built at the hidden address `getsurr.com/preview/` (noindex, unl
 
 `desk/` is Leanne's private working page at `getsurr.com/desk/` (brief `docs/briefs/desk-one.md` in the app repo): applications and reports, one at a time, behind the app's own six-digit email code.
 
-- **Unlinked and hidden:** no page links to it, it carries `noindex, nofollow`, and it is in no sitemap. `scripts/build.mjs` never touches `desk/`.
+- **Unlinked and hidden:** no page links to it, it carries `noindex, nofollow`, and it is in no sitemap. `scripts/build-preview.mjs` only writes inside `preview/`, so it never touches `desk/`.
 - **Stands alone:** its own fonts (`desk/fonts/`, same OFL files as the site) and its own `desk/config.js` (the project address and public key — never a service key). Nothing on it loads from anywhere else.
 - **Talks only to Supabase, and only after login:** the auth server for the code, then the `desk` Edge Function for everything. The page holds no powers; the function checks every request (session under 30 days old, a desk member) and answers only `https://getsurr.com`.
 - **Moving it to another project** means changing `desk/config.js` **and** the project address in the Content-Security-Policy line of `desk/index.html`.

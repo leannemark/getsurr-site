@@ -42,6 +42,7 @@
     if (Array.isArray(c)) c.forEach(function (x) { add(el, x); });
     else el.appendChild(typeof c === 'string' ? document.createTextNode(c) : c);
   }
+  var gen = 0; // bumped per screen load; a late answer for an older screen is dropped
   function show() {
     app.textContent = '';
     for (var i = 0; i < arguments.length; i++) add(app, arguments[i]);
@@ -105,6 +106,8 @@
     session = s;
   }
   var session = load();
+  var Expired = new Error('expired');
+  var NotMine = new Error('not_member');
 
   function auth(path, body, token) {
     var headers = { apikey: KEY, 'Content-Type': 'application/json' };
@@ -121,22 +124,33 @@
       expires_at: data.expires_at || Math.floor(Date.now() / 1000) + (data.expires_in || 3600),
     });
   }
+  // Another tab may have refreshed already: always start from what is stored.
+  // Only the auth server saying no (400/401) ends the login; a network blip
+  // is just a failure to try again.
   function fresh() {
-    if (!session) return Promise.reject(new Error('expired'));
+    var stored = load();
+    if (stored) session = stored;
+    if (!session) return Promise.reject(Expired);
     if (session.expires_at - 60 > Date.now() / 1000) return Promise.resolve(session.access_token);
-    return auth('token?grant_type=refresh_token', { refresh_token: session.refresh_token })
-      .then(function (r) { if (!r.ok) throw new Error('expired'); return r.json(); })
-      .then(function (d) { keep(d); return session.access_token; });
+    var used = session.refresh_token;
+    return auth('token?grant_type=refresh_token', { refresh_token: used })
+      .then(function (r) {
+        if (r.status === 400 || r.status === 401) {
+          var now = load();
+          if (now && now.refresh_token !== used) { session = now; return null; }
+          throw Expired;
+        }
+        if (!r.ok) throw new Error('failed');
+        return r.json();
+      })
+      .then(function (d) { if (d) keep(d); return session.access_token; });
   }
 
   // One call to the desk function. `expired` → the login, `not_member` → "this
   // desk isn't yours."; anything else throws for the caller to say it failed.
-  var Expired = new Error('expired');
-  var NotMine = new Error('not_member');
   function desk(action, extra) {
     var body = Object.assign({ action: action }, extra || {});
     return fresh()
-      .catch(function () { throw Expired; })
       .then(function (token) {
         return fetch(BASE + '/functions/v1/desk', {
           method: 'POST',
@@ -179,6 +193,7 @@
       y.onclick = function () { done(true); };
       n.onclick = function () { done(false); };
       sheet.onclick = function (e) { if (e.target === sheet) done(false); };
+      document.onkeydown = function (e) { if (e.key === 'Escape') { document.onkeydown = null; done(false); } };
       sheet.hidden = false;
       n.focus();
     });
@@ -230,11 +245,13 @@
   }
 
   function signOut() {
-    var s = session;
-    save(null);
-    if (s) auth('logout?scope=local', {}, s.access_token).catch(function () {});
-    location.hash = '';
-    login();
+    fresh().then(function (token) { return auth('logout?scope=local', {}, token); })
+      .catch(function () {})
+      .then(function () {
+        save(null);
+        if (location.hash) history.replaceState(null, '', location.pathname);
+        login();
+      });
   }
   function signOutLink() {
     return h('button', { class: 'link', type: 'button', text: 'sign out', onclick: signOut });
@@ -270,7 +287,9 @@
   /* ---------- home ---------- */
 
   function home() {
+    var my = ++gen;
     desk('home').then(function (d) {
+      if (my !== gen) return;
       var rep = d.reports, apps = d.applications;
       function pile(title, n, lineText, hot, go) {
         var zero = !n;
@@ -281,7 +300,7 @@
       var frozen = (d.frozen || []).map(function (f) {
         return h('div', { class: 'row' },
           h('div', { class: 't' },
-            h('strong', { text: '@' + f.handle }),
+            h('strong', { text: at(f.handle) }),
             h('span', { text: 'frozen ' + (f.since ? day(f.since) + ' · ' : '') + (f.reason === 'admin' ? 'by the desk' : 'reports') })),
           h('button', { class: 'link', type: 'button', text: 'lift the freeze', onclick: function (e) {
             e.target.disabled = true;
@@ -310,7 +329,8 @@
 
   /* ---------- history ---------- */
 
-  function history() {
+  function historyView() {
+    ++gen;
     var rows = h('div', { class: 'log' });
     var more = h('button', { class: 'link', type: 'button', text: 'more', hidden: true });
     var last = null;
@@ -323,7 +343,7 @@
         });
         more.hidden = !list || list.length < 100;
         if (!rows.childNodes.length) add(rows, h('div', { text: 'nothing yet.' }));
-      }).catch(function (err) { if (!guard(err)) failed(history); });
+      }).catch(function (err) { if (!guard(err)) failed(historyView); });
     }
     more.onclick = page;
     show(h('div', { class: 'bar' }, h('a', { class: 'back', href: '#', text: '‹ the desk' }), h('span', { text: 'history' })),
@@ -337,7 +357,9 @@
   var run = null;
 
   function openPile(pile) {
+    var my = ++gen;
     desk(pile).then(function (ids) {
+      if (my !== gen) return;
       run = { pile: pile, queue: ids || [], pos: 0, single: false };
       next();
     }).catch(function (err) { if (!guard(err)) failed(function () { openPile(pile); }); });
@@ -349,6 +371,7 @@
   // After an action or `later`: the next one; after a deep-linked item, the
   // rest of its pile.
   function advance() {
+    Array.prototype.forEach.call(app.querySelectorAll('button'), function (b) { b.disabled = true; });
     if (run.single) { location.hash = run.pile; return; }
     run.pos += 1;
     next();
@@ -390,7 +413,9 @@
   }
 
   function application(id) {
+    var my = ++gen;
     desk('application', { id: id }).then(function (a) {
+      if (my !== gen) return;
       if (!a) { advance(); return; }
       if (a.state !== 'waiting') {
         show(itemBar(), h('p', { class: 'line', text: a.state + ' by ' + (a.decided_by || 'email-link') + ' · ' + stamp(a.decided_at) }),
@@ -447,7 +472,9 @@
   }
 
   function report(id) {
+    var my = ++gen;
     desk('report', { id: id }).then(function (r) {
+      if (my !== gen) return;
       if (!r) { advance(); return; }
       var p = r.reported;
       var face = safeImg((p.photo_urls || [])[0]);
@@ -487,7 +514,8 @@
       var bottom;
       if (r.state !== 'open') {
         var hd = r.handled;
-        bottom = h('p', { class: 'line', text: hd ? HANDLED[hd.action] + ' by ' + hd.member + ' · ' + stamp(hd.at) : r.state });
+        bottom = [h('p', { class: 'line', text: hd ? HANDLED[hd.action] + ' by ' + hd.member + ' · ' + stamp(hd.at) : r.state }),
+          h('div', { class: 'acts left' }, run.single ? h('a', { class: 'link', href: '#reports', text: 'reports →' }) : later())];
       } else if (r.own) {
         bottom = h('div', { class: 'acts dock' }, later());
       } else {
@@ -498,6 +526,7 @@
           : h('button', { class: 'btn red', type: 'button', text: 'freeze her account' });
         var dismiss = h('button', { class: 'btn', type: 'button', text: 'dismiss' });
         var remove = h('button', { class: 'btn', type: 'button', text: 'remove from surr' });
+        if (!p.handle) { main.hidden = true; remove.hidden = true; }
         var all = [main, dismiss, remove];
         main.onclick = function () {
           if (frozenByDesk) {
@@ -537,12 +566,13 @@
 
   var DEEP = new RegExp('^#(application|report)-(' + UUID + ')$');
   function route() {
+    if (!sheet.hidden) document.getElementById('sheet-no').click();
     if (!session) { login(); return; }
     var hash = location.hash;
     var m = DEEP.exec(hash);
     if (m) openOne(m[1] + 's', m[2]);
     else if (hash === '#applications' || hash === '#reports') openPile(hash.slice(1));
-    else if (hash === '#history') history();
+    else if (hash === '#history') historyView();
     else home();
   }
   window.addEventListener('hashchange', route);
