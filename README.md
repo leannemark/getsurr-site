@@ -16,7 +16,7 @@ The whole site, built at the hidden address `getsurr.com/preview/` (noindex, unl
 
 ## The desk
 
-`desk/` is Leanne's private working page at `getsurr.com/desk/` (brief `docs/briefs/desk-one.md` in the app repo): applications and reports, one at a time, behind the app's own six-digit email code.
+`desk/` is Leanne's private working page at `getsurr.com/desk/` (briefs `docs/briefs/desk-one.md` and `desk-two.md` in the app repo): applications, reports, the list (send a code / not now) and feedback (done / keep as a quote, plus the kept quotes at `#quotes`), one at a time, behind the app's own six-digit email code.
 
 - **Unlinked and hidden:** no page links to it, it carries `noindex, nofollow`, and it is in no sitemap. `scripts/build-preview.mjs` only writes inside `preview/`, so it never touches `desk/`.
 - **Stands alone:** its own fonts (`desk/fonts/`, same OFL files as the site) and its own `desk/config.js` (the project address and public key — never a service key). Nothing on it loads from anywhere else.
