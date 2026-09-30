@@ -336,7 +336,9 @@
         todayLines.length ? [h('div', { class: 'kick', text: '// handled today' }), h('div', { class: 'log' }, todayLines)] : null,
         h('div', { class: 'grow' }),
         h('div', { class: 'foot' },
-          h('a', { class: 'link', href: '#history', text: 'all history →' }),
+          h('span', { class: 'links' },
+            h('a', { class: 'link', href: '#cities', text: 'the list by city →' }),
+            h('a', { class: 'link', href: '#history', text: 'all history →' })),
           signOutLink()));
     }).catch(function (err) { if (my === gen && !guard(err)) failed(home); });
   }
@@ -364,6 +366,24 @@
     show(h('div', { class: 'bar' }, h('a', { class: 'back', href: '#', text: '‹ the desk' }), h('span', { text: 'history' })),
       rows, h('div', { class: 'acts left' }, more));
     page();
+  }
+
+  /* ---------- the list by city ---------- */
+
+  // Counted live each time it opens; counts only, never an address.
+  function citiesView() {
+    var my = ++gen;
+    desk('cities').then(function (list) {
+      if (my !== gen) return;
+      var rows = (list || []).map(function (c) {
+        var bits = [c.city || 'no city'];
+        if (c.on_list) bits.push(c.on_list + ' on the list');
+        if (c.sent) bits.push(c.sent + ' sent a code');
+        return h('div', { text: bits.join(' · ') });
+      });
+      show(h('div', { class: 'bar' }, h('a', { class: 'back', href: '#', text: '‹ the desk' }), h('span', { text: 'the list by city' })),
+        h('div', { class: 'log' }, rows.length ? rows : h('div', { text: 'nobody on the list yet.' })));
+    }).catch(function (err) { if (my === gen && !guard(err)) failed(citiesView); });
   }
 
   /* ---------- a pile, one at a time ---------- */
@@ -608,7 +628,8 @@
         : h('b', { text: p.link });
       var note = h('p', { class: 'line err', hidden: true });
       // A returning person (sent a code before, unused, asked again) gets
-      // the same code again: the button says so.
+      // the same code again: the button says so. A coded person already holds
+      // a code: no send button at all (the server refuses her too).
       var send = h('button', { class: 'btn go', type: 'button', text: p.again ? 'send it again' : 'send a code', disabled: !p.can_send });
       var pass = h('button', { class: 'btn', type: 'button', text: 'not now' });
       send.onclick = function () {
@@ -651,11 +672,12 @@
       show(itemBar(),
         h('div', { class: 'who' }, h('strong', { text: p.email })),
         h('div', { class: 'facts' }, h('div', null, p.city || '', ' · ', 'joined ' + day(p.joined), ' · ', linkBit),
-          p.again ? h('div', null, 'sent a code ' + day(p.sent_at) + ' · not used · asked again ' + day(p.asked_again_at)) : null),
+          p.again ? h('div', null, 'sent a code ' + day(p.sent_at) + ' · not used · asked again ' + day(p.asked_again_at)) : null,
+          p.coded ? h('div', null, 'coded · already has a code') : null),
         h('div', { class: 'grow' }),
-        p.can_send ? null : h('p', { class: 'line', text: 'no link to the app yet.' }),
+        p.coded || p.can_send ? null : h('p', { class: 'line', text: 'no link to the app yet.' }),
         note,
-        h('div', { class: 'acts dock' }, send, pass));
+        h('div', { class: 'acts dock' }, p.coded ? null : send, pass));
     }).catch(function (err) { if (my === gen && !guard(err)) failed(function () { person(id); }); });
   }
 
@@ -770,6 +792,7 @@
     else if (/^#(applications|reports|list|feedback)$/.test(hash)) openPile(hash.slice(1));
     else if (hash === '#quotes') quotesView();
     else if (hash === '#history') historyView();
+    else if (hash === '#cities') citiesView();
     else home();
   }
   window.addEventListener('hashchange', route);

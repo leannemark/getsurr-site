@@ -103,7 +103,8 @@ button, input { font: inherit; color: inherit; }
   color: var(--ink-4);
   overflow-wrap: anywhere;
 }
-.foot { display: flex; justify-content: space-between; padding: 8px 18px 28px; }
+.foot { display: flex; justify-content: space-between; gap: 18px; padding: 8px 18px 28px; }
+.foot .links { display: flex; flex-wrap: wrap; gap: 6px 18px; }
 
 /* rows */
 .row {
