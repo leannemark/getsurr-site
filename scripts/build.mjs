@@ -1,12 +1,14 @@
-// Builds the pages under preview/ that are copies or plain pages.
-// The one page is preview/index.html — edit that, then run: node scripts/build-preview.mjs
-// It writes: the deep-link copies (rings, map, nights, list, drive, beta) and the plain pages (deal, press, support, 404).
+// Builds the pages that are copies or plain pages.
+// The one page is index.html — edit that, then run: node scripts/build.mjs
+// It writes: the deep-link copies (rings, map, nights, list, drive, beta), the plain pages (deal, press, support, 404),
+// the legal pages (privacy, imprint — their text comes word for word from _legal/, which the site never serves),
+// and the forwarding pages under preview/ that send the old hidden addresses to the live ones.
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const root = join(dirname(fileURLToPath(import.meta.url)), '..', 'preview');
-const BASE = '/preview/';
+const root = join(dirname(fileURLToPath(import.meta.url)), '..');
+const BASE = '/';
 const page = readFileSync(join(root, 'index.html'), 'utf8');
 
 const write = (rel, html) => {
@@ -41,7 +43,8 @@ const footer = (here) =>
   [
     ['press', `${BASE}press/`],
     ['support', `${BASE}support/`],
-    ['imprint', '/imprint/'],
+    ['imprint', `${BASE}imprint/`],
+    ['privacy', `${BASE}privacy/`],
     ['the deal', `${BASE}deal/`],
   ]
     .map(([t, h]) => `<a href="${h}"${t === here ? ' aria-current="page"' : ''}>${t}</a>`)
@@ -52,7 +55,6 @@ const plain = (title, h1, body, here) => `<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="robots" content="noindex">
 <meta name="description" content="for lesbians, sapphics, trans &amp; nonbinary people who'd rather link than scroll.">
 <meta name="theme-color" content="#050505">
 <title>${title}</title>
@@ -63,8 +65,7 @@ const plain = (title, h1, body, here) => `<!DOCTYPE html>
 <div class="plain">
 <header><a href="${BASE}" class="big">surr</a><span class="mono">say less</span></header>
 <main>
-<h1>${h1}</h1>
-${body}
+${h1 ? `<h1>${h1}</h1>\n` : ''}${body}
 </main>
 <footer>${footer(here)}</footer>
 </div>
@@ -111,4 +112,26 @@ write(
 
 write('404.html', plain('surr', 'nothing here.', `<p><a href="${BASE}">the door →</a></p>`, ''));
 
-console.log('built: 6 deep-link copies, deal, support, press, 404');
+// the legal texts: word for word, wrapped in the plain page. the privacy policy is the generator's text as Till cleared it
+// (2026-09-30); the generator's seal badge is left out because it loads from another domain.
+const legal = (f) => `<div class="legal">\n${readFileSync(join(root, '_legal', f), 'utf8').trim()}\n</div>`;
+write('privacy/index.html', plain('privacy · surr', 'privacy', legal('privacy-policy.html'), 'privacy'));
+write('imprint/index.html', plain('imprint · surr', '', legal('imprint.html'), 'imprint'));
+
+// the old hidden addresses: each forwards to its live address, and is never indexed
+const forward = (to) => `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="robots" content="noindex">
+<meta http-equiv="refresh" content="0; url=${to}">
+<link rel="canonical" href="https://getsurr.com${to}">
+<title>surr</title>
+</head>
+<body style="background:#050505;color:#E8E8E8;font-family:ui-monospace,Menlo,monospace;font-size:12px;padding:24px"><a href="${to}" style="color:inherit">surr →</a></body>
+</html>
+`;
+const moved = ['', ...Object.keys(branches), 'deal', 'press', 'support'];
+for (const slug of moved) write(`preview/${slug ? slug + '/' : ''}index.html`, forward(`${BASE}${slug ? slug + '/' : ''}`));
+
+console.log(`built: 6 deep-link copies, deal, support, press, 404, privacy, imprint, ${moved.length} forwarding pages`);
