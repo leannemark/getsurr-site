@@ -2,7 +2,7 @@
    SUPABASE_*: the project the TestFlight build talks to (staging until the production switch).
    The key is the public (publishable) one the app itself ships with — never a service key. */
 window.SURR = {
-  BASE: '/preview/',
+  BASE: '/',
   SUPABASE_URL: 'https://yvgaajzgrkeyzsztedvh.supabase.co',
   SUPABASE_ANON_KEY: 'sb_publishable_Fqr-XXQVymA7AFwVqtqhDA_C_-6VlzY',
 

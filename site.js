@@ -53,6 +53,7 @@
       '<form class="list" novalidate>' +
       '<label class="sr" for="em' + n + '">email</label><input id="em' + n + '" name="email" type="email" inputmode="email" autocomplete="email" autocapitalize="none" spellcheck="false" placeholder="email">' +
       '<label class="sr" for="ci' + n + '">city</label><input id="ci' + n + '" name="city" type="text" autocomplete="address-level2" placeholder="city">' +
+      '<label class="sr" for="li' + n + '">instagram or a link, optional</label><input id="li' + n + '" name="link" type="text" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="instagram or a link, optional">' +
       '<button class="go" type="submit">put me on the list →</button>' +
       '<p class="err" role="status" aria-live="polite" hidden></p></form>';
     var form = wrap.firstChild, btn = $('button', form), err = $('.err', form);
@@ -60,12 +61,12 @@
     form.addEventListener('submit', function (e) {
       e.preventDefault();
       if (btn.disabled) return;
-      var email = form.email.value.trim().toLowerCase(), city = form.city.value.trim();
+      var email = form.email.value.trim().toLowerCase(), city = form.city.value.trim(), link = form.link.value.trim() || null;
       btn.disabled = true; btn.textContent = 'sending…'; err.hidden = true;
       fetch(C.SUPABASE_URL + '/rest/v1/rpc/join_waitlist', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', apikey: C.SUPABASE_ANON_KEY },
-        body: JSON.stringify({ p_email: email, p_city: city, p_link: null }),
+        body: JSON.stringify({ p_email: email, p_city: city, p_link: link }),
         credentials: 'omit', cache: 'no-store', referrerPolicy: 'no-referrer'
       }).then(function (r) {
         if (r.ok) return null;

@@ -1,15 +1,17 @@
 # getsurr-site
 
-The static legal pages for getsurr.com (imprint now, privacy policy after Till's review). Plain HTML, inline CSS, system font — no analytics, cookies, web fonts, scripts or embeds, so nothing on this site ever calls another domain. See `docs/briefs/getsurr-com-legal-pages.md` in the `surr` app repo for the brief this was built from.
+The website at getsurr.com, built from the briefs `docs/briefs/getsurr-site-v04.md` and `docs/briefs/getsurr-site-go-live.md` in the `surr` app repo (the legal pages first came from `docs/briefs/getsurr-com-legal-pages.md`). Plain HTML, CSS and a little JS, hosted on GitHub Pages with a custom domain (`getsurr.com`, see `CNAME`). DNS and the mail records are not in this repo — never change them from here.
 
-Hosted on GitHub Pages with a custom domain (`getsurr.com`, see `CNAME`). To add the privacy policy later: add `privacy/index.html` following the same pattern as `imprint/index.html`, and add its link to both footers.
+## Layout
 
-## The website preview (`preview/`)
+- `index.html` is **the one page** (splash, band, five branches, the snap phone version). The branch addresses (`rings`, `map`, `nights`, `list`, `drive`, `beta`) are copies of it that open their branch on load.
+- `deal`, `press`, `support`, `privacy`, `imprint` and `404.html` are plain pages; every page carries the footer `press · support · imprint · privacy · the deal` (on the phone it sits under the list form, the last thing on the last screen).
+- `privacy` and `imprint` are legal texts, set **word for word** from `_legal/privacy-policy.html` and `_legal/imprint.html` (the generator's output; `_legal/` is never served). Never edit, shorten or "fix" those texts — a new version comes from the generator and Till. The generator's seal badge is left out because it would load from another domain.
+- `preview/` holds only small forwarding pages (noindex): the site was first built at the hidden address `getsurr.com/preview/`, and links shared from then still land on the live addresses.
+- **After editing `index.html`, the plain-page words or a file in `_legal/`, run `node scripts/build.mjs`** to rewrite every copy, plain page and forwarding page.
+- `config.js` holds the everyday switches: the Supabase project the list form writes to (public key only), `APP_URL` (the public TestFlight link; empty hides `open in testflight →`), `RADIO_ON` / `RADIO_EMBED_URL`, and `NEXT_NIGHT` (set to `null` the morning after).
 
-The whole site, built at the hidden address `getsurr.com/preview/` (noindex, unlinked) from the brief `docs/briefs/getsurr-site-v04.md` in the app repo. The root keeps the imprint-only front page until the site goes live.
+## What the site never does
 
-- `preview/index.html` is **the one page** (splash, band, five branches, the snap phone version). The branch addresses (`rings`, `map`, `nights`, `list`, `drive`, `beta`) are copies of it that open their branch on load, and `deal`, `press`, `support`, `404.html` are plain pages. After editing `index.html` or the plain-page words, run `node scripts/build-preview.mjs` to rewrite them all.
-- `preview/config.js` holds the everyday switches: the Supabase project the list form writes to (public key only), `APP_URL` (the public TestFlight link; empty hides `open in testflight →`), `RADIO_ON` / `RADIO_EMBED_URL`, and `NEXT_NIGHT` (set to `null` the morning after).
-- No third-party request on load: fonts are self-hosted (OFL, licences in `preview/fonts/`), no analytics, no cookies. Only the list form talks to Supabase, and only the radio's own `play →` tap loads SoundCloud.
+- No third-party request on load: fonts are self-hosted (OFL, licences in `fonts/`), no analytics, no cookies. Only the list form talks to Supabase (the `join_waitlist` function — email, city and an optional instagram or link, the same list as the app), and only the radio's own `play →` tap loads SoundCloud. The privacy policy depends on this.
 - `cum inside` on the splash is drawn as outlines (`img/cum-inside.svg`), so it is never indexable text. The scissors are an inline SVG placeholder until the photograph.
-- GitHub Pages serves only the root `404.html`, so an unknown address under `/preview/` shows the legal front page's 404; `preview/404.html` is ready for when the site moves to the root.

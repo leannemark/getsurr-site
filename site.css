@@ -134,6 +134,7 @@ body.is-desk{overflow:hidden}
 form.list{display:flex;flex-wrap:wrap;gap:10px 12px;margin-top:14px;align-items:flex-end}
 form.list input{background:none;border:0;border-bottom:1px solid #333;border-radius:0;color:var(--ink);font-family:var(--mono);font-size:12px;padding:6px 0;flex:1 1 30%;min-width:120px;-webkit-appearance:none;appearance:none}
 form.list input::placeholder{color:var(--grey)}
+form.list input[name=link]{flex-basis:100%}
 .go{font-family:var(--mono);font-size:11px;padding:7px 12px;border:1px solid var(--grey2);border-radius:999px;white-space:nowrap}
 .go:disabled{opacity:.6;cursor:default}
 .err{flex-basis:100%;font-family:var(--mono);font-size:11px;color:var(--grey2)}
@@ -213,6 +214,9 @@ form.list input::placeholder{color:var(--grey)}
 .sec .mapline{font-size:24px}
 .sec form.list input{flex-basis:100%;font-size:16px}
 .sec form.list{margin-top:4px}
+/* the footer on the phone: under the list form, the last thing on the last screen */
+.sfoot{margin-top:28px;font-family:var(--mono);font-size:10px;color:var(--grey);display:flex;flex-wrap:wrap;gap:8px 14px}
+.sfoot a{text-decoration:none}
 .snapdoor{position:fixed;left:0;right:0;bottom:0;z-index:8;background:var(--bg);border-top:1px solid var(--line);padding:12px 20px calc(12px + env(safe-area-inset-bottom));font-family:var(--mono);font-size:11px;color:var(--grey2);display:flex;justify-content:space-between;gap:12px}
 .snapdoor a{white-space:nowrap;text-decoration:none}
 .snapdoor b{color:var(--ink);font-weight:400}
@@ -246,6 +250,14 @@ form.list input::placeholder{color:var(--grey)}
 .plain ol b{font-family:var(--mono);font-weight:400;font-size:11px;color:var(--grey);padding-top:3px}
 .plain footer{margin-top:48px;font-family:var(--mono);font-size:10px;color:var(--grey);display:flex;flex-wrap:wrap;gap:8px 14px}
 .plain footer a{text-decoration:none}.plain footer a:hover,.plain footer a[aria-current]{color:var(--ink)}
+/* legal texts (privacy, imprint): the generator's own headings and lists, in the plain page's type */
+.legal{color:var(--grey2);font-size:14px;overflow-wrap:anywhere}
+.legal h1{margin:0 0 20px;font-family:var(--head);font-weight:700;font-size:22px;letter-spacing:-.01em;line-height:1.2;color:var(--ink)}
+.legal h2{margin:36px 0 12px;font-family:var(--head);font-weight:700;font-size:17px;line-height:1.25;color:var(--ink)}
+.legal h3{margin:24px 0 8px;font-family:var(--head);font-weight:700;font-size:15px;color:var(--ink)}
+.legal ul{margin:0 0 14px;padding-left:18px;display:grid;gap:6px}
+.legal strong{color:var(--ink);font-weight:500}
+.legal p{margin:0 0 12px}
 
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{-webkit-animation:none!important;animation:none!important;transition:none!important;scroll-behavior:auto!important}
