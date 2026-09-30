@@ -15,3 +15,11 @@ The website at getsurr.com, built from the briefs `docs/briefs/getsurr-site-v04.
 
 - No third-party request on load: fonts are self-hosted (OFL, licences in `fonts/`), no analytics, no cookies. Only the list form talks to Supabase (the `join_waitlist` function — email, city and an optional instagram or link, the same list as the app), and only the radio's own `play →` tap loads SoundCloud. The privacy policy depends on this.
 - `cum inside` on the splash is drawn as outlines (`img/cum-inside.svg`), so it is never indexable text. The scissors are an inline SVG placeholder until the photograph.
+## The desk
+
+`desk/` is Leanne's private working page at `getsurr.com/desk/` (briefs `docs/briefs/desk-one.md` and `desk-two.md` in the app repo): applications, reports, the list (send a code / not now) and feedback (done / keep as a quote, plus the kept quotes at `#quotes`), one at a time, behind the app's own six-digit email code.
+
+- **Unlinked and hidden:** no page links to it, it carries `noindex, nofollow`, and it is in no sitemap. `scripts/build.mjs` writes only the site's own pages, so it never touches `desk/`.
+- **Stands alone:** its own fonts (`desk/fonts/`, same OFL files as the site) and its own `desk/config.js` (the project address and public key — never a service key). Nothing on it loads from anywhere else.
+- **Talks only to Supabase, and only after login:** the auth server for the code, then the `desk` Edge Function for everything. The page holds no powers; the function checks every request (session under 30 days old, a desk member) and answers only `https://getsurr.com`.
+- **Moving it to another project** means changing `desk/config.js` **and** the project address in the Content-Security-Policy line of `desk/index.html`.
