@@ -188,12 +188,13 @@
       function done(v) {
         sheet.hidden = true;
         y.onclick = n.onclick = sheet.onclick = null;
+        document.onkeydown = null;
         resolve(v);
       }
       y.onclick = function () { done(true); };
       n.onclick = function () { done(false); };
       sheet.onclick = function (e) { if (e.target === sheet) done(false); };
-      document.onkeydown = function (e) { if (e.key === 'Escape') { document.onkeydown = null; done(false); } };
+      document.onkeydown = function (e) { if (e.key === 'Escape') done(false); };
       sheet.hidden = false;
       n.focus();
     });
@@ -202,6 +203,7 @@
   /* ---------- login ---------- */
 
   function login() {
+    ++gen;
     var email = '';
     var msg = h('p', { class: 'line', hidden: true });
     var emailIn = h('input', { id: 'email', type: 'email', autocomplete: 'email', inputmode: 'email', autocapitalize: 'none', spellcheck: 'false', required: true });
@@ -304,8 +306,8 @@
             h('span', { text: 'frozen ' + (f.since ? day(f.since) + ' · ' : '') + (f.reason === 'admin' ? 'by the desk' : 'reports') })),
           h('button', { class: 'link', type: 'button', text: 'lift the freeze', onclick: function (e) {
             e.target.disabled = true;
-            desk('lift', { profile: f.profile_id }).then(home).catch(function (err) {
-              if (!guard(err)) failed(home);
+            desk('lift', { profile: f.profile_id }).then(function () { if (my === gen) home(); }).catch(function (err) {
+              if (my === gen && !guard(err)) failed(home);
             });
           } }));
       });
@@ -324,26 +326,27 @@
         h('div', { class: 'foot' },
           h('a', { class: 'link', href: '#history', text: 'all history →' }),
           signOutLink()));
-    }).catch(function (err) { if (!guard(err)) failed(home); });
+    }).catch(function (err) { if (my === gen && !guard(err)) failed(home); });
   }
 
   /* ---------- history ---------- */
 
   function historyView() {
-    ++gen;
+    var my = ++gen;
     var rows = h('div', { class: 'log' });
     var more = h('button', { class: 'link', type: 'button', text: 'more', hidden: true });
     var last = null;
     function page() {
       more.hidden = true;
       desk('history', last ? { before: last } : {}).then(function (list) {
+        if (my !== gen) return;
         (list || []).forEach(function (l) {
           add(rows, h('div', { text: stamp(l.at) + ' · ' + sentence(l) }));
           last = l.at;
         });
         more.hidden = !list || list.length < 100;
         if (!rows.childNodes.length) add(rows, h('div', { text: 'nothing yet.' }));
-      }).catch(function (err) { if (!guard(err)) failed(historyView); });
+      }).catch(function (err) { if (my === gen && !guard(err)) failed(historyView); });
     }
     more.onclick = page;
     show(h('div', { class: 'bar' }, h('a', { class: 'back', href: '#', text: '‹ the desk' }), h('span', { text: 'history' })),
@@ -362,7 +365,7 @@
       if (my !== gen) return;
       run = { pile: pile, queue: ids || [], pos: 0, single: false };
       next();
-    }).catch(function (err) { if (!guard(err)) failed(function () { openPile(pile); }); });
+    }).catch(function (err) { if (my === gen && !guard(err)) failed(function () { openPile(pile); }); });
   }
   function openOne(pile, id) {
     run = { pile: pile, queue: [id], pos: 0, single: true };
@@ -397,10 +400,11 @@
   }
   // Run an action; buttons are disabled while it goes; a failure says so in place.
   function act(buttons, note, call) {
+    var my = gen;
     buttons.forEach(function (b) { b.disabled = true; });
     note.hidden = true;
-    call().then(advance).catch(function (err) {
-      if (guard(err)) return;
+    call().then(function () { if (my === gen) advance(); }).catch(function (err) {
+      if (my !== gen || guard(err)) return;
       buttons.forEach(function (b) { b.disabled = false; });
       note.textContent = COPY.failed;
       note.hidden = false;
@@ -447,7 +451,7 @@
         h('div', { class: 'grow' }),
         note,
         h('div', { class: 'acts dock' }, approve, decline, later()));
-    }).catch(function (err) { if (!guard(err)) failed(function () { application(id); }); });
+    }).catch(function (err) { if (my === gen && !guard(err)) failed(function () { application(id); }); });
   }
 
   var FROZEN_BY = { reports: 'reports', admin: 'by the desk', self: 'by herself' };
@@ -532,8 +536,8 @@
           if (frozenByDesk) {
             // Lifting leaves the report open: show it again with freeze back.
             all.forEach(function (b) { b.disabled = true; });
-            desk('lift', { profile: p.id, report: r.id }).then(function () { report(id); }).catch(function (err) {
-              if (guard(err)) return;
+            desk('lift', { profile: p.id, report: r.id }).then(function () { if (my === gen) report(id); }).catch(function (err) {
+              if (my !== gen || guard(err)) return;
               all.forEach(function (b) { b.disabled = false; });
               note.textContent = COPY.failed;
               note.hidden = false;
@@ -559,7 +563,7 @@
         folds.map(function (f) { return f.box; }),
         h('div', { class: 'grow' }),
         bottom);
-    }).catch(function (err) { if (!guard(err)) failed(function () { report(id); }); });
+    }).catch(function (err) { if (my === gen && !guard(err)) failed(function () { report(id); }); });
   }
 
   /* ---------- routing ---------- */
