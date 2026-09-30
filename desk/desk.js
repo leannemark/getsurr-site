@@ -607,7 +607,9 @@
         : href ? h('a', { class: 'link', href: href, target: '_blank', rel: 'noopener noreferrer', text: p.link })
         : h('b', { text: p.link });
       var note = h('p', { class: 'line err', hidden: true });
-      var send = h('button', { class: 'btn go', type: 'button', text: 'send a code', disabled: !p.can_send });
+      // A returning person (sent a code before, unused, asked again) gets
+      // the same code again: the button says so.
+      var send = h('button', { class: 'btn go', type: 'button', text: p.again ? 'send it again' : 'send a code', disabled: !p.can_send });
       var pass = h('button', { class: 'btn', type: 'button', text: 'not now' });
       send.onclick = function () {
         var mine = gen;
@@ -648,7 +650,8 @@
       };
       show(itemBar(),
         h('div', { class: 'who' }, h('strong', { text: p.email })),
-        h('div', { class: 'facts' }, h('div', null, p.city || '', ' · ', 'joined ' + day(p.joined), ' · ', linkBit)),
+        h('div', { class: 'facts' }, h('div', null, p.city || '', ' · ', 'joined ' + day(p.joined), ' · ', linkBit),
+          p.again ? h('div', null, 'sent a code ' + day(p.sent_at) + ' · not used · asked again ' + day(p.asked_again_at)) : null),
         h('div', { class: 'grow' }),
         p.can_send ? null : h('p', { class: 'line', text: 'no link to the app yet.' }),
         note,
