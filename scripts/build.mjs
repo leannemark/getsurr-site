@@ -142,6 +142,41 @@ const legal = (f) => `<div class="legal">\n${readFileSync(join(root, '_legal', f
 write('privacy/index.html', plain('privacy · surr', 'privacy', legal('privacy-policy.html'), 'privacy', 'privacy/'));
 write('imprint/index.html', plain('imprint · surr', '', legal('imprint.html'), 'imprint', 'imprint/'));
 
+// the terms: the same words as the in-app terms (TERMS in src/features/legal/legalText.ts in the app repo), same sections,
+// same order. when the app's terms change, change these with them.
+const TERMS_INTRO = "the short version: be 18+, be who you say you are, treat people well, and what happens here stays here. the long version follows. last updated october 2026.";
+const TERMS = [
+  ["what surr is", "surr is a dating app for lesbians, sapphics, and trans and nonbinary people. we make the space; you bring the people and the conversations. we don’t write what’s posted here and we don’t control what people say to each other. we do check that every account belongs to a real person before it goes live, and we read every report. you’re responsible for how you treat people and what you share."],
+  ["who it’s for", "adults only. by using surr you confirm you are 18 or older, and that anyone in the photos you share is too. surr is for lesbians, sapphics, and trans and nonbinary people. cis men aren’t welcome here. self-id is the only id that counts: we don’t police anyone’s gender, and trans women are women. if we believe an account doesn’t belong here, we can remove it."],
+  ["getting in", "every signup is an application. a real person looks at your photos and a live selfie before your account goes live, usually within 24 hours. you need an invite code to apply. a code never skips the check. we can decline an application, and we don’t have to say why. your selfie is deleted once it has been reviewed, and after 14 days at the latest if it never was. surr is in beta in berlin: you can apply while visiting; outside the beta area you won’t appear to other people and they won’t appear to you, but your existing chats keep working."],
+  ["your account", "one account per person, and it’s yours: don’t share it, sell it or hand it over. keep your login secure; what happens through your account is on you. the details you give us must be true. your date of birth can’t be changed after signup. we can ask you to verify again if something looks off."],
+  ["what you share", "you own your photos, your words and everything else you post. so that surr works, you give us permission to store it, show it to other people on surr in line with your settings, and move it through our systems. that permission ends when you delete the content or your account, except where a copy is needed to handle a report, comply with the law, or keep our systems running for a short while afterwards. by posting, you confirm you have the right to share it, that everyone in it consented, and that it’s legal. your photos are you: recent, recognisable, yours. the photos you apply with are checked before your account goes live. photos you add later show straight away, and any photo can be reported and taken down. the rules: you’re in every photo, face clear in the first. no one under 18 anywhere in a photo, yours included. no nudity and no sex acts: underwear’s fine, nothing you’d have to blur. no one else’s face in your first photo. no screenshots, weapons or hate symbols. no phone numbers or handles in the image. no ai faces. a photo that breaks these comes down; a pattern loses the account. we don’t sell what you share and we don’t use it for advertising."],
+  ["what’s not allowed", "the community guidelines are part of these terms. we have no tolerance for objectionable content or abusive people. in short: nothing involving anyone under 18 (we report this). nothing non-consensual and nothing illegal. no harassment, threats, hate or bigotry. no impersonation, fake profiles, stolen photos or bots. no selling: no promo, sugar arrangements, advertising, mlm or spam. don’t take anyone off surr: no screenshotting to out, mock or expose someone, no copying profiles, messages or identities elsewhere. no scraping, automation, reverse engineering, or attempts to get around the gate. if something crosses a line, we can remove the content, freeze the account, or remove it, with or without warning."],
+  ["messages", "messages are between you and the person you’re talking to. we don’t control what they say and we can’t promise they’ll keep it to themselves. your chats are private to the two of you and protected in transit and at rest. they are not end-to-end encrypted: when someone reports a conversation, a person on our team can read the reported thread to deal with it. we don’t read messages otherwise."],
+  ["location", "we never store your exact location. we verify which city you’re in and keep only that, and you can switch location off at any time in your settings. on the map: faces, not pins. areas, not addresses. appearing on it is a separate choice you make in the app and can undo in one tap, and it only ever places you somewhere inside an area of about a kilometre — never your exact location, never a distance. your phone rounds your location down to that area before anything is sent to us."],
+  ["safety and enforcement", "you can report, block and unmatch anyone from their profile, your chats or the feed. blocking is silent and permanent unless you undo it. every report is read by a person. we can freeze or remove accounts that break these terms or the guidelines, and we can limit what new accounts can do for their first days. an account invited by someone who keeps inviting bad actors can lose its invite privileges. if you think we got a decision about your account wrong, write to hello@getsurr.com and we’ll look again."],
+  ["your data", "how we handle your data is set out in the privacy policy, which is part of these terms. the short version: we collect what the app needs, we keep it in the eu, we don’t sell it, and you can delete your account and its data from your settings at any time. the newsletter is separate and opt-in; switch it off in your settings or from any email."],
+  ["it’s free", "surr has no paid tier and nothing to buy. if that ever changes we’ll tell you in the app before it does, and nothing you already have will be put behind a payment without your agreement."],
+  ["our role", "we run the platform and we do our best. surr is in beta: things will change, break, and sometimes go away. we don’t promise that the app will always be available, that it will work exactly as expected, or that you’ll meet anyone."],
+  ["liability", "we’re not responsible for what other people on surr do or say, for what happens between people who meet through surr, or for how you choose to use it. as far as the law allows, we’re not liable for indirect losses. nothing here limits liability for intent or gross negligence, for harm to life, body or health, or for anything that can’t be limited under the law where you live. if your local consumer law gives you more rights than these terms, those rights still apply."],
+  ["ending things", "you can delete your account at any time from your settings. that removes your profile and content from surr; some records are kept for as long as the law requires or a report needs. we can end your account for breaking these terms or the guidelines, for keeping surr safe, or if we stop running the service. where we can, we’ll tell you why."],
+  ["changes", "we’ll update these terms as surr grows. when we make a meaningful change we’ll tell you in the app or by email before it takes effect. if you keep using surr after that, you accept the new terms. if you don’t, delete your account."],
+  ["apple", "if you use surr on an iphone, these terms are between you and us, not apple. apple has no obligation to support or maintain surr and isn’t responsible for it. apple can enforce these terms as a third party where they concern the app."],
+  ["law and where", "these terms are governed by the laws of germany. if you’re a consumer in the eu, the mandatory consumer protections of the country you live in still apply, and you can bring a claim where you live."],
+  ["the company behind this", "surr is operated by mother loading ug (haftungsbeschränkt), stresemannstr. 23, 10963 berlin, germany, registered at amtsgericht charlottenburg, hrb 250040, represented by leanne mark. vat id de360762507."],
+  ["contact", "support, questions and legal notices: hello@getsurr.com. reports: the report button in the app, or the same address."],
+];
+write(
+  'terms/index.html',
+  plain(
+    'terms · surr',
+    'terms',
+    `<div class="legal">\n<p>${TERMS_INTRO}</p>\n${TERMS.map(([l, b]) => `<h2>${l}</h2>\n<p>${b}</p>`).join('\n')}\n</div>`,
+    '',
+    'terms/',
+  ),
+);
+
 // the old hidden addresses: each forwards to its live address, and is never indexed
 const forward = (to) => `<!DOCTYPE html>
 <html lang="en">
@@ -158,4 +193,7 @@ const forward = (to) => `<!DOCTYPE html>
 const moved = ['', ...Object.keys(branches), 'deal', 'press', 'support'];
 for (const slug of moved) write(`preview/${slug ? slug + '/' : ''}index.html`, forward(`${BASE}${slug ? slug + '/' : ''}`));
 
-console.log(`built: 6 deep-link copies, deal, support, press, 404, privacy, imprint, ${moved.length} forwarding pages`);
+// the guidelines are the deal: the welcome email links /guidelines
+write('guidelines/index.html', forward(`${BASE}deal/`));
+
+console.log(`built: 6 deep-link copies, deal, support, press, 404, privacy, imprint, terms, ${moved.length} forwarding pages, guidelines`);
