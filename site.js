@@ -44,6 +44,57 @@
     if (C.APP_URL) { a.href = C.APP_URL; a.hidden = false; }
   });
 
+  /* ————— shared: the beta part — until APP_URL is set, one email box in place of the steps ————— */
+  $$('[data-ask]').forEach(function (ask) {
+    var steps = ask.parentNode.querySelector('[data-steps]');
+    if (C.APP_URL) { ask.remove(); return; }
+    if (steps) steps.remove();
+    ask.hidden = false;
+  });
+  var askN = 0;
+  $$('[data-ask-form]').forEach(function (slot) {
+    var n = ++askN;
+    var wrap = document.createElement('div');
+    wrap.innerHTML =
+      '<form class="ask" novalidate><div class="cap">' +
+      '<label class="sr" for="ab' + n + '">email</label><input id="ab' + n + '" name="email" type="email" inputmode="email" autocomplete="email" autocapitalize="none" spellcheck="false" placeholder="email">' +
+      '<button class="dot" type="submit" aria-label="tell me">→</button></div>' +
+      '<p class="err" role="status" aria-live="polite" hidden></p></form>';
+    var form = wrap.firstChild, btn = $('button', form), err = $('.err', form);
+    slot.replaceWith(form);
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (btn.disabled) return;
+      var email = form.email.value.trim().toLowerCase();
+      btn.disabled = true; err.hidden = true;
+      fetch(C.SUPABASE_URL + '/rest/v1/rpc/ask_beta_link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', apikey: C.SUPABASE_ANON_KEY },
+        body: JSON.stringify({ p_email: email }),
+        credentials: 'omit', cache: 'no-store', referrerPolicy: 'no-referrer'
+      }).then(function (r) {
+        if (r.ok) return null;
+        return r.json().catch(function () { return {}; }).then(function (j) { return j || {}; });
+      }).then(function (j) {
+        if (!j) {
+          var ok = document.createElement('p');
+          ok.className = 'done'; ok.setAttribute('role', 'status');
+          ok.textContent = "Got it. We'll email you when it's live.";
+          form.replaceWith(ok);
+          return;
+        }
+        /* the function's own refusal ("that's not an email") comes back as it is, with a capital */
+        var m = j.code === '22023' && j.message ? j.message : '';
+        fail(m ? m.charAt(0).toUpperCase() + m.slice(1) : "That didn't go through. Try again in a moment.");
+      }).catch(function () { fail("That didn't go through. Try again in a moment."); });
+    });
+    function fail(msg) {
+      btn.disabled = false;
+      err.textContent = msg; err.hidden = false;
+      hintAll();
+    }
+  });
+
   /* ————— shared: the list form ————— */
   var formN = 0;
   $$('[data-form]').forEach(function (slot) {
