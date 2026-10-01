@@ -284,13 +284,61 @@
       case 'lift': return who + 'lifted the freeze on ' + at(l.handle);
       case 'dismiss': return who + 'dismissed a report about ' + at(l.handle);
       case 'remove': return who + 'removed someone from surr';
-      case 'send': return who + 'sent a code to someone on the list';
+      case 'send': return l.pile === 'beta' ? who + 'sent the beta link to ' + l.count : who + 'sent a code to someone on the list';
       case 'pass': return who + 'passed on someone on the list';
       case 'done': return who + 'marked feedback from ' + at(l.handle) + ' done';
       case 'keep': return who + 'kept a quote from ' + at(l.handle);
       case 'takedown': return who + 'took a quote down';
       default: return who + l.action;
     }
+  }
+
+  /* ---------- home: the beta link (site-beta-link-ask) ---------- */
+
+  // Shown only while someone is waiting. A count, never the addresses. The send
+  // asks once, in place, then emails everyone waiting; a second tap carries on
+  // with anyone the first one didn't reach.
+  function betaSection(b, my) {
+    if (!b || !b.count) return null;
+    function waiting(n) { return n + ' waiting for the link'; }
+    var count = h('p', { class: 'line', text: waiting(b.count) });
+    if (!b.can_send) {
+      return [h('div', { class: 'kick', text: '// beta link' }), count,
+        h('p', { class: 'line', text: "the testflight link isn't set yet." })];
+    }
+    var note = h('p', { class: 'line', hidden: true });
+    var acts = h('div', { class: 'acts left' });
+    var n = b.count;
+    function offer() {
+      acts.replaceChildren(h('button', { class: 'btn', type: 'button', text: 'send the link', onclick: askFirst }));
+    }
+    function askFirst() {
+      note.hidden = true;
+      var send = h('button', { class: 'btn go', type: 'button', text: 'send' });
+      var no = h('button', { class: 'btn', type: 'button', text: 'not now' });
+      no.onclick = offer;
+      send.onclick = function () {
+        send.disabled = no.disabled = true;
+        desk('beta_send').then(function (r) {
+          if (my !== gen) return;
+          n = r.left;
+          count.textContent = waiting(n);
+          note.className = 'line';
+          note.textContent = 'sent to ' + r.sent + '.' + (r.left ? ' ' + r.left + " didn't go, tap again." : '');
+          note.hidden = false;
+          if (r.left) offer(); else acts.replaceChildren();
+        }).catch(function (err) {
+          if (my !== gen || guard(err)) return;
+          note.className = 'line err';
+          note.textContent = COPY.failed;
+          note.hidden = false;
+          offer();
+        });
+      };
+      acts.replaceChildren(h('span', { class: 'q', text: 'send to ' + n + '?' }), send, no);
+    }
+    offer();
+    return [h('div', { class: 'kick', text: '// beta link' }), count, note, acts];
   }
 
   /* ---------- home ---------- */
@@ -332,6 +380,7 @@
           false, function () { location.hash = 'feedback'; }),
         h('div', { class: 'kick', text: '// quotes' }),
         h('div', { class: 'acts left' }, h('a', { class: 'link', href: '#quotes', text: d.quotes + ' kept →' })),
+        betaSection(d.beta, my),
         frozen.length ? [h('div', { class: 'kick', text: '// frozen' }), frozen] : null,
         todayLines.length ? [h('div', { class: 'kick', text: '// handled today' }), h('div', { class: 'log' }, todayLines)] : null,
         h('div', { class: 'grow' }),

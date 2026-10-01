@@ -139,6 +139,16 @@ form.list input[name=link]{flex-basis:100%}
 .go:disabled{opacity:.6;cursor:default}
 .err{flex-basis:100%;font-family:var(--mono);font-size:11px;color:var(--grey2)}
 .done{margin-top:14px;color:var(--ink);font-size:14px}
+form.ask{margin:0 0 12px}
+form.ask .cap{display:flex;align-items:center;gap:12px;border:1px solid #333;border-radius:999px;padding:6px 6px 6px 16px}
+form.ask .cap:focus-within{border-color:var(--grey2)}
+form.ask input{flex:1;min-width:0;background:none;border:0;border-radius:0;color:var(--ink);font-family:var(--mono);font-size:16px;padding:4px 0;-webkit-appearance:none;appearance:none}
+form.ask input::placeholder{color:var(--grey)}
+form.ask input:focus-visible{outline:none}
+form.ask .dot{flex:none;width:30px;height:30px;border-radius:50%;background:var(--ink);color:var(--bg);display:flex;align-items:center;justify-content:center;font-size:13px;line-height:1}
+form.ask .dot:disabled{opacity:.6;cursor:default}
+form.ask .err{margin:8px 0 0 16px}
+.beta .done{margin:0 0 12px}
 
 /* the radio bar */
 .bar{position:absolute;left:0;right:0;bottom:0;height:46px;z-index:12;background:#0a0a0a;border-top:1px solid var(--line);display:none;align-items:center;gap:18px;padding:0 24px;font-family:var(--mono);font-size:11px;color:var(--grey2)}

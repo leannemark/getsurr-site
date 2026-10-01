@@ -9,6 +9,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const BASE = '/';
+const SITE = 'https://getsurr.com';
 const page = readFileSync(join(root, 'index.html'), 'utf8');
 
 const write = (rel, html) => {
@@ -27,7 +28,12 @@ const branches = {
   beta: 'surr',
 };
 for (const [slug, title] of Object.entries(branches)) {
-  write(`${slug}/index.html`, page.replace('<title>surr</title>', `<title>${title}</title>`));
+  write(
+    `${slug}/index.html`,
+    page
+      .replace('<title>surr</title>', `<title>${title}</title>`)
+      .replace(`content="${SITE}/">`, `content="${SITE}/${slug}/">`),
+  );
 }
 
 // plain pages
@@ -50,7 +56,22 @@ const footer = (here) =>
     .map(([t, h]) => `<a href="${h}"${t === here ? ' aria-current="page"' : ''}>${t}</a>`)
     .join('');
 
-const plain = (title, h1, body, here) => `<!DOCTYPE html>
+// the share picture and the tab icon (decision 2026-10-01-site-share-picture in the app repo): every public page,
+// never the desk or the forwarding pages. index.html carries the same lines by hand.
+const share = (url) => `<meta property="og:type" content="website">
+<meta property="og:title" content="surr">
+<meta property="og:description" content="for lesbians, sapphics, trans &amp; nonbinary people who'd rather link than scroll.">
+<meta property="og:url" content="${url}">
+<meta property="og:image" content="${SITE}${BASE}img/share.jpg">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="surr">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/png" sizes="32x32" href="${BASE}img/icon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="${BASE}img/icon-180.png">`;
+
+const plain = (title, h1, body, here, path) => `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -58,7 +79,7 @@ const plain = (title, h1, body, here) => `<!DOCTYPE html>
 <meta name="description" content="for lesbians, sapphics, trans &amp; nonbinary people who'd rather link than scroll.">
 <meta name="theme-color" content="#050505">
 <title>${title}</title>
-<link rel="icon" href="data:,">
+${share(SITE + BASE + path)}
 <link rel="stylesheet" href="${BASE}site.css">
 </head>
 <body>
@@ -81,6 +102,7 @@ write(
     `<ol>\n${DEAL.map((l, i) => `<li><b>0${i + 1}</b><span>${l}</span></li>`).join('\n')}\n</ol>
 <p>If someone breaks it: block, report, unmatch. It's on every profile and in every chat. You can freeze your account or delete it any time, from the you tab. A person reads every report. ${mail} if you need one.</p>`,
     'the deal',
+    'deal/',
   ),
 );
 
@@ -95,6 +117,7 @@ write(
 <p>To report or block someone: the ··· menu on their profile, or in the chat.</p>
 <p>To leave the map: you tab → location, off.</p>`,
     'support',
+    'support/',
   ),
 );
 
@@ -107,16 +130,17 @@ write(
 <p>Founder: Leanne Mark. Write to ${mail} — a person answers.</p>
 <p>Investors: the same address, subject "backstage".</p>`,
     'press',
+    'press/',
   ),
 );
 
-write('404.html', plain('surr', 'nothing here.', `<p><a href="${BASE}">the door →</a></p>`, ''));
+write('404.html', plain('surr', 'nothing here.', `<p><a href="${BASE}">the door →</a></p>`, '', ''));
 
 // the legal texts: word for word, wrapped in the plain page. the privacy policy is the generator's text as Till cleared it
 // (2026-09-30); the generator's seal badge is left out because it loads from another domain.
 const legal = (f) => `<div class="legal">\n${readFileSync(join(root, '_legal', f), 'utf8').trim()}\n</div>`;
-write('privacy/index.html', plain('privacy · surr', 'privacy', legal('privacy-policy.html'), 'privacy'));
-write('imprint/index.html', plain('imprint · surr', '', legal('imprint.html'), 'imprint'));
+write('privacy/index.html', plain('privacy · surr', 'privacy', legal('privacy-policy.html'), 'privacy', 'privacy/'));
+write('imprint/index.html', plain('imprint · surr', '', legal('imprint.html'), 'imprint', 'imprint/'));
 
 // the old hidden addresses: each forwards to its live address, and is never indexed
 const forward = (to) => `<!DOCTYPE html>
