@@ -16,7 +16,7 @@ window.SURR = {
   /* the next-night line in the nights box. null = no line. switch off the morning after. */
   NEXT_NIGHT: {
     city: 'berlin',
-    date: 'sun 8 nov',
+    date: 'sun 29 nov',
     name: 'tetas locas',
     link: 'https://www.instagram.com/tetas__locas/',
     offer: 'a surr offer awaits you upon entry',
