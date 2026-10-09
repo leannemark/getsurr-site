@@ -38,7 +38,7 @@
     if (/^America\/(Mexico_City|Cancun|Monterrey|Tijuana|Merida)$/.test(z)) return 'mexico';
     if (/^America\/(Sao_Paulo|Bahia|Fortaleza|Recife|Manaus|Belem)$/.test(z)) return 'brazil';
     if (/^Australia\//.test(z)) return 'australia';
-    return 'germany';
+    return 'somewhere else';
   }
   var HOME = { eur: 'berlin', gbp: 'london', usd: 'new york' };
   /* the weekend is a Berlin event: euros in every set (the allies and the pieces too) */
@@ -67,13 +67,17 @@
   if (SHOW === 'soli') S.sheet = true;
   var P = function () { return SETS[S.set]; };
 
+  /* the count and the cap follow the city picked for the bids (Berlin, London or New York by the visitor's country until one is picked);
+     the prices follow the visitor's country. a city capped at 100 or fewer sells at the first price only */
   function lifeInfo() {
-    var city = LIFE_CAP[S.city] && (S.city === 'london' ? 'gbp' : S.city === 'new york' ? 'usd' : 'eur') === S.set ? S.city : HOME[S.set], top = LIFE_CAP[city], sold = n0((D.LIFE_SOLD || {})[city]), p = P();
+    var city = LIFE_CAP[S.city] ? S.city : HOME[S.set], top = LIFE_CAP[city], sold = n0((D.LIFE_SOLD || {})[city]), p = P();
+    var where = 'For life: ' + top + ' in ' + cap(city) + ', only in the first season.';
+    if (top <= LIFE_FIRST) return { price: p.life[0], left: Math.max(0, top - sold) + ' of ' + top + ' left', note: where + ' At ' + money(p.sym, p.life[0]) + '.' };
     var first = sold < LIFE_FIRST;
     return {
       price: first ? p.life[0] : p.life[1],
       left: first ? (LIFE_FIRST - sold) + ' of the first ' + LIFE_FIRST + ' left' : Math.max(0, top - sold) + ' of ' + top + ' left',
-      note: 'Only in the first season: ' + top + ' in ' + cap(city) + ', the first ' + LIFE_FIRST + ' at ' + money(p.sym, p.life[0]) + ', then ' + money(p.sym, p.life[1]) + '.'
+      note: where + ' The first ' + LIFE_FIRST + ' at ' + money(p.sym, p.life[0]) + ', then ' + money(p.sym, p.life[1]) + '.'
     };
   }
 
@@ -149,8 +153,10 @@
     if (c === 'berlin') return 'Berlin opens first.';
     if (c === 'somewhere else') return 'Your city is not in the race yet. We keep a note of it.';
     var rs = racers(), i = rs.indexOf(c);
-    if (i === 0) return cap(c) + ' is in front, ' + (bidsOf(rs[0]) - bidsOf(rs[1])) + ' bids ahead of ' + cap(rs[1]) + '.';
-    return cap(c) + ' is ' + (bidsOf(rs[i - 1]) - bidsOf(c)) + ' bids behind ' + cap(rs[i - 1]) + '.';
+    var j = i === 0 ? 1 : i - 1, d = Math.abs(bidsOf(c) - bidsOf(rs[j]));
+    if (!d) return cap(c) + ' is level with ' + cap(rs[j]) + '.';
+    if (i === 0) return cap(c) + ' is in front, ' + nb(d) + ' ahead of ' + cap(rs[1]) + '.';
+    return cap(c) + ' is ' + nb(d) + ' behind ' + cap(rs[j]) + '.';
   }
 
   /* ————— the sections ————— */
@@ -176,7 +182,7 @@
     var rows = LENGTHS.map(function (t) {
       return '<div class="mrow' + (t.hero ? ' hero' : '') + '"><span class="nm">' + t.nm + '</span><span class="b">' + nb(t.bids) + '</span>' + cell(t.id, 'list') + cell(t.id, 'back') +
         (t.hero ? '<span class="left">' + lifeInfo().left + '</span>' : '') +
-        (t.hero ? '<span class="sub">List for as long as surr exists, with backstage for the first three years, or backstage for good. Both: on the list for the opening, with a plus one, the first drinks on us, and the tank.</span>' : '') +
+        (t.hero ? '<span class="sub">List for as long as surr exists, with backstage for the first three years. Backstage for life keeps backstage for good. Either way: a place on the guest list for the opening, with a plus one, the first drinks on us, and the tank.</span>' : '') +
         '<small>' + lengthNote(t.id) + '</small></div>';
     }).join('');
     var wk = on('weekend', '');
@@ -187,7 +193,7 @@
       COUNTRIES.map(function (c) { return '<option value="' + c + '"' + (S.country === c ? ' selected' : '') + '>' + c + ' · ' + SETS[countrySet(c)].sym + '</option>'; }).join('') + '</select></label>';
     return '<section class="ds"><div>' + head('02', "for the ones who'll be on the app", 'become a patron.') +
       '<span class="k">every patron gets</span><ul class="gets"><li>your username, before anyone else</li><li>thirteen invite codes</li><li>your name in the credits</li><li>the patron mark on your profile, with your number</li></ul></div>' +
-      '<div>' + where + '<dl class="key"><dt>list</dt><dd>Your annual pass to surr, for as many years as you choose.</dd><dt>backstage</dt><dd>Our extras on top of list: special features, monthly gifts like bumps and layovers, and IRL privileges at our nights and partner events.</dd></dl>' +
+      '<div>' + where + '<dl class="key"><dt>list</dt><dd>Your annual pass to surr, for as many years as you choose.</dd><dt>backstage</dt><dd>List, plus our extras: special features, monthly gifts like bumps and layovers, and IRL privileges at our nights and partner events.</dd></dl>' +
       '<div class="pmenu' + (PICK ? ' pick' : '') + '"><div class="mhead"><span></span><span></span><b>list</b><b>backstage</b></div>' + rows + '</div>' +
       '<div class="rows' + (PICK ? ' pick' : '') + '">' + weekend + '</div>' +
       '<p class="fine">Bids show us where you want surr next. See the city race below.</p></div>' +
@@ -416,10 +422,13 @@
       shown = -1;
     }
     var slot = $('[data-form]', inner); if (slot) slot.replaceWith(listNode);
+    var typed = {}; $$('.pay input').forEach(function (i) { if (i.id !== 'pamount') typed[i.id] = i.value; });
     var bar = payBar();
     $('#dpay').innerHTML = desk ? bar : '';
     $('#ppay').innerHTML = desk ? '' : bar;
     $('#pdoor').hidden = !!bar;
+    $('.dphone').classList.toggle('paying', !!bar);
+    Object.keys(typed).forEach(function (id) { var i = $('#' + id); if (i) i.value = typed[id]; });
     if (tops) { inner.scrollTop = tops[0]; $$('.scroll', inner).forEach(function (s, i) { if (tops[i + 1] != null) s.scrollTop = tops[i + 1]; }); }
     else inner.scrollTop = 0;
     watchHints(desk ? $('#desk') : $('.dphone'));
@@ -564,7 +573,7 @@
   });
   document.addEventListener('change', function (e) {
     if (e.target.id === 'pcountry') { S.country = e.target.value; S.set = countrySet(S.country); render(); var pc = $('#pcountry'); if (pc) pc.focus({ preventScroll: true }); return; }
-    if (e.target.id === 'pcity') { S.city = e.target.value; var em = $('#pemail'), v = em ? em.value : ''; render(); em = $('#pemail'); if (em) em.value = v; var c = $('#pcity'); if (c) c.focus({ preventScroll: true }); }
+    if (e.target.id === 'pcity') { S.city = e.target.value; render(); var c = $('#pcity'); if (c) c.focus({ preventScroll: true }); }
   });
   document.addEventListener('input', function (e) {
     if (e.target.id === 'pamount') {
@@ -589,4 +598,11 @@
 
   render(true);
   if (S.sheet) openSheet(null);
+  /* the paying preview on the phone opens on the patron screen, at the picked price */
+  if (SHOW === 'paying' && !deskMQ.matches) {
+    dsnap.scrollTop = dsnap.clientHeight;
+    var pc = $('.dscreen .pc[aria-pressed="true"]'), sc = pc && pc.closest('.scroll');
+    if (sc) sc.scrollTop = Math.max(0, pc.getBoundingClientRect().top - sc.getBoundingClientRect().top - 120);
+    mark();
+  }
 })();
