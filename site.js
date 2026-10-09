@@ -238,7 +238,19 @@
     if (!keepAddress) setAddress('', 'surr');
     if (was) { var c = $('.cell[data-i="' + was + '"]', band); if (c && document.activeElement && document.activeElement.closest && document.activeElement.closest('.branch')) c.focus({ preventScroll: true }); }
   }
+  /* pictures fade in once loaded; the map poster is the heaviest, so it waits until the page has loaded (or the map opens) */
+  function fadeIn(img) {
+    if (img.classList.contains('ok')) return;
+    if (img.complete && img.naturalWidth) img.classList.add('ok');
+    else img.addEventListener('load', function () { img.classList.add('ok'); }, { once: true });
+  }
+  $$('.band img, .tile img, .sec .bg > img, .look img').forEach(fadeIn);
+  function loadPoster() {
+    $$('img[data-src]').forEach(function (img) { img.src = img.getAttribute('data-src'); img.removeAttribute('data-src'); fadeIn(img); });
+  }
+  if (document.readyState === 'complete') loadPoster(); else addEventListener('load', loadPoster);
   function openDesk(id, beta) {
+    if (id === 'map') loadPoster();
     closeDesk(true);
     openId = id;
     $('.cell[data-i="' + id + '"]', band).classList.add('open');
@@ -295,6 +307,7 @@
   vh(); addEventListener('resize', vh);
   function sec(id) { return $('.sec[data-i="' + id + '"]', snap); }
   function goSec(id, beta, how) {
+    if (id === 'map') loadPoster();
     var s = sec(id); if (!s) return;
     if (id === 'surr') { var d = $('details.beta', s); if (beta) d.open = true; }
     if (how === 'auto') { snap.scrollTop = s.offsetTop; mark(); }

@@ -1,10 +1,10 @@
 /* surr — getsurr.com. self-hosted type only; nothing on this page calls another host on load. */
-@font-face{font-family:'surr-display';src:url(fonts/ArchivoExpanded.ttf) format('truetype');font-weight:800;font-display:swap}
-@font-face{font-family:'surr-head';src:url(fonts/ArchivoSemiExpandedBold.ttf) format('truetype');font-weight:700;font-display:swap}
-@font-face{font-family:'surr-text';src:url(fonts/ArchivoRegular.ttf) format('truetype');font-weight:400;font-display:swap}
-@font-face{font-family:'surr-text';src:url(fonts/ArchivoMedium.ttf) format('truetype');font-weight:500;font-display:swap}
-@font-face{font-family:'surr-text';src:url(fonts/ArchivoBold.ttf) format('truetype');font-weight:700;font-display:swap}
-@font-face{font-family:'surr-mono';src:url(fonts/FragmentMono-Regular.ttf) format('truetype');font-weight:400;font-display:swap}
+@font-face{font-family:'surr-display';src:url(fonts/ArchivoExpanded.woff2) format('woff2');font-weight:800;font-display:block}
+@font-face{font-family:'surr-head';src:url(fonts/ArchivoSemiExpandedBold.woff2) format('woff2');font-weight:700;font-display:block}
+@font-face{font-family:'surr-text';src:url(fonts/ArchivoRegular.woff2) format('woff2');font-weight:400;font-display:block}
+@font-face{font-family:'surr-text';src:url(fonts/ArchivoMedium.woff2) format('woff2');font-weight:500;font-display:block}
+@font-face{font-family:'surr-text';src:url(fonts/ArchivoBold.woff2) format('woff2');font-weight:700;font-display:block}
+@font-face{font-family:'surr-mono';src:url(fonts/FragmentMono-Regular.woff2) format('woff2');font-weight:400;font-display:block}
 
 :root{--bg:#050505;--ink:#E8E8E8;--grey:#7A7A7A;--grey2:#BBBBBB;--line:#1e1e1e;--red:#DE0A26;
   --sans:'surr-text',system-ui,-apple-system,sans-serif;--head:'surr-head','surr-text',system-ui,sans-serif;
@@ -36,9 +36,9 @@ body.is-desk{overflow:hidden}
 .site{position:absolute;inset:0}
 
 .band{position:absolute;left:0;right:0;top:33%;height:34%;display:grid;grid-template-columns:1.1fr 1fr 1fr 1fr 1fr;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
-.cell{position:relative;border-right:1px solid var(--line);display:flex;align-items:center;justify-content:center;overflow:hidden;transition:filter .45s,opacity .45s;z-index:2;outline-offset:-3px}
+.cell{position:relative;border-right:1px solid var(--line);display:flex;align-items:center;justify-content:center;overflow:hidden;transition:opacity .45s;z-index:2;outline-offset:-3px}
 .cell:last-child{border-right:0}
-.band.hot .cell:not(.hot):not(.open){filter:blur(3px);opacity:.72}
+.band.hot .cell:not(.hot):not(.open){opacity:.35}
 .cell .sym{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;transition:opacity .35s}
 .cell .word{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:clamp(28px,4.2vw,54px);opacity:0;transition:opacity .35s;pointer-events:none;text-align:center}
 .cell.symbolic.hot .sym{opacity:0}.cell.symbolic.hot .word{opacity:1}
@@ -63,7 +63,7 @@ body.is-desk{overflow:hidden}
 .site.radio .door,.site.radio .foot{bottom:66px}
 
 /* veil + branches */
-.veil{position:absolute;inset:0;z-index:5;-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);background:rgba(5,5,5,.55);opacity:0;pointer-events:none;transition:opacity .5s}
+.veil{position:absolute;inset:0;z-index:5;background:rgba(5,5,5,.8);opacity:0;pointer-events:none;transition:opacity .5s}
 .site.has-open .veil{opacity:1;pointer-events:auto}
 .branch{position:absolute;z-index:10;display:none;background:var(--bg);border:1px solid var(--line)}
 .branch.on{display:flex;-webkit-animation:in .5s cubic-bezier(.2,.8,.2,1);animation:in .5s cubic-bezier(.2,.8,.2,1)}
@@ -159,14 +159,14 @@ form.ask .err{margin:8px 0 0 16px}
 
 /* the splash (only at the door) */
 .splash{position:absolute;inset:0;z-index:30;cursor:pointer}
-.splash .layer{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 42%,#1d1d21 0,#0b0b0d 60%,#050506 100%);transition:transform 1.1s cubic-bezier(.7,0,.2,1) .55s,opacity 1.1s .55s}
+.splash .layer{position:absolute;inset:0;will-change:transform;background:radial-gradient(ellipse at 50% 42%,#1d1d21 0,#0b0b0d 60%,#050506 100%);transition:transform 1.1s cubic-bezier(.7,0,.2,1) .55s,opacity 1.1s .55s}
 .splash .layer.a{-webkit-clip-path:polygon(0 0,100% 0,0 100%);clip-path:polygon(0 0,100% 0,0 100%)}
 .splash .layer.b{-webkit-clip-path:polygon(100% 0,100% 100%,0 100%);clip-path:polygon(100% 0,100% 100%,0 100%)}
 .splash.cut .layer.a{transform:translate(-9%,-9%);opacity:0}
 .splash.cut .layer.b{transform:translate(9%,9%);opacity:0}
 .splash.cut{pointer-events:none}
 .splash{--open:-14deg}.splash.cut{--open:-24deg}
-.splash svg.pair{position:absolute;width:44%;height:22vw;filter:drop-shadow(0 28px 30px rgba(0,0,0,1)) drop-shadow(0 2px 3px rgba(0,0,0,.9));transition:transform .7s cubic-bezier(.3,0,.2,1)}
+.splash svg.pair{position:absolute;width:44%;height:22vw;filter:drop-shadow(0 20px 24px rgba(0,0,0,.9));will-change:transform;transition:transform .7s cubic-bezier(.3,0,.2,1)}
 .splash svg.s1{left:4%;bottom:8%;transform:rotate(-32deg)}
 .splash svg.s2{right:6%;top:6%;transform:rotate(148deg)}
 .splash.cut svg.s1{transform:rotate(-30deg) translate(7%,-6%)}
@@ -190,7 +190,7 @@ form.ask .err{margin:8px 0 0 16px}
 .snap > section{height:calc(var(--vh) * 100);scroll-snap-align:start;scroll-snap-stop:always;display:flex;flex-direction:column;position:relative;overflow:hidden;border-top:1px solid var(--line)}
 .ssplash{background:radial-gradient(ellipse at 50% 40%,#1d1d21 0,#0b0b0d 60%,#050506 100%);align-items:center;justify-content:center;cursor:pointer;border-top:0!important}
 .ssplash{--open:-12deg}.ssplash.cut{--open:-30deg}
-.ssplash svg.one{width:78%;height:39vw;transform:rotate(-38deg);filter:drop-shadow(0 28px 30px rgba(0,0,0,1));transition:transform .7s cubic-bezier(.3,0,.2,1),opacity .5s .4s}
+.ssplash svg.one{width:78%;height:39vw;transform:rotate(-38deg);filter:drop-shadow(0 20px 24px rgba(0,0,0,.9));will-change:transform;transition:transform .7s cubic-bezier(.3,0,.2,1),opacity .5s .4s}
 .ssplash .cum{position:absolute;right:12%;bottom:22%;height:12px;width:auto;transition:opacity .4s}
 .ssplash.cut svg.one{transform:rotate(-40deg) translate(14%,0);opacity:0}
 .ssplash.cut .cum{opacity:0}
@@ -269,7 +269,10 @@ form.ask .err{margin:8px 0 0 16px}
 .legal strong{color:var(--ink);font-weight:500}
 .legal p{margin:0 0 12px}
 
+/* pictures arrive with a fade (site.js adds .ok once one has loaded) */
+.cell .sym img,.tile .sym img,.sec .bg > img,.look img{opacity:0;transition:opacity .4s,filter .6s}
+.cell .sym img.ok,.tile .sym img.ok,.sec .bg > img.ok,.look img.ok{opacity:1}
+
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{-webkit-animation:none!important;animation:none!important;transition:none!important;scroll-behavior:auto!important}
-  .veil{-webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(5,5,5,.82)}
 }

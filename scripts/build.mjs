@@ -81,6 +81,10 @@ const plain = (title, h1, body, here, path) => `<!DOCTYPE html>
 <title>${title}</title>
 ${share(SITE + BASE + path)}
 <link rel="stylesheet" href="${BASE}site.css">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="${BASE}fonts/ArchivoExpanded.woff2">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="${BASE}fonts/ArchivoSemiExpandedBold.woff2">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="${BASE}fonts/ArchivoRegular.woff2">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="${BASE}fonts/FragmentMono-Regular.woff2">
 </head>
 <body>
 <div class="plain">
