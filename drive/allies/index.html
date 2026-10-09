@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en" data-door="allies">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="surr is coming. let's do this together.">
+<meta name="robots" content="noindex">
+<link rel="canonical" href="https://getsurr.com/drive/">
+<meta name="theme-color" content="#050505">
+<title>the drive · surr</title>
+<meta property="og:type" content="website">
+<meta property="og:title" content="the drive · surr">
+<meta property="og:description" content="surr is coming. let's do this together.">
+<meta property="og:url" content="https://getsurr.com/drive/">
+<meta property="og:image" content="https://getsurr.com/img/share.jpg">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="surr">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/png" sizes="32x32" href="/img/icon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/img/icon-180.png">
+<link rel="stylesheet" href="/site.css">
+<link rel="stylesheet" href="/drive/drive.css">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/ArchivoExpanded.woff2">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/ArchivoSemiExpandedBold.woff2">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/ArchivoRegular.woff2">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/FragmentMono-Regular.woff2">
+<script src="/config.js"></script>
+</head>
+<body class="drivepage">
+
+<!-- ————————————————— desktop: the site's band behind the veil, the box over it ————————————————— -->
+<div class="desk" id="desk" role="main">
+  <div class="site has-open dsite">
+    <div class="veil"></div>
+    <!-- the band's first four tiles sit under the box and the veil; they are drawn empty, so no picture loads for nothing -->
+    <nav class="band" aria-hidden="true">
+      <span class="cell surr" aria-hidden="true"><span class="sym big">surr</span></span>
+      <span class="cell" aria-hidden="true"></span>
+      <span class="cell" aria-hidden="true"></span>
+      <span class="cell" aria-hidden="true"></span>
+      <span class="cell symbolic fusecell here"><span class="sym"><svg class="fuse" viewBox="0 0 380 54" aria-hidden="true"><path class="cord dark" d="M 4 34 C 50 4, 100 12, 130 28 S 210 50, 250 22 S 320 6, 376 26"/><path class="cord" pathLength="1" d="M 4 34 C 50 4, 100 12, 130 28 S 210 50, 250 22 S 320 6, 376 26"/><g class="mover"><circle class="glow" r="7"/><circle class="spark" r="3.5"/></g></svg></span><span class="word big">drive</span></span>
+    </nav>
+
+    <section class="dbox" aria-label="the drive">
+      <a class="x" href="/">× close</a>
+      <div class="scrollwrap dwrap"><div class="scroll" id="dscroll"></div><div class="fade"></div><span class="more" aria-hidden="true">↓ more</span></div>
+      <div class="dpay" id="dpay"></div>
+    </section>
+
+    <div class="door"><a href="/beta/">got a code? <b>try the beta →</b></a><a href="/list/">no code? <b>the list →</b></a></div>
+    <footer class="foot"><a href="/press/">press</a><a href="/support/">support</a><a href="/imprint/">imprint</a><a href="/privacy/">privacy</a><a href="/deal/">the deal</a></footer>
+  </div>
+</div>
+
+<!-- ————————————————— phone: its own snap of screens ————————————————— -->
+<div class="snap-wrap dphone" role="main">
+  <header class="dtop">
+    <a class="home mono" href="/">surr ↑</a>
+    <svg class="fuse" viewBox="0 0 380 54" aria-hidden="true"><path class="cord dark" d="M 4 34 C 50 4, 100 12, 130 28 S 210 50, 250 22 S 320 6, 376 26"/><path class="cord" pathLength="1" d="M 4 34 C 50 4, 100 12, 130 28 S 210 50, 250 22 S 320 6, 376 26"/><g class="mover"><circle class="glow" r="7"/><circle class="spark" r="3.5"/></g></svg>
+    <span class="word big">drive</span>
+  </header>
+  <div class="dsnap" id="dsnap"></div>
+  <div class="ticks on dticks" id="dticks" aria-hidden="true"></div>
+  <div class="dpay" id="ppay"></div>
+  <div class="snapdoor" id="pdoor"><a href="/beta/">got a code? <b>try the beta →</b></a><a href="/list/">no code? <b>the list →</b></a></div>
+</div>
+
+<!-- the soli sheet: one screen over the page -->
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="soli" hidden></div>
+
+<script src="/drive/drive.js"></script>
+</body>
+</html>

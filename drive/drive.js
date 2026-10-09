@@ -11,8 +11,12 @@
   var deskMQ = matchMedia('(min-width: 721px)');
   var n0 = function (x) { x = Math.floor(+x); return x > 0 ? x : 0; };
 
+  /* the allies' door (getsurr.com/drive/allies/, a copy of this page made by scripts/build.mjs): opens on section 03 and is never indexed */
+  var DOOR = document.documentElement.getAttribute('data-door') === 'allies';
+  var DOORLINK = 'https://surr.gay/allies';
+
   /* switch-on: with DRIVE.ON the page may be indexed (switch-on also deletes the noindex line from drive/index.html) */
-  if (D.ON) { var ni = $('meta[name="robots"]'); if (ni) ni.remove(); }
+  if (D.ON && !DOOR) { var ni = $('meta[name="robots"]'); if (ni) ni.remove(); }
 
   /* ————— the prices (MARKET_ANALYSIS.md §13.2 and §16, decided). the picked city decides the set; no fourth set, ever ————— */
   var SETS = {
@@ -55,16 +59,17 @@
   var nb = function (n) { return n + (n === 1 ? ' bid' : ' bids'); };
   var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
 
-  /* ————— the state, and the preview switch (?show=paying | after | ally | soli) — it sends nothing and charges nothing ————— */
+  /* ————— the state, and the preview switch (?show=paying | after | ally | soli | giving | strip) — it sends nothing and charges nothing ————— */
   var SHOW = (location.search.match(/[?&]show=([a-z]+)/) || [])[1] || '';
-  var PREVIEW = ['paying', 'after', 'ally', 'soli'].indexOf(SHOW) >= 0;
+  var PREVIEW = ['paying', 'after', 'ally', 'soli', 'giving'].indexOf(SHOW) >= 0;
   var PICK = !!D.PAY_ON || PREVIEW;
-  var S = { country: guessCountry(), set: 'eur', city: '', sel: null, done: false, all: false, amount: '', sheet: false, sent: false };
+  var S = { country: guessCountry(), set: 'eur', city: '', sel: null, done: false, all: false, amount: '', sheet: false, sent: false, showName: false, slim: DOOR, form: null };
   S.set = countrySet(S.country);
   if (SHOW === 'paying') S.sel = { k: 'p', id: 'life', lvl: 'list' };
   if (SHOW === 'after') { S.sel = { k: 'p', id: 'life', lvl: 'list' }; S.city = 'barcelona'; S.done = true; }
   if (SHOW === 'ally') { S.sel = { k: 'a', id: 'table' }; S.done = true; }
   if (SHOW === 'soli') S.sheet = true;
+  if (SHOW === 'giving') S.sel = { k: 'a', id: 'table' };
   var P = function () { return SETS[S.set]; };
 
   /* the count and the cap follow the city picked for the bids (Berlin, London or New York by the visitor's country until one is picked);
@@ -159,6 +164,68 @@
     return cap(c) + ' is ' + nb(d) + ' behind ' + cap(rs[j]) + '.';
   }
 
+  /* ————— the strip: the allies' newest gifts, running sideways (DRIVE.STRIP; the payments build feeds it — allies only, a first name only with the tick, never a patron).
+     this page only draws the lines it is given ————— */
+  var REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var SCARCE = { cabana: 'a cabana is gone.', yacht: 'a yacht is gone.', villa: 'the villa is gone.' };
+  var ago = function (at) {
+    var m = Math.floor((Date.now() - new Date(at).getTime()) / 60000);
+    return m < 1 ? 'just now' : m < 60 ? m + ' min' : m < 1440 ? Math.floor(m / 60) + ' h' : Math.floor(m / 1440) + ' d';
+  };
+  var minsAgo = function (m) { return new Date(Date.now() - m * 60000).toISOString(); };
+  var stripLine = function (g) {
+    var first = String(g.name || '').trim().split(/\s+/)[0].toLowerCase().slice(0, 24), city = String(g.city || '').trim().toLowerCase();
+    var who = first || (city ? 'someone in ' + city : 'someone');
+    return '<b>' + esc(who) + ':</b> ' + esc(ally(g.rung).line) + (first && city ? ' <em>' + esc(city) + '</em>' : '');
+  };
+  /* ?show=strip: the mockup's eight sample lines and its villa takeover */
+  var SAMPLE = [
+    { name: 'ali', city: 'berlin', rung: 'table', at: 2 }, { name: '', city: 'berlin', rung: 'round', at: 4 }, { name: 'marco', city: 'berlin', rung: 'yacht', at: 11 },
+    { name: '', city: 'london', rung: 'bottle', at: 14 }, { name: 'tom', city: 'london', rung: 'section', at: 20 }, { name: 'jonas', city: 'berlin', rung: 'cabana', at: 38 },
+    { name: '', city: 'hamburg', rung: 'round', at: 60 }, { name: 'kemal', city: 'berlin', rung: 'bottle', at: 64 }
+  ].map(function (g) { g.at = minsAgo(g.at); return g; });
+  var SAMPLE_TAKE = { name: '', city: 'london', rung: 'villa', at: minsAgo(0) };
+  var stripNode = null, stripT0 = Date.now(), stripTimer = 0;
+  function buildStrip() {
+    clearInterval(stripTimer); stripNode = null;
+    var list = (SHOW === 'strip' ? SAMPLE : (D.STRIP || [])).filter(function (g) { return g && ally(g.rung); }), take = null;
+    if (!list.length) return;
+    if (SHOW === 'strip') take = SAMPLE_TAKE;
+    else if (SCARCE[list[0].rung] && Date.now() - new Date(list[0].at).getTime() < 864e5) take = list[0];
+    if (REDUCED) { list = list.slice(0, 3); take = null; }
+    var set = function (hide) {
+      return list.map(function (g) {
+        return '<span class="it"' + (hide ? ' aria-hidden="true"' : '') + '><i>' + svg(g.rung) + '</i><span>' + stripLine(g) + '</span><em>' + ago(g.at) + '</em></span><span class="star" aria-hidden="true">✦</span>';
+      }).join('');
+    };
+    var el = document.createElement('div');
+    el.className = 'stripw' + (REDUCED ? ' still' : '');
+    el.innerHTML = '<div class="strip" role="region" aria-label="the newest gifts"><div class="lane">' + set(false) + (REDUCED ? '' : set(true)) + '</div>' +
+      (take ? '<div class="take" aria-hidden="true"><i>' + svg(take.rung) + '</i><p><b>' + SCARCE[take.rung] + '</b> ' + stripLine(take) + '</p></div>' : '') + '</div>';
+    stripNode = el; el._set = set;
+    /* the red takeover: a scarce newest line under a day old, 3.4 s, never more than once in 45 s */
+    var tk = $('.take', el);
+    if (tk) {
+      var run = function () { tk.classList.add('on'); setTimeout(function () { tk.classList.remove('on'); }, 3400); };
+      setTimeout(run, 6000);
+      stripTimer = setInterval(run, 45000);
+    }
+  }
+  /* put the one strip node into the page; the loop carries on from where it was, and a short list is repeated until it fills the width */
+  function placeStrip(slot) {
+    if (!stripNode || !slot) return;
+    slot.appendChild(stripNode);
+    var lane = $('.lane', stripNode), box = $('.strip', stripNode);
+    if (REDUCED) return;
+    var star = $('.star', lane), w = star.offsetLeft + star.offsetWidth + 34;
+    if (!stripNode.dataset.fit && w > 40 && w < box.clientWidth) {
+      stripNode.dataset.fit = '1';
+      var reps = Math.ceil(box.clientWidth / w), rep = function (hide) { return new Array(reps + 1).join(stripNode._set(hide)); };
+      lane.innerHTML = rep(false) + rep(true);
+    }
+    lane.style.animationDelay = '-' + (((Date.now() - stripT0) / 1000) % 38).toFixed(2) + 's';
+  }
+
   /* ————— the sections ————— */
   var head = function (n, k, t) { return '<span class="num">' + n + '</span><span class="k">' + k + '</span>' + (t ? '<h3>' + t + '</h3>' : ''); };
   function counter() {
@@ -173,6 +240,8 @@
       "<div><span class=\"k\">getting in</span><p class=\"fine\">Patrons don't skip the checks. Everyone applies the same way, so we know every account is real. No cis men.</p></div></div></section>";
   }
   function secPatrons() {
+    /* the allies' door on desktop: section 02 is a slim bar until the pill opens it */
+    if (DOOR && S.slim && deskMQ.matches) return '<section class="ds slim"><h3>become a patron.</h3><button class="up" type="button" data-act="patrons">↑ patrons</button></section>';
     var p = P(), tag = PICK ? 'button' : 'div';
     var on = function (id, lvl) { return !!(S.sel && S.sel.k === 'p' && S.sel.id === id && (S.sel.lvl || '') === (lvl || '')); };
     var cell = function (id, lvl) {
@@ -208,7 +277,9 @@
     }).join('');
     var own = !!(S.sel && S.sel.k === 'a' && S.sel.id === 'own');
     rows += '<' + tag + ' class="arow own"' + (PICK ? ' type="button" data-ally="own" aria-pressed="' + own + '"' : '') + '><i></i><span class="nm">your amount</span><span class="b"></span></' + tag + '>';
-    return '<section class="ds"><div>' + head('03', 'friends, family and allies', 'support your local lesbian.') +
+    var ph = !deskMQ.matches;
+    return '<section class="ds allies">' + (ph ? '' : '<div class="stripw-slot" data-strip></div>') + (DOOR && ph ? '<button class="up" type="button" data-act="patrons">↑ patrons</button>' : '') +
+      '<div>' + head('03', 'friends, family and allies', 'support your local lesbian.') +
       '<p class="body">Not here to date? You can still be part of it. Your name goes in the credits.</p></div>' +
       '<div><span class="k">Each one comes with everything above it.</span><div class="arows' + (PICK ? ' pick' : '') + '">' + rows + '</div>' +
       '<p class="fine gift">You can also give a friend a year, three years, for life, or backstage for life. She still applies like everyone else.</p></div></section>';
@@ -246,6 +317,7 @@
         '<label class="sr" for="pname">your name, for the credits</label><input class="field" id="pname" name="name" type="text" autocomplete="name" placeholder="your name, for the credits">' +
         '<label class="sr" for="pemail">email</label><input class="field" id="pemail" name="email" type="email" inputmode="email" autocomplete="email" autocapitalize="none" spellcheck="false" placeholder="email">' +
         (own ? '<label class="sr" for="pamount">amount in €</label><input class="field" id="pamount" name="amount" type="text" inputmode="numeric" autocomplete="off" placeholder="amount in €" value="' + esc(S.amount) + '">' : '') +
+        '<label class="tick"><input type="checkbox" id="pshow" name="showname"' + (S.showName ? ' checked' : '') + '><span>show my first name on the page</span></label>' +
         '<button class="go solid" type="button" data-act="pay"' + (own && !n0(S.amount) ? ' disabled' : '') + '>' + payLabel() + '</button>' +
         '<p class="fine">This is support. It does not give you a place in the app.</p></div>';
     }
@@ -267,7 +339,7 @@
         '<ul class="next"><li><b>Your name goes in the credits</b>, the way you typed it.</li>' + (merch ? "<li><b>Your merch.</b> We'll email you for a size and an address.</li>" : '') + '<li>Your receipt is in your email.</li></ul>' +
         (own ? '' : '<div class="card"><canvas width="1080" height="1080" aria-label="' + esc(t.line) + '"></canvas><div class="btns">' +
           (deskMQ.matches ? '<button class="go" type="button" data-act="save-story">save the story ↓</button><button class="go" type="button" data-act="save-square">save the square ↓</button>'
-            : '<button class="go" type="button" data-act="share">share it →</button>') + '</div></div>') +
+            : '<button class="go" type="button" data-act="share">share it →</button>') + '<button class="go" type="button" data-act="copy">copy the link</button></div></div>') +
         '<button class="link" type="button" data-act="back">← back to the drive</button></div>';
     }
     var race = S.city && S.city !== 'somewhere else';
@@ -282,6 +354,8 @@
   /* pay(): the payments brief replaces this one function with the real checkout. until then it only shows the after-screen — nothing is charged or sent. */
   function pay() {
     if (!S.sel || (S.sel.k === 'p' && !S.city) || (S.sel.id === 'own' && !n0(S.amount))) return;
+    var v = function (id) { var i = $('#' + id); return i ? i.value.trim() : ''; };
+    S.form = { name: v('pname'), email: v('pemail'), showName: S.showName };
     S.done = true;
     render(true);
   }
@@ -403,6 +477,20 @@
 
   /* ————— render: the whole page from the state; the scroll positions and the list form survive ————— */
   var lastKey = '';
+  /* the door opens on 03: desktop, the slim bar at the top of the box (01 stays above); phone, the snap on the 03 screen */
+  var atDoor = DOOR;
+  function toDoor(desk, inner) {
+    if (desk) { var sl = $('.ds.slim', inner); if (sl) inner.scrollTop = sl.getBoundingClientRect().top - inner.getBoundingClientRect().top + inner.scrollTop; }
+    else inner.scrollTop = 2 * inner.clientHeight;
+  }
+  function openPatrons() {
+    atDoor = false; S.slim = false;
+    if (deskMQ.matches) {
+      render();
+      var inner = $('#dscroll'), sec = inner.children[1];
+      if (sec) { inner.scrollTop = sec.getBoundingClientRect().top - inner.getBoundingClientRect().top + inner.scrollTop; var h = $('h3', sec); if (h) { h.setAttribute('tabindex', '-1'); h.focus({ preventScroll: true }); } }
+    } else dsnap.scrollTop = dsnap.clientHeight;
+  }
   function render(reset) {
     var fa = document.activeElement, fsel = '';
     if (fa && fa.dataset) {
@@ -428,7 +516,12 @@
       shown = -1;
     }
     var slot = $('[data-form]', inner); if (slot) slot.replaceWith(listNode);
-    var typed = {}; $$('.pay input').forEach(function (i) { if (i.id !== 'pamount') typed[i.id] = i.value; });
+    /* the strip: across the top of 03 on desktop; pinned along the bottom of the 03 screen on the phone */
+    if (!S.done) {
+      if (desk) placeStrip($('[data-strip]', inner));
+      else if (stripNode) { var scr = $$('.dscreen', inner)[2]; if (scr) placeStrip(scr); }
+    }
+    var typed = {}; $$('.pay input').forEach(function (i) { if (i.id !== 'pamount' && i.type !== 'checkbox') typed[i.id] = i.value; });
     var bar = payBar();
     $('#dpay').innerHTML = desk ? bar : '';
     $('#ppay').innerHTML = desk ? '' : bar;
@@ -437,6 +530,7 @@
     Object.keys(typed).forEach(function (id) { var i = $('#' + id); if (i) i.value = typed[id]; });
     if (tops) { inner.scrollTop = tops[0]; $$('.scroll', inner).forEach(function (s, i) { if (tops[i + 1] != null) s.scrollTop = tops[i + 1]; }); }
     else inner.scrollTop = 0;
+    if (reset && atDoor && !S.done) toDoor(desk, inner);
     watchHints(desk ? $('#desk') : $('.dphone'));
     if (!desk) mark();
     var cv = $('.card canvas', inner); if (cv) card(cv);
@@ -555,9 +649,26 @@
     var name = 'surr-' + pics.id + '.png';
     try {
       var file = new File([pics.story], name, { type: 'image/png' });
+      if (navigator.canShare && navigator.canShare({ files: [file], url: DOORLINK })) { navigator.share({ files: [file], url: DOORLINK }).catch(function () {}); return; }
       if (navigator.canShare && navigator.canShare({ files: [file] })) { navigator.share({ files: [file] }).catch(function () {}); return; }
     } catch (e) { /* no File constructor: save instead */ }
     save(pics.story, name);
+  }
+
+  /* copy the link: the plain surr.gay/allies, the same for everyone; it goes out only when she chooses to share it */
+  function copyLink(btn) {
+    var done = function () {
+      btn.textContent = 'copied';
+      setTimeout(function () { if (btn.isConnected) btn.textContent = 'copy the link'; }, 2000);
+    };
+    var old = function () {
+      var t = document.createElement('textarea');
+      t.value = DOORLINK; t.setAttribute('readonly', ''); t.style.cssText = 'position:fixed;top:0;opacity:0';
+      document.body.appendChild(t); t.select();
+      try { document.execCommand('copy'); } catch (e) { /* nothing to do */ }
+      t.remove(); done();
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(DOORLINK).then(done, old); else old();
   }
 
   /* ————— taps ————— */
@@ -574,11 +685,13 @@
       case 'clear': S.sel = null; render(); break;
       case 'pay': pay(); break;
       case 'all': S.all = !S.all; render(); break;
-      case 'back': S.sel = null; S.city = ''; S.done = false; S.amount = ''; render(true); break;
+      case 'back': S.sel = null; S.city = ''; S.done = false; S.amount = ''; S.showName = false; S.form = null; render(true); break;
       case 'ask': openSheet(b); break;
       case 'close-sheet': closeSheet(); break;
       case 'send': sendAsk(); break;
       case 'share': share(); break;
+      case 'copy': copyLink(b); break;
+      case 'patrons': openPatrons(); break;
       case 'save-story': save(pics.story, 'surr-' + pics.id + '-story.png'); break;
       case 'save-square': save(pics.square, 'surr-' + pics.id + '-square.png'); break;
     }
@@ -587,6 +700,7 @@
     if (e.target.id === 'pcountry') { S.country = e.target.value; S.set = countrySet(S.country); render(); var pc = $('#pcountry'); if (pc) pc.focus({ preventScroll: true }); return; }
     if (e.target.id === 'pcity') { S.city = e.target.value; render(); var c = $('#pcity'); if (c) c.focus({ preventScroll: true }); }
   });
+  document.addEventListener('change', function (e) { if (e.target.id === 'pshow') S.showName = e.target.checked; });
   document.addEventListener('input', function (e) {
     if (e.target.id === 'pamount') {
       S.amount = e.target.value.replace(/[^\d]/g, '');
@@ -606,11 +720,14 @@
   });
 
   document.body.classList.toggle('is-desk', deskMQ.matches);
-  var onView = function () { document.body.classList.toggle('is-desk', deskMQ.matches); render(true); };
+  var onView = function () { document.body.classList.toggle('is-desk', deskMQ.matches); buildStrip(); render(true); };
   if (deskMQ.addEventListener) deskMQ.addEventListener('change', onView); else if (deskMQ.addListener) deskMQ.addListener(onView);
 
+  buildStrip();
   render(true);
   if (S.sheet) openSheet(null);
+  /* the strip and giving previews on the phone open on the 03 screen */
+  if ((SHOW === 'strip' || SHOW === 'giving') && !deskMQ.matches) { dsnap.scrollTop = 2 * dsnap.clientHeight; mark(); }
   /* the paying preview on the phone opens on the patron screen, at the picked price */
   if (SHOW === 'paying' && !deskMQ.matches) {
     dsnap.scrollTop = dsnap.clientHeight;
