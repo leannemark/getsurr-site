@@ -35,18 +35,29 @@
     <linearGradient id="latex2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b4b4bc"/><stop offset=".1" stop-color="#3a3a40"/><stop offset=".28" stop-color="#0d0d0f"/><stop offset=".5" stop-color="#151518"/><stop offset=".68" stop-color="#5a5a64"/><stop offset=".8" stop-color="#101012"/><stop offset="1" stop-color="#060607"/></linearGradient>
     <linearGradient id="refl" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".22" stop-color="#fff" stop-opacity=".9"/><stop offset=".3" stop-color="#fff" stop-opacity="0"/><stop offset=".55" stop-color="#fff" stop-opacity=".6"/><stop offset=".62" stop-color="#fff" stop-opacity="0"/></linearGradient>
     <filter id="soft" x="-30%" y="-300%" width="160%" height="700%"><feGaussianBlur stdDeviation="2.2"/></filter>
-    <!-- placeholder scissors: replaced by the photograph after the shoot -->
-    <symbol id="scissors" viewBox="0 0 400 200">
+    <!-- placeholder scissors: replaced by the photograph after the shoot.
+         drawn in layers so the cut only moves pictures and never redraws one (Safari, 2026-10-09):
+         the two shadows (black outlines, blurred by site.css) under every part, then the fixed blade,
+         the moving blade, the bows and screw on top. -->
+    <symbol id="sc-fixed-shadow" viewBox="0 0 400 200">
+      <path d="M20 96 L250 84 L262 100 L250 116 L20 104 Z"/>
+      <g fill="none" stroke="#000" stroke-width="16"><ellipse cx="322" cy="70" rx="46" ry="30" transform="rotate(-20 322 70)"/><ellipse cx="330" cy="140" rx="52" ry="32" transform="rotate(14 330 140)"/></g>
+      <circle cx="258" cy="100" r="7.5"/>
+    </symbol>
+    <symbol id="sc-blade-shadow" viewBox="0 0 400 200"><path d="M40 60 L258 92 L266 106 L252 112 L28 72 Z" stroke="#000"/></symbol>
+    <symbol id="sc-under" viewBox="0 0 400 200">
       <path class="s-body" d="M20 96 L250 84 L262 100 L250 116 L20 104 Z"/>
       <path class="s-hi" d="M24 100 L250 92"/>
       <path class="s-rim" d="M20 96 L250 84"/>
       <rect class="s-refl" x="24" y="88" width="226" height="7" rx="3"/>
       <ellipse class="s-spec" cx="120" cy="96" rx="60" ry="3"/>
-      <g class="blade2">
-        <path class="s-body" d="M40 60 L258 92 L266 106 L252 112 L28 72 Z"/>
-        <path class="s-rim" d="M40 60 L258 92"/>
-        <ellipse class="s-spec" cx="150" cy="78" rx="55" ry="3" transform="rotate(8 150 78)"/>
-      </g>
+    </symbol>
+    <symbol id="sc-blade" viewBox="0 0 400 200">
+      <path class="s-body" d="M40 60 L258 92 L266 106 L252 112 L28 72 Z"/>
+      <path class="s-rim" d="M40 60 L258 92"/>
+      <ellipse class="s-spec" cx="150" cy="78" rx="55" ry="3" transform="rotate(8 150 78)"/>
+    </symbol>
+    <symbol id="sc-over" viewBox="0 0 400 200">
       <ellipse class="s-bow" cx="322" cy="70" rx="46" ry="30" transform="rotate(-20 322 70)"/>
       <ellipse class="s-bow" cx="330" cy="140" rx="52" ry="32" transform="rotate(14 330 140)"/>
       <ellipse class="s-hi" cx="322" cy="70" rx="46" ry="30" transform="rotate(-20 322 70)" style="stroke-width:2"/>
@@ -63,7 +74,7 @@
 </svg>
 
 <!-- ————————————————— desktop ————————————————— -->
-<div class="desk" id="desk">
+<div class="desk" id="desk" role="main">
   <div class="site" id="site">
     <div class="veil" id="veil"></div>
     <nav class="band" id="band" aria-label="surr">
@@ -147,16 +158,16 @@
   </div>
 
   <div class="splash" id="splash" role="button" tabindex="0" aria-label="enter">
-    <div class="layer a"><svg class="pair sc s1" viewBox="0 0 400 200" aria-hidden="true"><use href="#scissors"/></svg><svg class="pair sc s2" viewBox="0 0 400 200" aria-hidden="true"><use href="#scissors"/></svg></div>
-    <div class="layer b"><svg class="pair sc s1" viewBox="0 0 400 200" aria-hidden="true"><use href="#scissors"/></svg><svg class="pair sc s2" viewBox="0 0 400 200" aria-hidden="true"><use href="#scissors"/></svg></div>
+    <div class="layer a"><span class="pair sc s1" aria-hidden="true"><svg class="sh" viewBox="0 0 400 200"><use href="#sc-fixed-shadow"/></svg><svg class="sh bl" viewBox="0 0 400 200"><use href="#sc-blade-shadow"/></svg><svg viewBox="0 0 400 200"><use href="#sc-under"/></svg><svg class="bl" viewBox="0 0 400 200"><use href="#sc-blade"/></svg><svg viewBox="0 0 400 200"><use href="#sc-over"/></svg></span><span class="pair sc s2" aria-hidden="true"><svg class="sh" viewBox="0 0 400 200"><use href="#sc-fixed-shadow"/></svg><svg class="sh bl" viewBox="0 0 400 200"><use href="#sc-blade-shadow"/></svg><svg viewBox="0 0 400 200"><use href="#sc-under"/></svg><svg class="bl" viewBox="0 0 400 200"><use href="#sc-blade"/></svg><svg viewBox="0 0 400 200"><use href="#sc-over"/></svg></span></div>
+    <div class="layer b"><span class="pair sc s1" aria-hidden="true"><svg class="sh" viewBox="0 0 400 200"><use href="#sc-fixed-shadow"/></svg><svg class="sh bl" viewBox="0 0 400 200"><use href="#sc-blade-shadow"/></svg><svg viewBox="0 0 400 200"><use href="#sc-under"/></svg><svg class="bl" viewBox="0 0 400 200"><use href="#sc-blade"/></svg><svg viewBox="0 0 400 200"><use href="#sc-over"/></svg></span><span class="pair sc s2" aria-hidden="true"><svg class="sh" viewBox="0 0 400 200"><use href="#sc-fixed-shadow"/></svg><svg class="sh bl" viewBox="0 0 400 200"><use href="#sc-blade-shadow"/></svg><svg viewBox="0 0 400 200"><use href="#sc-under"/></svg><svg class="bl" viewBox="0 0 400 200"><use href="#sc-blade"/></svg><svg viewBox="0 0 400 200"><use href="#sc-over"/></svg></span></div>
     <img class="cum" src="/img/cum-inside.svg" alt="">
   </div>
 </div>
 
 <!-- ————————————————— phone ————————————————— -->
-<div class="snap-wrap" id="snapwrap">
+<div class="snap-wrap" id="snapwrap" role="main">
   <div class="snap" id="snap">
-    <section class="ssplash" id="ssplash" role="button" tabindex="0" aria-label="enter"><svg class="one sc" viewBox="0 0 400 200" aria-hidden="true"><use href="#scissors"/></svg><img class="cum" src="/img/cum-inside.svg" alt=""></section>
+    <section class="ssplash" id="ssplash" role="button" tabindex="0" aria-label="enter"><span class="one sc" aria-hidden="true"><svg class="sh" viewBox="0 0 400 200"><use href="#sc-fixed-shadow"/></svg><svg class="sh bl" viewBox="0 0 400 200"><use href="#sc-blade-shadow"/></svg><svg viewBox="0 0 400 200"><use href="#sc-under"/></svg><svg class="bl" viewBox="0 0 400 200"><use href="#sc-blade"/></svg><svg viewBox="0 0 400 200"><use href="#sc-over"/></svg></span><img class="cum" src="/img/cum-inside.svg" alt=""></section>
 
     <section class="s0" id="s0">
       <div class="land"><span class="big">surr</span><span class="mono">say less</span></div>

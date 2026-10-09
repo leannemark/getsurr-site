@@ -25,6 +25,10 @@ A friend on a slow desktop line saw the pictures load oddly and the page lag (20
 - **No effect that blurs the whole window** (`backdrop-filter`, animated `filter: blur`), and no new drop-shadows on animated things. Dim with opacity instead.
 - **Before every pull request, look at the site slowly:** serve the folder (`python3 -m http.server 8000`), then in Chrome open the developer tools, Network tab, set the throttling dropdown to "Slow 3G", and in the Performance tab set CPU to "6× slowdown"; reload. The scissors must appear at once, the band's pictures must fade in within a few seconds, and no letters may change shape after they appear. Then `npx -y lighthouse http://localhost:8000/ --only-categories=performance` — the performance score must stay at 90 or above.
 
+## Launch tests
+
+`npm test` (first time: `npm install && npx playwright install chromium webkit firefox`) runs every check a machine can make — screenshots in three engines and ten sizes, links, the list form, accessibility, the splash's repaint count — and ends in one table; then look at every sheet in `tests/out/sheets/`. Run it before any announcement and before a pull request that changes how the site looks. What each test does: `tests/README.md`; speed results: `tests/speed.md`.
+
 ## What the site never does
 
 - No third-party request on load: fonts are self-hosted (OFL, licences in `fonts/`), no analytics, no cookies. Only two things talk to Supabase: the list form (the `join_waitlist` function — email, city and an optional instagram or link, the same list as the app) and the beta box (the `ask_beta_link` function — one email, nothing else, kept until the "it's live" email has gone out and then deleted). Only the radio's own `play →` tap loads SoundCloud. The privacy policy depends on this.

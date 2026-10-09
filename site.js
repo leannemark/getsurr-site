@@ -9,6 +9,13 @@
   var still = matchMedia('(prefers-reduced-motion: reduce)').matches;
   var deskMQ = matchMedia('(min-width: 721px)');
   var smooth = still ? 'auto' : 'smooth';
+  /* a form send that has not answered in 15 s gives up and says so, never "sending…" forever */
+  function patience() {
+    if (!window.AbortController) return undefined;
+    var c = new AbortController();
+    setTimeout(function () { c.abort(); }, 15000);
+    return c.signal;
+  }
 
   var TITLES = { surr: 'surr', rings: 'mood rings · surr', map: 'map · surr', nights: 'nights · surr', list: 'the list · surr' };
   var SLUGS = { rings: 'rings/', map: 'map/', nights: 'nights/', list: 'list/' };
@@ -71,7 +78,7 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json', apikey: C.SUPABASE_ANON_KEY },
         body: JSON.stringify({ p_email: email }),
-        credentials: 'omit', cache: 'no-store', referrerPolicy: 'no-referrer'
+        credentials: 'omit', cache: 'no-store', referrerPolicy: 'no-referrer', signal: patience()
       }).then(function (r) {
         if (r.ok) return null;
         return r.json().catch(function () { return {}; }).then(function (j) { return j || {}; });
@@ -118,7 +125,7 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json', apikey: C.SUPABASE_ANON_KEY },
         body: JSON.stringify({ p_email: email, p_city: city, p_link: link }),
-        credentials: 'omit', cache: 'no-store', referrerPolicy: 'no-referrer'
+        credentials: 'omit', cache: 'no-store', referrerPolicy: 'no-referrer', signal: patience()
       }).then(function (r) {
         if (r.ok) return null;
         return r.json().catch(function () { return {}; }).then(function (j) { return j || {}; });
