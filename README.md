@@ -14,6 +14,16 @@ The website at getsurr.com, built from the briefs `docs/briefs/getsurr-site-v04.
 - **After editing `index.html`, the plain-page words or a file in `_legal/`, run `node scripts/build.mjs`** to rewrite every copy, plain page and forwarding page.
 - `config.js` holds the everyday switches: the Supabase project the list form writes to (public key only), `APP_URL` (the public TestFlight link; while it is empty the beta part shows one email box — "we'll tell you the day it's live" — in place of the four steps and `open in testflight →`; set it and the steps come back), `RADIO_ON` / `RADIO_EMBED_URL`, and `NEXT_NIGHT` (set to `null` the morning after).
 
+## Weight — keep it light on a weak connection
+
+A friend on a slow desktop line saw the pictures load oddly and the page lag (2026-10-08). Since then:
+
+- **The one page must load under 250 KB in total** (html, css, js, the preloaded fonts and every picture `index.html` shows on first paint). `node scripts/check-weight.mjs` prints the table and fails above the budget; the GitHub Action runs it on every pull request.
+- **Pictures:** WebP only, sized for the space they fill (a band cell is about a fifth of the window wide; 800 px on the long side is plenty), never over 110 KB. The map poster is loaded after the band by `site.js` (`data-src`), so a new heavy picture goes the same way, never straight into `src`. `share.jpg` and the icons are the exceptions (they are not part of the page).
+- **Fonts:** subset WOFF2 only (`fonts/`, licences next to them). Adding a character the subset does not have (check with the command in `scripts/check-weight.mjs`'s header) means rebuilding the subsets, not switching back to the full files.
+- **No effect that blurs the whole window** (`backdrop-filter`, animated `filter: blur`), and no new drop-shadows on animated things. Dim with opacity instead.
+- **Before every pull request, look at the site slowly:** serve the folder (`python3 -m http.server 8000`), then in Chrome open the developer tools, Network tab, set the throttling dropdown to "Slow 3G", and in the Performance tab set CPU to "6× slowdown"; reload. The scissors must appear at once, the band's pictures must fade in within a few seconds, and no letters may change shape after they appear. Then `npx -y lighthouse http://localhost:8000/ --only-categories=performance` — the performance score must stay at 90 or above.
+
 ## What the site never does
 
 - No third-party request on load: fonts are self-hosted (OFL, licences in `fonts/`), no analytics, no cookies. Only two things talk to Supabase: the list form (the `join_waitlist` function — email, city and an optional instagram or link, the same list as the app) and the beta box (the `ask_beta_link` function — one email, nothing else, kept until the "it's live" email has gone out and then deleted). Only the radio's own `play →` tap loads SoundCloud. The privacy policy depends on this.

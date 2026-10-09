@@ -19,6 +19,10 @@
 <link rel="icon" type="image/png" sizes="32x32" href="/img/icon-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/img/icon-180.png">
 <link rel="stylesheet" href="/site.css">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/ArchivoExpanded.woff2">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/ArchivoSemiExpandedBold.woff2">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/ArchivoRegular.woff2">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/FragmentMono-Regular.woff2">
 <script src="/config.js"></script>
 <script>(function(){var b=(window.SURR&&SURR.BASE)||'/',p=location.pathname;if(p!==b&&p!==b+'index.html')document.documentElement.className+=' deep';})();</script>
 <style>.deep .splash,.deep .ssplash{display:none}</style>
@@ -64,10 +68,10 @@
     <div class="veil" id="veil"></div>
     <nav class="band" id="band" aria-label="surr">
       <button class="cell surr" data-i="surr" aria-label="surr"><span class="sym big">surr</span></button>
-      <button class="cell symbolic" data-i="rings"><span class="sym"><img class="ring" src="/img/one-ring.png" alt=""></span><span class="word big">mood rings</span></button>
+      <button class="cell symbolic" data-i="rings"><span class="sym"><img decoding="async" class="ring" src="/img/one-ring.webp" alt=""></span><span class="word big">mood rings</span></button>
       <button class="cell symbolic map" data-i="map"><span class="sym"><img class="fill" src="/img/kreuzberg-d-lines.svg" alt=""></span><span class="word big">map</span></button>
-      <button class="cell symbolic nights" data-i="nights"><span class="sym"><img class="photo" src="/img/blue-1-melt-tile.jpg" alt=""></span><span class="word big">nights</span></button>
-      <button class="cell symbolic" data-i="list"><span class="sym"><img class="photo curtain" src="/img/a-loose-swags.jpg" alt=""></span><span class="word big">the list</span></button>
+      <button class="cell symbolic nights" data-i="nights"><span class="sym"><img decoding="async" class="photo" src="/img/blue-1-melt-tile.webp" alt=""></span><span class="word big">nights</span></button>
+      <button class="cell symbolic" data-i="list"><span class="sym"><img decoding="async" class="photo curtain" src="/img/a-loose-swags.webp" alt=""></span><span class="word big">the list</span></button>
     </nav>
 
     <section class="branch br-surr" data-b="surr" aria-label="surr">
@@ -114,7 +118,7 @@
     </section>
 
     <section class="branch br-map" data-b="map" aria-label="map">
-      <div class="v"><button class="x" data-close>× close</button><div class="look" data-look><div class="lean"><img src="/img/berlin-a-poster.jpg" alt=""></div></div><span class="credit">map data © openstreetmap contributors</span></div>
+      <div class="v"><button class="x" data-close>× close</button><div class="look" data-look><div class="lean"><img decoding="async" data-src="/img/berlin-a-poster.webp" alt=""></div></div><span class="credit">map data © openstreetmap contributors</span></div>
       <div class="h">
         <div class="arm l"><span class="k">after dark</span><div class="big">the night in your pocket.</div></div>
         <div></div>
@@ -158,10 +162,10 @@
       <div class="ptop"><span class="big">surr</span><span class="mono">say less</span></div>
       <nav class="tiles" aria-label="surr">
         <button class="tile surr" data-i="surr" aria-label="surr"><span class="sym big">surr</span></button>
-        <button class="tile" data-i="rings" aria-label="mood rings"><span class="sym"><img class="ring" src="/img/one-ring.png" alt=""></span></button>
+        <button class="tile" data-i="rings" aria-label="mood rings"><span class="sym"><img decoding="async" class="ring" src="/img/one-ring.webp" alt=""></span></button>
         <button class="tile" data-i="map" aria-label="map"><span class="sym"><img class="fill" src="/img/kreuzberg-d-lines.svg" alt=""></span></button>
-        <button class="tile" data-i="nights" aria-label="nights"><span class="sym"><img class="photo" src="/img/blue-1-melt-tile.jpg" alt=""></span></button>
-        <button class="tile" data-i="list" aria-label="the list"><span class="sym"><img class="photo curtain" src="/img/a-loose-swags.jpg" alt=""></span></button>
+        <button class="tile" data-i="nights" aria-label="nights"><span class="sym"><img decoding="async" class="photo" src="/img/blue-1-melt-tile.webp" alt=""></span></button>
+        <button class="tile" data-i="list" aria-label="the list"><span class="sym"><img decoding="async" class="photo curtain" src="/img/a-loose-swags.webp" alt=""></span></button>
       </nav>
     </section>
 
@@ -208,7 +212,7 @@
     </section>
 
     <section class="sec map" data-i="map">
-      <div class="bg"><div class="look"><div class="lean"><img src="/img/berlin-a-poster.jpg" alt=""></div></div><span class="credit">map data © openstreetmap contributors</span></div>
+      <div class="bg"><div class="look"><div class="lean"><img decoding="async" data-src="/img/berlin-a-poster.webp" alt=""></div></div><span class="credit">map data © openstreetmap contributors</span></div>
       <div class="word big">map</div>
       <div class="scrollwrap"><div class="scroll">
         <span class="k">after dark</span>
@@ -218,7 +222,7 @@
     </section>
 
     <section class="sec nights" data-i="nights">
-      <div class="bg"><img src="/img/blue-1-melt-tile.jpg" alt=""></div>
+      <div class="bg"><img decoding="async" src="/img/blue-1-melt-tile.webp" alt=""></div>
       <div class="word big">nights</div>
       <div class="scrollwrap"><div class="scroll">
         <span class="k">for the senses</span>
@@ -228,7 +232,7 @@
     </section>
 
     <section class="sec list" data-i="list">
-      <div class="bg"><img class="photo curtain" src="/img/a-loose-swags.jpg" alt=""></div>
+      <div class="bg"><img decoding="async" class="photo curtain" src="/img/a-loose-swags.webp" alt=""></div>
       <div class="word big">the list</div>
       <div class="scrollwrap"><div class="scroll">
         <span class="k">invite only</span>
