@@ -1,0 +1,9 @@
+{
+  "_": "The headers Cloudflare adds in front of GitHub Pages (app repo docs/SITE_CLOUDFLARE.md, step 4.3). The site's tests serve every page with exactly these, so a change here is tested before it is copied into Cloudflare. HSTS is set in Cloudflare's own HSTS switch, not here.",
+  "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://wdhfuqxkjxwecpmhdujk.supabase.co; font-src 'self'; connect-src 'self' https://wdhfuqxkjxwecpmhdujk.supabase.co; frame-src https://w.soundcloud.com; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'; upgrade-insecure-requests",
+  "X-Frame-Options": "DENY",
+  "Referrer-Policy": "strict-origin-when-cross-origin",
+  "Permissions-Policy": "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()",
+  "Cross-Origin-Opener-Policy": "same-origin",
+  "X-Content-Type-Options": "nosniff"
+}

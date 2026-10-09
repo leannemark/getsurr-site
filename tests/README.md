@@ -13,4 +13,8 @@ From `docs/briefs/getsurr-site-launch-tests.md` and `docs/LAUNCH_TESTS.md` part 
 | `paints.mjs`, `frames.mjs` | how much the browser re-draws while the scissors cut, and the frame times (`HEADED=1` uses the real graphics card, `CPU=6` slows Chromium six times) | W1 W9 |
 | `speed.md` | the speed and share-preview results, by date | W6 W7 W9 |
 
+**Security headers:** `tests/serve.mjs` sends every answer with `security-headers.json` — the same headers Cloudflare adds live (app repo `docs/SITE_CLOUDFLARE.md`) — so a page that breaks under them (a blocked script, picture or font) fails here first. Change the file and Cloudflare together.
+
+**Down-alert:** `.github/workflows/watch.yml` checks getsurr.com and the production server every 5 minutes and opens a "down: …" issue that mentions Leanne (closed by itself when they answer again).
+
 The CI job (`.github/workflows/tests.yml`) runs the links and a two-engine screenshot pass on every pull request and keeps the pictures as a download for two weeks; the weight check stays in `check.yml`.

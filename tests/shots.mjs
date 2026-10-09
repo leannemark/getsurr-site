@@ -208,9 +208,8 @@ export async function shots() {
           return { door: !!(top && top.closest('#splash,#ssplash')), words: document.body.innerText.trim().length };
         });
         if (!seen.words) problems.push(`chromium ${dname} ${key} ${variant}: no words on the page`);
-        // KNOWN (2026-10-09, left for a design decision): without JavaScript the one page stays on the scissors —
-        // the door only opens by script. Reported, not failed, so it is seen every run until it is decided.
-        if (seen.door && variant === 'no-js') notes.push(`chromium ${dname} ${key} ${variant}: stays on the scissors (known — no-script version not designed)`);
+        // without JavaScript there is no door: the page must open straight onto words (index.html's <noscript>)
+        if (seen.door && variant === 'no-js') problems.push(`chromium ${dname} ${key} ${variant}: stays on the scissors`);
         const dir = join(OUT, 'shots', 'chromium', `${dname}-${variant}`);
         mkdirSync(dir, { recursive: true });
         await page.screenshot({ path: join(dir, `${key}.png`) });
