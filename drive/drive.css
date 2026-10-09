@@ -31,6 +31,7 @@
 .dscreen{height:100%;scroll-snap-align:start;scroll-snap-stop:always;display:flex;flex-direction:column;overflow:hidden;border-top:1px solid var(--line)}
 .dscreen:first-child{border-top:0}
 .dscreen .scrollwrap{flex:1;min-height:0}
+.dscreen .scroll:focus-visible{outline:1px solid var(--grey2);outline-offset:-2px}
 .dscreen .scrollwrap .more{right:34px;bottom:6px}
 .dsnap .dscreen .ds{padding-right:34px}
 .dticks{top:calc(50% + 66px)}
