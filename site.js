@@ -17,7 +17,7 @@
     return c.signal;
   }
 
-  var TITLES = { surr: 'surr', rings: 'mood rings · surr', map: 'map · surr', nights: 'nights · surr', list: 'the list · surr' };
+  var TITLES = { surr: 'surr', rings: 'mood rings · surr', map: 'map · surr', nights: 'nights · surr', drive: 'the drive · surr', list: 'the list · surr' };
   var SLUGS = { rings: 'rings/', map: 'map/', nights: 'nights/', list: 'list/' };
 
   /* which branch the address asks for: '' | rings | map | nights | list | beta */
@@ -25,10 +25,24 @@
     var p = location.pathname;
     if (p.indexOf(BASE) !== 0) return '';
     p = p.slice(BASE.length).replace(/(^|\/)index\.html$/, '').replace(/\/$/, '');
-    if (p === 'drive') return 'list';
     return ['rings', 'map', 'nights', 'list', 'beta'].indexOf(p) >= 0 ? p : '';
   }
   var START = route();
+
+  /* ————— the drive (its own page, /drive/): with DRIVE.ON the band's fifth tile is the fuse and the phone gets the drive screen,
+     fifth, before the list; off, both stay exactly as before ————— */
+  var DRIVE_ON = !!(C.DRIVE && C.DRIVE.ON);
+  (function () {
+    var dsec = $('.sec.drive'), dbtn = $('#menu [data-i="drive"]'), dtick = $('#ticks [data-drive]');
+    if (!DRIVE_ON) { [dsec, dbtn, dtick].forEach(function (el) { if (el) el.remove(); }); return; }
+    [dsec, dbtn, dtick].forEach(function (el) { if (el) el.hidden = false; });
+    var five = $('#band .cell[data-i="list"]');
+    if (!five || !dsec) return;
+    five.dataset.i = 'drive';
+    five.classList.add('fusecell');
+    five.innerHTML = '<span class="sym"></span><span class="word big">drive</span>';
+    five.firstChild.appendChild($('.fuse', dsec).cloneNode(true));
+  })();
   var DEEP = document.documentElement.className.indexOf('deep') >= 0;
 
   function setAddress(path, title) {
@@ -260,7 +274,7 @@
     if (id === 'map') loadPoster();
     closeDesk(true);
     openId = id;
-    $('.cell[data-i="' + id + '"]', band).classList.add('open');
+    var oc = $('.cell[data-i="' + id + '"]', band); if (oc) oc.classList.add('open');
     site.classList.add('has-open');
     var br = $('.branch[data-b="' + id + '"]', site);
     br.classList.add('on');
@@ -279,6 +293,7 @@
   band.addEventListener('click', function (e) {
     var c = e.target.closest('.cell'); if (!c) return;
     if (openId) { closeDesk(); return; }
+    if (c.dataset.i === 'drive') { location.href = BASE + 'drive/'; return; }
     openDesk(c.dataset.i);
   });
   $('#veil').addEventListener('click', function () { closeDesk(); });

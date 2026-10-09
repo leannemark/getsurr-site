@@ -250,6 +250,20 @@ form.ask .err{margin:8px 0 0 16px}
 .snap-wrap.pre .snapdoor{opacity:0;pointer-events:none}
 .snapdoor{transition:opacity .4s}
 
+/* ————— the drive's fuse (the band's fifth tile, the phone's drive screen, the drive page) — path and timing from the a3 mockup ————— */
+.fuse{display:block;width:100%;height:auto}
+.fuse .cord{stroke:#8a8a8a;stroke-width:2;fill:none;stroke-dasharray:1 1;-webkit-animation:burn 14s linear infinite;animation:burn 14s linear infinite}
+.fuse .cord.dark{stroke:#262626;-webkit-animation:none;animation:none;stroke-dasharray:none}
+.fuse .mover{offset-path:path("M 4 34 C 50 4, 100 12, 130 28 S 210 50, 250 22 S 320 6, 376 26");offset-rotate:0deg;-webkit-animation:travel 14s linear infinite;animation:travel 14s linear infinite}
+.fuse .spark{fill:var(--red)}
+.fuse .glow{fill:var(--red);opacity:.35;-webkit-animation:flick .25s steps(2) infinite alternate;animation:flick .25s steps(2) infinite alternate}
+@keyframes burn{from{stroke-dashoffset:0}to{stroke-dashoffset:-1}}
+@keyframes travel{from{offset-distance:0%}to{offset-distance:100%}}
+@keyframes flick{to{transform:scale(1.25)}}
+.cell.fusecell .fuse{width:82%}
+.sec.drive .bg .fuse{width:84%}
+.sec.drive .go{align-self:flex-start;text-decoration:none;color:var(--ink)}
+
 /* ————— plain pages: deal, press, support, 404 ————— */
 .plain{max-width:40rem;margin:0 auto;padding:max(28px,calc(env(safe-area-inset-top) + 16px)) 20px 48px;min-height:100%;display:flex;flex-direction:column}
 .plain header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:48px}
