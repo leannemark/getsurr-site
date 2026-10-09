@@ -274,7 +274,7 @@
     if (id === 'map') loadPoster();
     closeDesk(true);
     openId = id;
-    $('.cell[data-i="' + id + '"]', band).classList.add('open');
+    var oc = $('.cell[data-i="' + id + '"]', band); if (oc) oc.classList.add('open');
     site.classList.add('has-open');
     var br = $('.branch[data-b="' + id + '"]', site);
     br.classList.add('on');

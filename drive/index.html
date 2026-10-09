@@ -34,11 +34,12 @@
 <div class="desk" id="desk" role="main">
   <div class="site has-open dsite">
     <div class="veil"></div>
-    <nav class="band" aria-label="surr">
-      <a class="cell surr" href="/" aria-label="surr"><span class="sym big">surr</span></a>
-      <a class="cell symbolic" href="/rings/" aria-label="mood rings"><span class="sym"><img decoding="async" class="ring" data-src="/img/one-ring.webp" alt=""></span></a>
-      <a class="cell symbolic map" href="/map/" aria-label="map"><span class="sym"><img class="fill" data-src="/img/kreuzberg-d-lines.svg" alt=""></span></a>
-      <a class="cell symbolic nights" href="/nights/" aria-label="nights"><span class="sym"><img decoding="async" class="photo" data-src="/img/blue-1-melt-tile.webp" alt=""></span></a>
+    <!-- the band's first four tiles sit under the box and the veil; they are drawn empty, so no picture loads for nothing -->
+    <nav class="band" aria-hidden="true">
+      <span class="cell surr" aria-hidden="true"><span class="sym big">surr</span></span>
+      <span class="cell" aria-hidden="true"></span>
+      <span class="cell" aria-hidden="true"></span>
+      <span class="cell" aria-hidden="true"></span>
       <span class="cell symbolic fusecell here"><span class="sym"><svg class="fuse" viewBox="0 0 380 54" aria-hidden="true"><path class="cord dark" d="M 4 34 C 50 4, 100 12, 130 28 S 210 50, 250 22 S 320 6, 376 26"/><path class="cord" pathLength="1" d="M 4 34 C 50 4, 100 12, 130 28 S 210 50, 250 22 S 320 6, 376 26"/><g class="mover"><circle class="glow" r="7"/><circle class="spark" r="3.5"/></g></svg></span><span class="word big">drive</span></span>
     </nav>
 

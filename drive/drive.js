@@ -404,6 +404,12 @@
   /* ————— render: the whole page from the state; the scroll positions and the list form survive ————— */
   var lastKey = '';
   function render(reset) {
+    var fa = document.activeElement, fsel = '';
+    if (fa && fa.dataset) {
+      if (fa.dataset.tier != null) fsel = '[data-tier="' + fa.dataset.tier + '"][data-lvl="' + (fa.dataset.lvl || '') + '"]';
+      else if (fa.dataset.ally) fsel = '[data-ally="' + fa.dataset.ally + '"]';
+      else if (fa.dataset.act) fsel = '[data-act="' + fa.dataset.act + '"]';
+    }
     var desk = deskMQ.matches, key = (desk ? 'd' : 'p') + (S.done ? 1 : 0);
     var keep = !reset && key === lastKey;
     lastKey = key;
@@ -434,6 +440,12 @@
     watchHints(desk ? $('#desk') : $('.dphone'));
     if (!desk) mark();
     var cv = $('.card canvas', inner); if (cv) card(cv);
+    /* keep the keyboard where it was: the same control, or the pay bar's first field, or the top of the box */
+    if (fsel) {
+      var root = desk ? $('#desk') : $('.dphone');
+      var back = $(fsel, root) || (bar && $('.pay .field, .pay button', root)) || $('.after .k, .ds .num', inner);
+      if (back) { if (!back.matches('button, a, input, select')) back.setAttribute('tabindex', '-1'); back.focus({ preventScroll: true }); }
+    }
     drawSheet();
   }
 
@@ -578,22 +590,23 @@
   document.addEventListener('input', function (e) {
     if (e.target.id === 'pamount') {
       S.amount = e.target.value.replace(/[^\d]/g, '');
+      if (e.target.value !== S.amount) e.target.value = S.amount;
       var go = $('[data-act="pay"]'); if (go) { go.textContent = payLabel(); go.disabled = !n0(S.amount); }
     }
   });
-  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && S.sheet) closeSheet(); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && S.sheet) closeSheet();
+    /* the sheet holds the keyboard while it is open */
+    if (e.key === 'Tab' && S.sheet) {
+      var f = $$('button:not([disabled]), input', sheet); if (!f.length) return;
+      var first = f[0], last = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && (document.activeElement === last || !sheet.contains(document.activeElement))) { e.preventDefault(); first.focus(); }
+    }
+  });
 
-  /* ————— the band behind the veil: its pictures load after the page, never on first paint ————— */
-  function loadBand() {
-    if (!deskMQ.matches) return;
-    $$('.dsite img[data-src]').forEach(function (img) {
-      img.addEventListener('load', function () { img.classList.add('ok'); }, { once: true });
-      img.src = img.getAttribute('data-src'); img.removeAttribute('data-src');
-    });
-  }
-  if (document.readyState === 'complete') loadBand(); else addEventListener('load', loadBand);
   document.body.classList.toggle('is-desk', deskMQ.matches);
-  var onView = function () { document.body.classList.toggle('is-desk', deskMQ.matches); loadBand(); render(true); };
+  var onView = function () { document.body.classList.toggle('is-desk', deskMQ.matches); render(true); };
   if (deskMQ.addEventListener) deskMQ.addEventListener('change', onView); else if (deskMQ.addListener) deskMQ.addListener(onView);
 
   render(true);

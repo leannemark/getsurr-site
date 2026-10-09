@@ -14,7 +14,7 @@
 .dsite .band a.cell{text-decoration:none}
 .dsite .cell.here{z-index:6;background:var(--bg);cursor:default}
 .dsite .cell.here:hover .sym{opacity:0}.dsite .cell.here:hover .word{opacity:1}
-.dbox{position:absolute;z-index:10;left:3%;right:19.6%;top:5%;bottom:5%;background:var(--bg);border:1px solid var(--line);border-right:0;display:flex;flex-direction:column;container-type:inline-size}
+.dbox{position:absolute;z-index:10;left:3%;right:19.6%;top:5%;bottom:max(5%,46px);background:var(--bg);border:1px solid var(--line);border-right:0;display:flex;flex-direction:column;container-type:inline-size}
 .dwrap{flex:1;min-height:0}
 .dwrap .fade{height:110px;top:auto;background:linear-gradient(rgba(5,5,5,0),var(--bg) 88%)}
 .dwrap .more{right:24px;bottom:8px}
