@@ -236,6 +236,17 @@
       </div><div class="fade"></div><span class="more" aria-hidden="true">↓ more</span></div>
     </section>
 
+    <!-- the drive: shown only when DRIVE.ON in config.js (site.js removes it otherwise); its fuse also becomes the band's fifth tile -->
+    <section class="sec drive" data-i="drive" hidden>
+      <div class="bg"><svg class="fuse" viewBox="0 0 380 54" aria-hidden="true"><path class="cord dark" d="M 4 34 C 50 4, 100 12, 130 28 S 210 50, 250 22 S 320 6, 376 26"/><path class="cord" pathLength="1" d="M 4 34 C 50 4, 100 12, 130 28 S 210 50, 250 22 S 320 6, 376 26"/><g class="mover"><circle class="glow" r="7"/><circle class="spark" r="3.5"/></g></svg></div>
+      <div class="word big">drive</div>
+      <div class="scrollwrap"><div class="scroll">
+        <h3>surr is coming. let's do this together.</h3>
+        <p class="body">surr opens one city at a time, starting in Berlin. Be a supporter and you are with us from the start.</p>
+        <a class="go" href="/drive/">the drive →</a>
+      </div><div class="fade"></div><span class="more" aria-hidden="true">↓ more</span></div>
+    </section>
+
     <section class="sec list" data-i="list">
       <div class="bg"><img decoding="async" class="photo curtain" src="/img/a-loose-swags.webp" alt=""></div>
       <div class="word big">the list</div>
@@ -249,8 +260,8 @@
     </section>
   </div>
 
-  <nav class="menu" id="menu" aria-label="surr"><button class="mono" data-i="surr">surr</button><button class="mono" data-i="rings">mood rings</button><button class="mono" data-i="map">map</button><button class="mono" data-i="nights">nights</button><button class="mono" data-i="list">the list</button></nav>
-  <div class="ticks" id="ticks" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+  <nav class="menu" id="menu" aria-label="surr"><button class="mono" data-i="surr">surr</button><button class="mono" data-i="rings">mood rings</button><button class="mono" data-i="map">map</button><button class="mono" data-i="nights">nights</button><button class="mono" data-i="drive" hidden>drive</button><button class="mono" data-i="list">the list</button></nav>
+  <div class="ticks" id="ticks" aria-hidden="true"><i></i><i></i><i></i><i></i><i data-drive hidden></i><i></i></div>
   <div class="pbar" id="pbar"><span class="label">surr radio 001</span><button class="play" data-play>play →</button></div>
   <div class="snapdoor"><a href="/beta/" data-go="beta">got a code? <b>try the beta →</b></a><a href="/list/" data-go="list">no code? <b>the list →</b></a></div>
 </div>
