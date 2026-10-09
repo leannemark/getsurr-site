@@ -165,12 +165,11 @@ form.ask .err{margin:8px 0 0 16px}
 .splash.cut .layer.a{transform:translate(-9%,-9%);opacity:0}
 .splash.cut .layer.b{transform:translate(9%,9%);opacity:0}
 .splash.cut{pointer-events:none}
-.splash{--open:-14deg}.splash.cut{--open:-24deg}
-.splash svg.pair{position:absolute;width:44%;height:22vw;filter:drop-shadow(0 20px 24px rgba(0,0,0,.9));will-change:transform;transition:transform .7s cubic-bezier(.3,0,.2,1)}
-.splash svg.s1{left:4%;bottom:8%;transform:rotate(-32deg)}
-.splash svg.s2{right:6%;top:6%;transform:rotate(148deg)}
-.splash.cut svg.s1{transform:rotate(-30deg) translate(7%,-6%)}
-.splash.cut svg.s2{transform:rotate(146deg) translate(7%,-6%)}
+.splash .pair{position:absolute;width:44%;height:22vw;will-change:transform;transition:transform .7s cubic-bezier(.3,0,.2,1)}
+.splash .s1{left:4%;bottom:8%;transform:rotate(-32deg)}
+.splash .s2{right:6%;top:6%;transform:rotate(148deg)}
+.splash.cut .s1{transform:rotate(-30deg) translate(7%,-6%)}
+.splash.cut .s2{transform:rotate(146deg) translate(7%,-6%)}
 .splash .cum{position:absolute;right:9%;top:46%;height:12px;width:auto;transition:opacity .4s}
 .splash.cut .cum{opacity:0}
 .s-body{fill:url(#latex2);stroke:#000;stroke-width:1}
@@ -180,8 +179,16 @@ form.ask .err{margin:8px 0 0 16px}
 .s-refl{fill:url(#refl);opacity:.5;mix-blend-mode:screen}
 .s-rim{fill:none;stroke:#c8c8d0;stroke-width:1}
 .s-screw{fill:url(#latex2);stroke:#0a0a0a}
+/* each scissor is five stacked layers (index.html). the shadows are the old drop-shadow(0 20px 24px rgba(0,0,0,.9)) taken apart —
+   a black outline 20px down, blur(12px), at .9 — so the graphics card blurs them and nothing is repainted while they move;
+   and the second blade turns as its own layer round the screw — mirrored, so the screw sits at 142,100 and the turn runs the other way */
+.sc>svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.sc>svg.sh{top:20px;bottom:-20px;opacity:.9;filter:blur(12px);will-change:transform}
+.sc .bl{transform-origin:35.5% 50%;will-change:transform;transition:transform .7s cubic-bezier(.3,0,.2,1)}
+/* the blade's opening, at rest and cut (the angles are written out, not a shared variable: changing one makes Safari repaint every layer) */
+.splash .bl{transform:rotate(14deg)}.splash.cut .bl{transform:rotate(24deg)}
+.ssplash .bl{transform:rotate(12deg)}.ssplash.cut .bl{transform:rotate(30deg)}
 .sc use{transform:scaleX(-1);transform-box:view-box;transform-origin:50% 50%}
-.blade2{transform-box:view-box;transform-origin:258px 100px;transform:rotate(var(--open,-14deg));transition:transform .7s cubic-bezier(.3,0,.2,1)}
 
 /* ————— phone: snap ————— */
 .snap{position:fixed;inset:0;height:calc(var(--vh) * 100);overflow-y:hidden;-webkit-overflow-scrolling:touch;scroll-snap-type:y mandatory;scrollbar-width:none;background:var(--bg)}
@@ -189,10 +196,9 @@ form.ask .err{margin:8px 0 0 16px}
 .snap.open{overflow-y:auto}
 .snap > section{height:calc(var(--vh) * 100);scroll-snap-align:start;scroll-snap-stop:always;display:flex;flex-direction:column;position:relative;overflow:hidden;border-top:1px solid var(--line)}
 .ssplash{background:radial-gradient(ellipse at 50% 40%,#1d1d21 0,#0b0b0d 60%,#050506 100%);align-items:center;justify-content:center;cursor:pointer;border-top:0!important}
-.ssplash{--open:-12deg}.ssplash.cut{--open:-30deg}
-.ssplash svg.one{width:78%;height:39vw;transform:rotate(-38deg);filter:drop-shadow(0 20px 24px rgba(0,0,0,.9));will-change:transform;transition:transform .7s cubic-bezier(.3,0,.2,1),opacity .5s .4s}
+.ssplash .one{position:relative;display:block;width:78%;height:39vw;transform:rotate(-38deg);will-change:transform;transition:transform .7s cubic-bezier(.3,0,.2,1),opacity .5s .4s}
 .ssplash .cum{position:absolute;right:12%;bottom:22%;height:12px;width:auto;transition:opacity .4s}
-.ssplash.cut svg.one{transform:rotate(-40deg) translate(14%,0);opacity:0}
+.ssplash.cut .one{transform:rotate(-40deg) translate(14%,0);opacity:0}
 .ssplash.cut .cum{opacity:0}
 .s0{border-top:0!important}
 .s0.arrive{-webkit-animation:arrive .6s cubic-bezier(.2,.8,.2,1);animation:arrive .6s cubic-bezier(.2,.8,.2,1)}
