@@ -244,7 +244,7 @@
     if (img.complete && img.naturalWidth) img.classList.add('ok');
     else img.addEventListener('load', function () { img.classList.add('ok'); }, { once: true });
   }
-  $$('.band img, .tile img, .sec .bg > img, .look img').forEach(fadeIn);
+  $$('.band img, .sec .bg > img, .look img').forEach(fadeIn);
   function loadPoster() {
     $$('img[data-src]').forEach(function (img) { img.src = img.getAttribute('data-src'); img.removeAttribute('data-src'); fadeIn(img); });
   }
@@ -301,7 +301,7 @@
 
   /* ————————————————— phone: snap ————————————————— */
   var wrap = $('#snapwrap'), snap = $('#snap'), ssplash = $('#ssplash'), s0 = $('#s0');
-  var home = $('#home'), ticks = $$('#ticks i'), tickBox = $('#ticks'), swipe = $('#swipe'), pbar = $('#pbar');
+  var menu = $('#menu'), menuBtns = $$('#menu button'), downBtn = $('#down'), ticks = $$('#ticks i'), tickBox = $('#ticks'), pbar = $('#pbar');
   var secs = $$('.sec', snap);
   function vh() { document.documentElement.style.setProperty('--vh', (innerHeight / 100) + 'px'); }
   vh(); addEventListener('resize', vh);
@@ -337,7 +337,16 @@
     });
   }
 
-  /* which screen is showing: the ticks, `surr ↑`, the swipe hint, the text rising in */
+  /* the menu row: drops in when a screen settles, holds 1.8 s, leaves; never on the landing */
+  var menuTimer = null, onLanding = true;
+  function hideMenu() { clearTimeout(menuTimer); menu.classList.remove('down'); }
+  function showMenu() {
+    if (onLanding) return;
+    menu.classList.add('down');
+    clearTimeout(menuTimer);
+    menuTimer = setTimeout(function () { menu.classList.remove('down'); }, 1800);
+  }
+  /* which screen is showing: the ticks, the menu row, the text rising in */
   var shown = null;
   function mark() {
     if (!snap.classList.contains('open')) return;
@@ -347,18 +356,21 @@
     var n = secs.indexOf(el), away = n >= 0;
     if (away) el.classList.add('in');
     ticks.forEach(function (t, i) { t.classList.toggle('on', i === n); });
-    home.classList.toggle('on', away); tickBox.classList.toggle('on', away);
-    swipe.classList.toggle('off', away);
+    tickBox.classList.toggle('on', away);
+    onLanding = !away;
+    menuBtns.forEach(function (b) { b.classList.toggle('on', away && b.dataset.i === el.dataset.i); });
+    if (away) showMenu(); else hideMenu();
     if (C.RADIO_ON) pbar.classList.toggle('up', playing || el.dataset.i === 'nights');
     document.title = away ? TITLES[el.dataset.i] : 'surr';
   }
   var ticking = false;
   snap.addEventListener('scroll', function () {
     if (ticking) return; ticking = true;
-    requestAnimationFrame(function () { ticking = false; mark(); });
+    requestAnimationFrame(function () { ticking = false; mark(); if (menu.classList.contains('down')) showMenu(); });
   }, { passive: true });
-  $$('.tile', snap).forEach(function (t) { t.addEventListener('click', function () { goSec(t.dataset.i); }); });
-  home.addEventListener('click', function () { snap.scrollTo({ top: s0.offsetTop, behavior: smooth }); });
+  menuBtns.forEach(function (b) { b.addEventListener('click', function () { goSec(b.dataset.i); showMenu(); }); });
+  $$('.sec .word', snap).forEach(function (w) { w.addEventListener('click', showMenu); });
+  downBtn.addEventListener('click', function () { goSec('surr'); });
 
   /* ————— both: the door line and the "join the list" link ————— */
   $$('[data-go]').forEach(function (a) {

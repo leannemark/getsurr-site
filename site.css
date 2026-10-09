@@ -197,13 +197,9 @@ form.ask .err{margin:8px 0 0 16px}
 .s0{border-top:0!important}
 .s0.arrive{-webkit-animation:arrive .6s cubic-bezier(.2,.8,.2,1);animation:arrive .6s cubic-bezier(.2,.8,.2,1)}
 @keyframes arrive{from{opacity:0;transform:translateY(24px)}}
-.ptop{padding:max(16px,calc(env(safe-area-inset-top) + 10px)) 20px 12px;display:flex;justify-content:space-between;align-items:baseline;flex:none}
-.ptop .big{font-size:18px}
-.tiles{flex:1;display:flex;flex-direction:column;padding-bottom:calc(46px + env(safe-area-inset-bottom))}
-.tile{position:relative;flex:1;min-height:0;width:100%;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:center;overflow:hidden}
-.tile .sym{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
-.tile.surr .sym{font-size:44px}
-.tile .ring{transform:none}
+.land{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px}
+.land .big{font-size:56px}
+.down{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(86px + env(safe-area-inset-bottom));padding:12px 20px!important;font-size:18px}
 .sec .bg{position:relative;height:44%;flex:none;overflow:hidden;display:flex;align-items:center;justify-content:center}
 .sec .bg > img,.sec .bg > canvas{width:100%;height:100%;object-fit:cover;display:block}
 .sec .bg .mark{font-size:64px}
@@ -235,15 +231,17 @@ form.ask .err{margin:8px 0 0 16px}
 .pbar .play{color:var(--ink);margin-left:auto;white-space:nowrap}
 .pbar iframe{flex:1;height:20px;border:0;min-width:0}
 .pbar.playing .label,.pbar.playing .play{display:none}
-.home{position:fixed;left:12px;padding:4px 10px!important;border-radius:999px;background:rgba(5,5,5,.8);top:max(14px,calc(env(safe-area-inset-top) + 6px));z-index:9;opacity:0;pointer-events:none;transition:opacity .3s;color:var(--grey2)}
-.home.on{opacity:1;pointer-events:auto}
+.menu{position:fixed;top:0;left:0;right:0;z-index:9;height:calc(40px + env(safe-area-inset-top));padding:env(safe-area-inset-top) 20px 0;background:var(--bg);border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:stretch;font-size:10px;letter-spacing:.03em;transform:translateY(-100%);transition:transform .35s cubic-bezier(.2,.8,.2,1)}
+.menu.down{transform:none}
+.menu button{font-size:10px;color:var(--grey);padding:0 2px;border-bottom:1px solid transparent;display:flex;align-items:center}
+.menu button.on{color:var(--ink);border-bottom-color:var(--ink)}
+.sec .word{cursor:pointer}
+@media (prefers-reduced-motion:reduce){.menu{transform:none;opacity:0;pointer-events:none;transition:opacity .2s}.menu.down{opacity:1;pointer-events:auto}}
 .ticks{position:fixed;right:10px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:8px;z-index:9;opacity:0;transition:opacity .3s;pointer-events:none}
 .ticks.on{opacity:1}
 .ticks i{width:3px;height:12px;border-radius:2px;background:#2a2a2a;transition:background .3s}
 .ticks i.on{background:var(--ink)}
-.swipe{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(54px + env(safe-area-inset-bottom));padding:4px 10px;border-radius:999px;background:rgba(5,5,5,.8);font-family:var(--mono);font-size:10px;color:var(--grey2);letter-spacing:.06em;z-index:9;transition:opacity .3s;pointer-events:none}
-.swipe.off{opacity:0}
-.snap-wrap.pre .snapdoor,.snap-wrap.pre .swipe{opacity:0;pointer-events:none}
+.snap-wrap.pre .snapdoor{opacity:0;pointer-events:none}
 .snapdoor{transition:opacity .4s}
 
 /* ————— plain pages: deal, press, support, 404 ————— */
@@ -270,8 +268,8 @@ form.ask .err{margin:8px 0 0 16px}
 .legal p{margin:0 0 12px}
 
 /* pictures arrive with a fade (site.js adds .ok once one has loaded) */
-.cell .sym img,.tile .sym img,.sec .bg > img,.look img{opacity:0;transition:opacity .4s,filter .6s}
-.cell .sym img.ok,.tile .sym img.ok,.sec .bg > img.ok,.look img.ok{opacity:1}
+.cell .sym img,.sec .bg > img,.look img{opacity:0;transition:opacity .4s,filter .6s}
+.cell .sym img.ok,.sec .bg > img.ok,.look img.ok{opacity:1}
 
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{-webkit-animation:none!important;animation:none!important;transition:none!important;scroll-behavior:auto!important}
