@@ -33,7 +33,7 @@ h3{margin:0;font-family:var(--head);font-weight:700;font-size:21px;line-height:1
 /* ————— desktop ————— */
 body.is-desk{overflow:hidden}
 .desk{position:fixed;inset:0;overflow:hidden}
-.site{position:absolute;inset:0}
+.site{position:absolute;inset:0;--cell:calc(100% / 5.1)}
 
 .band{position:absolute;left:0;right:0;top:33%;height:34%;display:grid;grid-template-columns:1.1fr 1fr 1fr 1fr 1fr;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
 .cell{position:relative;border-right:1px solid var(--line);display:flex;align-items:center;justify-content:center;overflow:hidden;transition:opacity .45s;z-index:2;outline-offset:-3px}
@@ -99,17 +99,17 @@ body.is-desk{overflow:hidden}
 .br-surr .slogan{font-size:clamp(22px,2.7vw,36px)}
 .br-surr .dl{font-family:var(--mono);font-size:11px;color:var(--grey2);line-height:1.6}
 /* mood rings: above the band, on the button's lines */
-.br-rings{left:21.57%;right:21.57%;top:2%;bottom:67%;flex-direction:row;padding:0;border-bottom:0}
+.br-rings{left:calc(var(--cell) * 1.1);right:var(--cell);top:2%;bottom:67%;flex-direction:row;padding:0;border-bottom:0}
 .br-rings .aura{flex:0 0 calc(100vw / 5.1 - 1px);min-width:0;height:100%;border-right:1px solid var(--line)}
 .br-rings .txt{flex:1 1 58%;min-width:0;min-height:0;padding:14px 18px 12px}
 .br-rings .txt h3{font-size:19px;padding-right:56px}
 .br-rings .txt .body{margin-top:8px;font-size:13px;line-height:1.45}
 .aura{display:block;width:100%;background:var(--bg)}
 /* map: the cross */
-.br-map{left:22%;width:56%;top:8%;bottom:8%;border:0;background:none;pointer-events:none}
+.br-map{left:calc(var(--cell) * 1.1);width:calc(var(--cell) * 3);top:0;bottom:0;border:0;background:none;pointer-events:none}
 .br-map .v,.br-map .arm{pointer-events:auto}
-.br-map .v{position:absolute;left:34%;width:32%;top:0;bottom:0;background:var(--bg);border:1px solid var(--line);overflow:hidden}
-.br-map .h{position:absolute;left:0;right:0;top:34%;height:32%;display:grid;grid-template-columns:34% 32% 34%}
+.br-map .v{position:absolute;left:calc(100% / 3);width:calc(100% / 3);top:8%;bottom:8%;background:var(--bg);border:1px solid var(--line);overflow:hidden}
+.br-map .h{position:absolute;left:0;right:0;top:33%;height:34%;display:grid;grid-template-columns:1fr 1fr 1fr}
 .br-map .arm{background:var(--bg);border:1px solid var(--line);padding:16px;display:flex;flex-direction:column;justify-content:center;gap:6px}
 .br-map .arm.l .big{font-size:clamp(18px,2.3vw,32px);overflow-wrap:break-word}
 .br-map .arm.r .body{font-size:12px;line-height:1.4}
@@ -120,7 +120,7 @@ body.is-desk{overflow:hidden}
 .look img{width:118%;height:118%;object-fit:cover;display:block;-webkit-animation:look 19.5s ease-in-out infinite alternate;animation:look 19.5s ease-in-out infinite alternate}
 @keyframes look{from{transform:translate(-9%,-6%)}to{transform:translate(-6%,-12%)}}
 /* nights: text box on the right, between the band and the bar */
-.br-nights{right:5%;top:64%;width:42%;height:26%;flex-direction:column;justify-content:flex-start;gap:10px;padding:18px 22px}
+.br-nights{right:5%;top:67%;width:42%;height:23%;border-top:0;flex-direction:column;justify-content:flex-start;gap:10px;padding:18px 22px}
 .br-nights .body{font-size:15px;padding-right:56px}
 .ev{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;line-height:1.3}
 .ev span,.ev a{white-space:nowrap}
@@ -128,7 +128,7 @@ body.is-desk{overflow:hidden}
 .ev a{color:var(--ink);text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--grey)}
 .offer{white-space:nowrap}
 /* the list: sized to its content, pops out to the left of cell five, centred on the band */
-.br-list{left:41%;right:19.6%;top:50%;-webkit-transform:translateY(-50%);transform:translateY(-50%);flex-direction:column;border-right:0;padding:22px 24px 24px}
+.br-list{left:calc(var(--cell) * 2.1);right:var(--cell);min-height:34%;justify-content:center;top:50%;-webkit-transform:translateY(-50%);transform:translateY(-50%);flex-direction:column;border-right:0;padding:22px 24px 24px}
 .br-list h3{padding-right:56px}
 .br-list .body{margin-top:6px}
 form.list{display:flex;flex-wrap:wrap;gap:10px 12px;margin-top:14px;align-items:flex-end}
