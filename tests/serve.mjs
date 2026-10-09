@@ -4,6 +4,7 @@ import { createServer } from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { readFileSync } from 'node:fs';
 
 export const root = process.env.SITE_ROOT || fileURLToPath(new URL('..', import.meta.url));
 const types = {
@@ -11,7 +12,11 @@ const types = {
   '.svg': 'image/svg+xml', '.webp': 'image/webp', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg',
   '.woff2': 'font/woff2', '.ttf': 'font/ttf', '.txt': 'text/plain', '.json': 'application/json', '.ico': 'image/x-icon', '.ics': 'text/calendar',
 };
-const hidden = /^\/(\.|node_modules|tests|scripts|_legal|package)/;
+const hidden = /^\/(\.|node_modules|tests|scripts|_legal|package|security-headers)/;
+// every answer carries the headers Cloudflare adds live (security-headers.json), so the tests see what visitors get.
+// upgrade-insecure-requests is dropped locally: it would send the plain-http test server's own requests to https.
+const security = Object.fromEntries(Object.entries(JSON.parse(readFileSync(new URL('../security-headers.json', import.meta.url), 'utf8')))
+  .filter(([k]) => k !== '_').map(([k, v]) => [k, v.replace(/;\s*upgrade-insecure-requests/, '')]));
 
 async function file(path) {
   try {
@@ -32,10 +37,10 @@ export function serve(port = 0) {
     const hit = hidden.test(safe) ? null : await file(join(root, safe));
     if (!hit) {
       const nf = await file(join(root, '404.html'));
-      res.writeHead(404, { 'content-type': types['.html'] });
+      res.writeHead(404, { ...security, 'content-type': types['.html'] });
       return res.end(nf ? nf.body : 'not found');
     }
-    res.writeHead(200, { 'content-type': types[extname(hit.path)] || 'application/octet-stream', 'cache-control': 'no-store' });
+    res.writeHead(200, { ...security, 'content-type': types[extname(hit.path)] || 'application/octet-stream', 'cache-control': 'no-store' });
     res.end(hit.body);
   });
   return new Promise((ok) => server.listen(port, '127.0.0.1', () => ok({ server, base: `http://127.0.0.1:${server.address().port}` })));

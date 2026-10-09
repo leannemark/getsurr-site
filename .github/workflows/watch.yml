@@ -1,0 +1,41 @@
+# The down-alert (app repo docs/decisions/2026-10-09-site-uptime-github-watcher.md).
+# Every 5 minutes: is getsurr.com up, and is the production server up? Each is tried three times, a minute apart,
+# before it counts as down. Down → one open issue titled "down: …" that mentions Leanne, so GitHub emails her and
+# pings the GitHub app. Up again → the issue is closed with the time. GitHub can run a scheduled job late when it
+# is busy, and pauses schedules in a repo with no commits for 60 days — a commit, or "Enable workflow" under
+# Actions, starts it again.
+name: watch
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+permissions:
+  issues: write
+concurrency: watch
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: look
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          check() { # name url
+            for i in 1 2 3; do
+              code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 "$2" || true)
+              [ "$code" = "200" ] && { echo "$1 up"; return 0; }
+              echo "$1 answered $code (try $i)"; [ $i -lt 3 ] && sleep 60
+            done
+            return 1
+          }
+          for pair in "getsurr.com|https://getsurr.com/" "the production server|https://wdhfuqxkjxwecpmhdujk.supabase.co/storage/v1/status"; do
+            name="${pair%%|*}"; url="${pair#*|}"; title="down: $name"
+            open=$(gh issue list --repo "$REPO" --state open --search "\"$title\" in:title" --json number --jq '.[0].number')
+            if check "$name" "$url"; then
+              [ -n "$open" ] && gh issue close "$open" --repo "$REPO" --comment "back up at $(TZ=Europe/Berlin date '+%a %d %b %H:%M') Berlin time."
+            elif [ -z "$open" ]; then
+              gh issue create --repo "$REPO" --title "$title" --body "@leannemark $name did not answer three times in a row, a minute apart ($url), at $(TZ=Europe/Berlin date '+%a %d %b %H:%M') Berlin time. This closes by itself when it answers again."
+            fi
+          done
