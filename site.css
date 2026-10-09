@@ -23,6 +23,8 @@ h3{margin:0;font-family:var(--head);font-weight:700;font-size:21px;line-height:1
 .k{font-family:var(--mono);font-size:10px;color:var(--grey);letter-spacing:.04em;margin-bottom:8px;display:block}
 .body{color:var(--grey2);font-size:14px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+/* the forms' bot trap: off-screen, unreachable, never read aloud (aria-hidden) — not .sr, which screen readers read */
+.hp{position:absolute;left:-10000px;top:0;width:1px;height:1px;overflow:hidden}
 [hidden]{display:none!important}
 
 /* which version: the desk above 720px, the snap below */
