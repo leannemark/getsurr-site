@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#050505">
+<title>surr · beta babes</title>
+<!-- hidden page for the beta call on mon 12 oct (sent on WhatsApp, never linked from the site). delete after the call. -->
+<style>
+@font-face{font-family:'surr-display';src:url(/fonts/ArchivoExpanded.ttf) format('truetype');font-weight:800;font-display:swap}
+@font-face{font-family:'surr-text';src:url(/fonts/ArchivoRegular.ttf) format('truetype');font-weight:400;font-display:swap}
+@font-face{font-family:'surr-mono';src:url(/fonts/FragmentMono-Regular.ttf) format('truetype');font-weight:400;font-display:swap}
+:root{--bg:#050505;--ink:#E8E8E8;--grey:#7A7A7A;--grey2:#BBBBBB;--line:#1e1e1e;--red:#DE0A26;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg)}
+body{color:var(--ink);font-family:'surr-text',system-ui,-apple-system,sans-serif;font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%;min-height:100svh;display:flex;justify-content:center;padding:max(40px,env(safe-area-inset-top)) 16px max(32px,env(safe-area-inset-bottom))}
+main{width:100%;max-width:420px;display:flex;flex-direction:column}
+.mono{font-family:'surr-mono',ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:.04em;color:var(--grey)}
+.mark{font-family:'surr-display',system-ui,sans-serif;font-weight:800;letter-spacing:-.03em;font-size:22px;color:var(--ink);text-decoration:none}
+h1{margin:56px 0 0;font-family:'surr-display',system-ui,sans-serif;font-weight:800;letter-spacing:-.03em;line-height:.95;font-size:clamp(44px,13vw,60px)}
+.when{margin:14px 0 40px;color:var(--grey2)}
+.when b{color:var(--red);font-weight:400}
+ol{list-style:none;margin:0;padding:0;border-top:1px solid var(--line)}
+li{border-bottom:1px solid var(--line)}
+li a{display:grid;grid-template-columns:28px 1fr auto;align-items:baseline;gap:0 8px;padding:20px 0;color:var(--ink);text-decoration:none}
+li a:active{opacity:.6}
+.n{font-family:'surr-mono',ui-monospace,Menlo,monospace;font-size:11px;color:var(--grey)}
+.t{font-size:18px}
+.go{color:var(--grey2)}
+.s{grid-column:2/4;color:var(--grey);font-size:13px;margin-top:4px}
+footer{margin-top:auto;padding-top:48px}
+a:focus-visible{outline:1px solid var(--grey2);outline-offset:2px}
+</style>
+</head>
+<body>
+<main>
+  <a class="mark" href="/">surr</a>
+  <h1>beta<br>babes</h1>
+  <p class="when">mon 12 oct · 6–7pm berlin <b>·</b> on google meet</p>
+  <ol>
+    <li><a href="https://testflight.apple.com/join/U5TSYwqy">
+      <span class="n">01</span><span class="t">get the app</span><span class="go">→</span>
+      <span class="s">on your iphone. first time it sends you to get testflight — get it, come back, tap again.</span>
+    </a></li>
+    <li><a href="/babes/beta-babes.ics">
+      <span class="n">02</span><span class="t">add it to your calendar</span><span class="go">→</span>
+      <span class="s">reminder 15 minutes before.</span>
+    </a></li>
+    <li><a href="https://meet.google.com/ugs-dpqv-mua">
+      <span class="n">03</span><span class="t">join the call</span><span class="go">→</span>
+      <span class="s">monday, 6pm. come as you are.</span>
+    </a></li>
+  </ol>
+  <footer class="mono">say less</footer>
+</main>
+</body>
+</html>
