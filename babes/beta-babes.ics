@@ -1,0 +1,21 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//surr//beta babes//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+UID:beta-babes-2026-10-12@getsurr.com
+DTSTAMP:20261009T120000Z
+DTSTART:20261012T160000Z
+DTEND:20261012T170000Z
+SUMMARY:beta babes · surr
+LOCATION:https://meet.google.com/ugs-dpqv-mua
+URL:https://meet.google.com/ugs-dpqv-mua
+DESCRIPTION:join the call: https://meet.google.com/ugs-dpqv-mua\n\nget the app before: https://getsurr.com/babes
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:beta babes in 15
+TRIGGER:-PT15M
+END:VALARM
+END:VEVENT
+END:VCALENDAR
