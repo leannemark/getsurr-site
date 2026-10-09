@@ -181,6 +181,20 @@ write(
   ),
 );
 
+// the allies' door: getsurr.com/drive/allies/ is the drive page with the door set (drive.js reads data-door and opens on section 03).
+// it is a door, not a page of its own: always noindex, canonical to /drive/ — so switch-on never has to touch it.
+const drivePage = readFileSync(join(root, 'drive/index.html'), 'utf8');
+write(
+  'drive/allies/index.html',
+  drivePage
+    .replace('<html lang="en">', '<html lang="en" data-door="allies">')
+    .replace(/<!-- hidden until the drive is public[^\n]*-->\n<meta name="robots" content="noindex">\n/, '')
+    .replace(
+      '<meta name="theme-color"',
+      `<meta name="robots" content="noindex">\n<link rel="canonical" href="${SITE}${BASE}drive/">\n<meta name="theme-color"`,
+    ),
+);
+
 // the old hidden addresses: each forwards to its live address, and is never indexed
 const forward = (to) => `<!DOCTYPE html>
 <html lang="en">
@@ -200,4 +214,4 @@ for (const slug of moved) write(`preview/${slug ? slug + '/' : ''}index.html`, f
 // the guidelines are the deal: the welcome email links /guidelines
 write('guidelines/index.html', forward(`${BASE}deal/`));
 
-console.log(`built: ${Object.keys(branches).length} deep-link copies, deal, support, press, 404, privacy, imprint, terms, ${moved.length} forwarding pages, guidelines`);
+console.log(`built: ${Object.keys(branches).length} deep-link copies, deal, support, press, 404, privacy, imprint, terms, the allies door, ${moved.length} forwarding pages, guidelines`);

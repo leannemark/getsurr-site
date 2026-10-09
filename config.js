@@ -32,7 +32,10 @@ window.SURR = {
      BIDS: city → bids for the city race board, e.g. { amsterdam: 131, barcelona: 148 }. missing = 0.
      LIFE_SOLD: city → for life places sold, for the "41 of the first 100 left" line, e.g. { berlin: 59 }. missing = 0.
      PIECES: the tank's and the ring's prices in euros (placeholders until decided).
-     RING_MAKER: the ring maker's name; empty = the ring's line ends after "Made once." */
+     RING_MAKER: the ring maker's name; empty = the ring's line ends after "Made once."
+     STRIP: the strip in the allies section: newest first, each { name, city, rung, at }; name empty = "someone"; city optional;
+            rung one of round · bottle · table · section · cabana · yacht · villa; at an ISO time. Empty = no strip.
+            Allies only, names only with their tick — never a patron. The payments build feeds this from the server. */
   DRIVE: {
     ON: false,
     PAY_ON: false,
@@ -42,5 +45,6 @@ window.SURR = {
     LIFE_SOLD: {},
     PIECES: { tank: 50, ring: 80 },
     RING_MAKER: '',
+    STRIP: [],
   },
 };
