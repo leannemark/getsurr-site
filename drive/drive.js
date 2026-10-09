@@ -16,12 +16,31 @@
 
   /* ————— the prices (MARKET_ANALYSIS.md §13.2 and §16, decided). the picked city decides the set; no fourth set, ever ————— */
   var SETS = {
-    eur: { sym: '€', year: 120, yearAfter: 150, three: 300, threeAfter: 450, life: [450, 550], blife: 888, bAdd: 300, bIs: 350, soli: 30 },
-    gbp: { sym: '£', year: 140, yearAfter: 170, three: 340, threeAfter: 510, life: [500, 600], blife: 888, bAdd: 340, bIs: 400, soli: 45 },
-    usd: { sym: '$', year: 160, yearAfter: 200, three: 400, threeAfter: 600, life: [600, 725], blife: 1188, bAdd: 390, bIs: 450, soli: 50 }
+    /* list: a year, three years (after the drive: listAfter a year); backstage: a year, three years (owner, 2026-10-09: three for two;
+       after the drive: backAfter a year); for life: list in two steps, backstage for life; soli */
+    eur: { sym: '€', year: 120, three: 300, listAfter: 150, back1: 300, back3: 600, backAfter: 350, life: [450, 550], blife: 888, soli: 30 },
+    gbp: { sym: '£', year: 140, three: 340, listAfter: 170, back1: 340, back3: 680, backAfter: 400, life: [500, 600], blife: 888, soli: 45 },
+    usd: { sym: '$', year: 160, three: 400, listAfter: 200, back1: 390, back3: 780, backAfter: 450, life: [600, 725], blife: 1188, soli: 50 }
   };
+  /* the visitor's country decides the set (owner, 2026-10-09): preset from the phone's own time zone, nothing asked of a server */
+  var COUNTRIES = ['germany', 'austria', 'belgium', 'denmark', 'france', 'greece', 'ireland', 'italy', 'netherlands', 'poland', 'portugal', 'spain', 'sweden', 'switzerland',
+    'united kingdom', 'united states', 'canada', 'mexico', 'brazil', 'australia', 'somewhere else'];
+  var countrySet = function (c) { return c === 'united kingdom' ? 'gbp' : c === 'united states' ? 'usd' : 'eur'; };
+  function guessCountry() {
+    var z = '';
+    try { z = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (e) { /* old browser */ }
+    if (/^Europe\/(London|Belfast|Guernsey|Jersey|Isle_of_Man)$/.test(z)) return 'united kingdom';
+    if (/^America\/(New_York|Chicago|Denver|Los_Angeles|Phoenix|Anchorage|Detroit|Boise|Juneau|Adak|Indiana|Kentucky|North_Dakota|Menominee|Nome|Sitka|Metlakatla|Yakutat)|^Pacific\/Honolulu$/.test(z)) return 'united states';
+    var m = { Berlin: 'germany', Vienna: 'austria', Brussels: 'belgium', Copenhagen: 'denmark', Paris: 'france', Athens: 'greece', Dublin: 'ireland', Rome: 'italy',
+      Amsterdam: 'netherlands', Warsaw: 'poland', Lisbon: 'portugal', Madrid: 'spain', Stockholm: 'sweden', Zurich: 'switzerland' }[(z.match(/^Europe\/(\w+)$/) || [])[1]];
+    if (m) return m;
+    if (/^America\/(Toronto|Montreal|Vancouver|Edmonton|Winnipeg|Halifax|St_Johns|Regina)$/.test(z)) return 'canada';
+    if (/^America\/(Mexico_City|Cancun|Monterrey|Tijuana|Merida)$/.test(z)) return 'mexico';
+    if (/^America\/(Sao_Paulo|Bahia|Fortaleza|Recife|Manaus|Belem)$/.test(z)) return 'brazil';
+    if (/^Australia\//.test(z)) return 'australia';
+    return 'germany';
+  }
   var HOME = { eur: 'berlin', gbp: 'london', usd: 'new york' };
-  var setOf = function (city) { return city === 'london' ? 'gbp' : city === 'new york' ? 'usd' : 'eur'; };
   /* the weekend is a Berlin event: euros in every set (the allies and the pieces too) */
   var WEEKEND = 1800, WEEKEND_FRIEND = 2100;
   /* for life: the first 100 in each city at the lower price, then the higher one, up to the city's cap */
@@ -40,30 +59,43 @@
   var SHOW = (location.search.match(/[?&]show=([a-z]+)/) || [])[1] || '';
   var PREVIEW = ['paying', 'after', 'ally', 'soli'].indexOf(SHOW) >= 0;
   var PICK = !!D.PAY_ON || PREVIEW;
-  var S = { set: 'eur', city: '', sel: null, done: false, all: false, amount: '', sheet: false, sent: false };
-  if (SHOW === 'paying') S.sel = { k: 'p', id: 'life' };
-  if (SHOW === 'after') { S.sel = { k: 'p', id: 'life' }; S.city = 'barcelona'; S.done = true; }
+  var S = { country: guessCountry(), set: 'eur', city: '', sel: null, done: false, all: false, amount: '', sheet: false, sent: false };
+  S.set = countrySet(S.country);
+  if (SHOW === 'paying') S.sel = { k: 'p', id: 'life', lvl: 'list' };
+  if (SHOW === 'after') { S.sel = { k: 'p', id: 'life', lvl: 'list' }; S.city = 'barcelona'; S.done = true; }
   if (SHOW === 'ally') { S.sel = { k: 'a', id: 'table' }; S.done = true; }
   if (SHOW === 'soli') S.sheet = true;
   var P = function () { return SETS[S.set]; };
 
   function lifeInfo() {
-    var city = LIFE_CAP[S.city] ? S.city : HOME[S.set], top = LIFE_CAP[city], sold = n0((D.LIFE_SOLD || {})[city]), p = P();
+    var city = LIFE_CAP[S.city] && (S.city === 'london' ? 'gbp' : S.city === 'new york' ? 'usd' : 'eur') === S.set ? S.city : HOME[S.set], top = LIFE_CAP[city], sold = n0((D.LIFE_SOLD || {})[city]), p = P();
     var first = sold < LIFE_FIRST;
     return {
       price: first ? p.life[0] : p.life[1],
       left: first ? (LIFE_FIRST - sold) + ' of the first ' + LIFE_FIRST + ' left' : Math.max(0, top - sold) + ' of ' + top + ' left',
-      note: 'Only in the first season: ' + top + ' in ' + cap(city) + '. The first ' + LIFE_FIRST + ' at ' + money(p.sym, p.life[0]) + ', then ' + money(p.sym, p.life[1]) + '.'
+      note: 'Only in the first season: ' + top + ' in ' + cap(city) + ', the first ' + LIFE_FIRST + ' at ' + money(p.sym, p.life[0]) + ', then ' + money(p.sym, p.life[1]) + '.'
     };
   }
 
-  var TIERS = [
-    { id: 'year', nm: 'a year', bids: 1, price: function (p) { return money(p.sym, p.year); }, sub: 'Entry for a year.', note: function (p) { return 'After the drive: ' + money(p.sym, p.yearAfter) + '.'; } },
-    { id: 'three', nm: 'three years', bids: 3, price: function (p) { return money(p.sym, p.three); }, sub: 'Entry for three years.', note: function (p) { return 'After the drive: ' + money(p.sym, p.threeAfter) + '.'; } },
-    { id: 'life', nm: 'for life', bids: 10, hero: true, price: function (p) { return money(p.sym, lifeInfo().price); }, sub: 'Entry for as long as surr exists, and backstage for the first three years. On the list for the opening, with a plus one, and the first drinks on us. The tank is yours.', note: function () { return lifeInfo().note; } },
-    { id: 'blife', nm: 'backstage for life', bids: 10, price: function (p) { return money(p.sym, p.blife); }, sub: 'Entry and backstage for as long as surr exists. The opening and the tank.', note: function () { return "88 in each city, numbered. There's no next issue."; } },
-    { id: 'weekend', nm: 'the weekend', bids: 10, price: function () { return eur(WEEKEND); }, sub: 'Backstage for life, and a place at the house: a weekend outside Berlin with sixteen of us, a cook and a lake.', note: function () { return 'Twelve places. Four more for friends, at ' + eur(WEEKEND_FRIEND) + '.'; } }
+  /* the patron menu: how long × list or backstage (owner, 2026-10-09), then the weekend */
+  var LENGTHS = [
+    { id: 'year', nm: 'a year', bids: 1 },
+    { id: 'three', nm: 'three years', bids: 3 },
+    { id: 'life', nm: 'for life', bids: 10, hero: true }
   ];
+  function patronItem(id, lvl) {
+    var p = P();
+    if (id === 'weekend') return { nm: 'the weekend', bids: 10, price: eur(WEEKEND) };
+    if (id === 'year') return lvl === 'back' ? { nm: 'a year of backstage', bids: 1, price: money(p.sym, p.back1) } : { nm: 'a year', bids: 1, price: money(p.sym, p.year) };
+    if (id === 'three') return lvl === 'back' ? { nm: 'three years of backstage', bids: 3, price: money(p.sym, p.back3) } : { nm: 'three years', bids: 3, price: money(p.sym, p.three) };
+    return lvl === 'back' ? { nm: 'backstage for life', bids: 10, price: money(p.sym, p.blife) } : { nm: 'for life', bids: 10, price: money(p.sym, lifeInfo().price) };
+  }
+  function lengthNote(id) {
+    var p = P();
+    if (id === 'year') return 'After the drive: ' + money(p.sym, p.listAfter) + ' · backstage ' + money(p.sym, p.backAfter) + '.';
+    if (id === 'three') return 'After the drive: ' + money(p.sym, p.listAfter * 3) + ' · backstage ' + money(p.sym, p.backAfter * 3) + '.';
+    return lifeInfo().note + " Backstage for life: 88 in each city, numbered. There's no next issue.";
+  }
 
   /* the allies' symbols: the SVG bodies from the ladder mockup (look a), verbatim, viewBox 0 0 24 24 */
   var SYM = {
@@ -87,10 +119,9 @@
     { id: 'villa', nm: 'the villa', eur: 10000, left: 'only one', no: 'the only one', sub: 'Plus your name on the wall at the opening, and your official title: the ultimate lez breastie, famous among lesbians worldwide. A short portrait and a write-up about you on our socials.', line: 'let the lesbians know this villa is on me.', under: 'the ultimate lez breastie, famous among lesbians worldwide.' }
   ];
   var ally = function (id) { return ALLIES.filter(function (a) { return a.id === id; })[0]; };
-  var tier = function (id) { return TIERS.filter(function (t) { return t.id === id; })[0]; };
 
   /* ————— the city race: bids from config.js; ties keep the plan's order, then the alphabet ————— */
-  var added = function () { return S.sel && S.sel.k === 'p' ? tier(S.sel.id).bids : 0; };
+  var added = function () { return S.sel && S.sel.k === 'p' ? patronItem(S.sel.id, S.sel.lvl).bids : 0; };
   var bidsOf = function (c) { return n0((D.BIDS || {})[c]) + (S.done && c === S.city ? added() : 0); };
   function racers() {
     return CITIES.slice(1).sort(function (a, b) {
@@ -137,22 +168,29 @@
   }
   function secPatrons() {
     var p = P(), tag = PICK ? 'button' : 'div';
-    var rows = TIERS.map(function (t) {
-      var on = !!(S.sel && S.sel.k === 'p' && S.sel.id === t.id);
-      return '<' + tag + ' class="row' + (t.hero ? ' hero' : '') + '"' + (PICK ? ' type="button" data-tier="' + t.id + '" aria-pressed="' + on + '"' : '') + '>' +
-        '<span class="nm">' + t.nm + '</span><span class="b">' + nb(t.bids) + '</span><span class="p">' + t.price(p) + '</span>' +
+    var on = function (id, lvl) { return !!(S.sel && S.sel.k === 'p' && S.sel.id === id && (S.sel.lvl || '') === (lvl || '')); };
+    var cell = function (id, lvl) {
+      var it = patronItem(id, lvl);
+      return '<' + tag + ' class="pc"' + (PICK ? ' type="button" data-tier="' + id + '" data-lvl="' + lvl + '" aria-pressed="' + on(id, lvl) + '" aria-label="' + it.nm + ', ' + it.price + '"' : '') + '><span class="p">' + it.price + '</span></' + tag + '>';
+    };
+    var rows = LENGTHS.map(function (t) {
+      return '<div class="mrow' + (t.hero ? ' hero' : '') + '"><span class="nm">' + t.nm + '</span><span class="b">' + nb(t.bids) + '</span>' + cell(t.id, 'list') + cell(t.id, 'back') +
         (t.hero ? '<span class="left">' + lifeInfo().left + '</span>' : '') +
-        '<span class="sub">' + t.sub + '<small>' + t.note(p) + '</small></span></' + tag + '>';
+        (t.hero ? '<span class="sub">List for as long as surr exists, with backstage for the first three years, or backstage for good. Both: on the list for the opening, with a plus one, the first drinks on us, and the tank.</span>' : '') +
+        '<small>' + lengthNote(t.id) + '</small></div>';
     }).join('');
-    var cur = '<div class="cur" role="group" aria-label="currency">' + ['eur', 'gbp', 'usd'].map(function (k) {
-      return '<button type="button" data-cur="' + k + '" aria-pressed="' + (S.set === k) + '">' + SETS[k].sym + '</button>';
-    }).join('<i>·</i>') + '</div>';
+    var wk = on('weekend', '');
+    var weekend = '<' + tag + ' class="row"' + (PICK ? ' type="button" data-tier="weekend" data-lvl="" aria-pressed="' + wk + '"' : '') + '>' +
+      '<span class="nm">the weekend</span><span class="b">10 bids</span><span class="p">' + eur(WEEKEND) + '</span>' +
+      '<span class="sub">Backstage for life, and a place at the house: a weekend outside Berlin with sixteen of us, a cook and a lake.<small>Twelve places. Four more for friends, at ' + eur(WEEKEND_FRIEND) + '.</small></span></' + tag + '>';
+    var where = '<label class="where"><span class="k">prices for</span><select class="field" id="pcountry" name="country">' +
+      COUNTRIES.map(function (c) { return '<option value="' + c + '"' + (S.country === c ? ' selected' : '') + '>' + c + ' · ' + SETS[countrySet(c)].sym + '</option>'; }).join('') + '</select></label>';
     return '<section class="ds"><div>' + head('02', "for the ones who'll be on the app", 'become a patron.') +
-      '<span class="k">every patron gets</span><div class="things">' +
-      '<div class="thing"><b>entry</b><p>Your annual pass to surr, for as many years as you choose.</p></div>' +
-      '<div class="thing"><b>backstage</b><p>Our extras on top of entry: special features, monthly gifts like bumps and layovers, and IRL privileges at our nights and partner events. It comes with for life for three years, and with backstage for life for good. Any patron can add it for ' + money(p.sym, p.bAdd) + " (it's " + money(p.sym, p.bIs) + ').</p></div></div>' +
-      '<span class="k">and, as a patron</span><ul class="gets"><li>your username, before anyone else</li><li>thirteen invite codes</li><li>your name in the credits</li><li>the patron mark on your profile, with your number</li></ul></div>' +
-      '<div>' + cur + '<div class="rows' + (PICK ? ' pick' : '') + '">' + rows + '</div><p class="fine">Bids show us where you want surr next. See the city race below.</p></div>' +
+      '<span class="k">every patron gets</span><ul class="gets"><li>your username, before anyone else</li><li>thirteen invite codes</li><li>your name in the credits</li><li>the patron mark on your profile, with your number</li></ul></div>' +
+      '<div>' + where + '<dl class="key"><dt>list</dt><dd>Your annual pass to surr, for as many years as you choose.</dd><dt>backstage</dt><dd>Our extras on top of list: special features, monthly gifts like bumps and layovers, and IRL privileges at our nights and partner events.</dd></dl>' +
+      '<div class="pmenu' + (PICK ? ' pick' : '') + '"><div class="mhead"><span></span><span></span><b>list</b><b>backstage</b></div>' + rows + '</div>' +
+      '<div class="rows' + (PICK ? ' pick' : '') + '">' + weekend + '</div>' +
+      '<p class="fine">Bids show us where you want surr next. See the city race below.</p></div>' +
       '<div class="soli" style="grid-column:1/-1"><b>soli</b><span class="p">' + money(p.sym, p.soli) + ' a year</span><p class="fine">For the ones it\'s for. Tickets are released in batches, and a person reads every ask.</p><button class="link" type="button" data-act="ask">ask →</button></div></section>';
   }
   function secAllies() {
@@ -186,10 +224,10 @@
   }
 
   /* ————— the pay bar ————— */
-  function picked() { return S.sel ? (S.sel.k === 'p' ? tier(S.sel.id) : ally(S.sel.id)) : null; }
+  function picked() { return S.sel ? (S.sel.k === 'p' ? patronItem(S.sel.id, S.sel.lvl) : ally(S.sel.id)) : null; }
   function payLabel() {
     var t = picked();
-    if (S.sel.k === 'p') return 'become a patron · ' + t.price(P()) + ' →';
+    if (S.sel.k === 'p') return 'become a patron · ' + t.price + ' →';
     if (S.sel.id === 'own') return n0(S.amount) ? 'give ' + eur(n0(S.amount)) + ' →' : 'give →';
     return 'give ' + eur(t.eur) + ' →';
   }
@@ -503,14 +541,13 @@
 
   /* ————— taps ————— */
   document.addEventListener('click', function (e) {
-    var b = e.target.closest('[data-cur],[data-tier],[data-ally],[data-act]');
+    var b = e.target.closest('[data-tier],[data-ally],[data-act]');
     if (!b || b.disabled) return;
-    if (b.dataset.cur) {
-      S.set = b.dataset.cur;
-      if (S.city && setOf(S.city) !== S.set) S.city = HOME[S.set];
+    if (b.dataset.tier) {
+      var lv = b.dataset.lvl || '';
+      S.sel = S.sel && S.sel.k === 'p' && S.sel.id === b.dataset.tier && (S.sel.lvl || '') === lv ? null : { k: 'p', id: b.dataset.tier, lvl: lv };
       render(); return;
     }
-    if (b.dataset.tier) { S.sel = S.sel && S.sel.k === 'p' && S.sel.id === b.dataset.tier ? null : { k: 'p', id: b.dataset.tier }; render(); return; }
     if (b.dataset.ally) { S.sel = S.sel && S.sel.k === 'a' && S.sel.id === b.dataset.ally ? null : { k: 'a', id: b.dataset.ally }; render(); return; }
     switch (b.dataset.act) {
       case 'clear': S.sel = null; render(); break;
@@ -526,7 +563,8 @@
     }
   });
   document.addEventListener('change', function (e) {
-    if (e.target.id === 'pcity') { S.city = e.target.value; S.set = S.city ? setOf(S.city) : S.set; var em = $('#pemail'), v = em ? em.value : ''; render(); em = $('#pemail'); if (em) em.value = v; var c = $('#pcity'); if (c) c.focus({ preventScroll: true }); }
+    if (e.target.id === 'pcountry') { S.country = e.target.value; S.set = countrySet(S.country); render(); var pc = $('#pcountry'); if (pc) pc.focus({ preventScroll: true }); return; }
+    if (e.target.id === 'pcity') { S.city = e.target.value; var em = $('#pemail'), v = em ? em.value : ''; render(); em = $('#pemail'); if (em) em.value = v; var c = $('#pcity'); if (c) c.focus({ preventScroll: true }); }
   });
   document.addEventListener('input', function (e) {
     if (e.target.id === 'pamount') {
