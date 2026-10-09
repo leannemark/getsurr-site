@@ -80,18 +80,19 @@
       '<form class="ask" novalidate><div class="cap">' +
       '<label class="sr" for="ab' + n + '">email</label><input id="ab' + n + '" name="email" type="email" inputmode="email" autocomplete="email" autocapitalize="none" spellcheck="false" placeholder="email">' +
       '<button class="dot" type="submit" aria-label="tell me">→</button></div>' +
+      '<div class="hp" aria-hidden="true"><input name="website" type="text" tabindex="-1" autocomplete="off"></div>' +
       '<p class="err" role="status" aria-live="polite" hidden></p></form>';
     var form = wrap.firstChild, btn = $('button', form), err = $('.err', form);
     slot.replaceWith(form);
     form.addEventListener('submit', function (e) {
       e.preventDefault();
       if (btn.disabled) return;
-      var email = form.email.value.trim().toLowerCase();
+      var email = form.email.value.trim().toLowerCase(), hp = form.website.value;
       btn.disabled = true; err.hidden = true;
       fetch(C.SUPABASE_URL + '/rest/v1/rpc/ask_beta_link', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', apikey: C.SUPABASE_ANON_KEY },
-        body: JSON.stringify({ p_email: email }),
+        body: JSON.stringify(hp ? { p_email: email, p_hp: hp } : { p_email: email }),
         credentials: 'omit', cache: 'no-store', referrerPolicy: 'no-referrer', signal: patience()
       }).then(function (r) {
         if (r.ok) return null;
@@ -117,6 +118,7 @@
   });
 
   /* ————— shared: the list form ————— */
+  /* both forms carry a bot trap (.hp, name="website"): people never see or reach it. Only a robot fills it; its value goes as p_hp and the server answers "done" and writes nothing. Sent only when filled, so a person's call is exactly as before. */
   var formN = 0;
   $$('[data-form]').forEach(function (slot) {
     var n = ++formN;
@@ -126,6 +128,7 @@
       '<label class="sr" for="em' + n + '">email</label><input id="em' + n + '" name="email" type="email" inputmode="email" autocomplete="email" autocapitalize="none" spellcheck="false" placeholder="email">' +
       '<label class="sr" for="ci' + n + '">city</label><input id="ci' + n + '" name="city" type="text" autocomplete="address-level2" placeholder="city">' +
       '<label class="sr" for="li' + n + '">instagram or a link, optional</label><input id="li' + n + '" name="link" type="text" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="instagram or a link, optional">' +
+      '<div class="hp" aria-hidden="true"><input name="website" type="text" tabindex="-1" autocomplete="off"></div>' +
       '<button class="go" type="submit">put me on the list →</button>' +
       '<p class="err" role="status" aria-live="polite" hidden></p></form>';
     var form = wrap.firstChild, btn = $('button', form), err = $('.err', form);
@@ -133,12 +136,12 @@
     form.addEventListener('submit', function (e) {
       e.preventDefault();
       if (btn.disabled) return;
-      var email = form.email.value.trim().toLowerCase(), city = form.city.value.trim(), link = form.link.value.trim() || null;
+      var email = form.email.value.trim().toLowerCase(), city = form.city.value.trim(), link = form.link.value.trim() || null, hp = form.website.value;
       btn.disabled = true; btn.textContent = 'sending…'; err.hidden = true;
       fetch(C.SUPABASE_URL + '/rest/v1/rpc/join_waitlist', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', apikey: C.SUPABASE_ANON_KEY },
-        body: JSON.stringify({ p_email: email, p_city: city, p_link: link }),
+        body: JSON.stringify(hp ? { p_email: email, p_city: city, p_link: link, p_hp: hp } : { p_email: email, p_city: city, p_link: link }),
         credentials: 'omit', cache: 'no-store', referrerPolicy: 'no-referrer', signal: patience()
       }).then(function (r) {
         if (r.ok) return null;
