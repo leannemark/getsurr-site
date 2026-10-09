@@ -7,7 +7,7 @@
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
   var still = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var deskMQ = matchMedia('(min-width: 721px)');
+  var deskMQ = matchMedia('(min-width: 721px) and (min-height: 501px) and (orientation: landscape), (min-width: 721px) and (min-height: 501px) and (pointer: fine)'); /* same as site.css */
   var smooth = still ? 'auto' : 'smooth';
   /* a form send that has not answered in 15 s gives up and says so, never "sending…" forever */
   function patience() {

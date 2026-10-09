@@ -52,7 +52,7 @@ async function open(page, base, key) {
   const res = await page.goto(base + PAGES[key], { waitUntil: 'load' });
   await settle(page);
   if (key === 'home-in') { // through the door: cut the splash and land
-    await page.evaluate(() => (innerWidth > 720 ? document.querySelector('#splash') : document.querySelector('#ssplash')).click());
+    await page.evaluate(() => (document.querySelector('#splash')?.offsetParent ? document.querySelector('#splash') : document.querySelector('#ssplash')).click());
     await page.waitForTimeout(2300);
     await settle(page);
   }
@@ -121,7 +121,7 @@ export async function shots() {
         const page = await ctx.newPage();
         await page.goto(base + '/', { waitUntil: 'load' });
         await settle(page);
-        await page.evaluate(() => (innerWidth > 720 ? document.querySelector('#splash') : document.querySelector('#ssplash')).click());
+        await page.evaluate(() => (document.querySelector('#splash')?.offsetParent ? document.querySelector('#splash') : document.querySelector('#ssplash')).click());
         await page.waitForTimeout(450);
         await page.screenshot({ path: join(OUT, 'shots', ename, dname, 'splash-mid-cut.png') });
         files.push(['splash mid-cut', `${ename}/${dname}/splash-mid-cut.png`]);
@@ -176,7 +176,7 @@ export async function shots() {
         await page.goto(base + PAGES[key], { waitUntil: 'load' });
         await page.waitForTimeout(1000);
         if (key === 'home-in') {
-          await page.evaluate(() => (innerWidth > 720 ? document.querySelector('#splash') : document.querySelector('#ssplash')).click());
+          await page.evaluate(() => (document.querySelector('#splash')?.offsetParent ? document.querySelector('#splash') : document.querySelector('#ssplash')).click());
           await page.waitForTimeout(300);
         }
         const moving = await page.evaluate(() => document.getAnimations().filter((a) => a.playState === 'running').length);

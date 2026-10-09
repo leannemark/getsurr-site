@@ -18,7 +18,7 @@ export async function frames({ engines = ['webkit', 'chromium', 'firefox'], runs
         await page.goto(base + '/', { waitUntil: 'load' });
         await page.waitForTimeout(600);
         const t = await page.evaluate(() => new Promise((done) => {
-          const el = document.querySelector(innerWidth > 720 ? '#splash' : '#ssplash');
+          const el = (document.querySelector('#splash')?.offsetParent ? document.querySelector('#splash') : document.querySelector('#ssplash'));
           const ts = [];
           const tick = (now) => { ts.push(now); if (now - ts[0] < 1900) requestAnimationFrame(tick); else done(ts.slice(1).map((v, k) => v - ts[k])); };
           requestAnimationFrame((now) => { ts.push(now); el.click(); requestAnimationFrame(tick); });
