@@ -226,7 +226,7 @@ export async function shots() {
 }
 
 if (process.argv[1] && import.meta.url.endsWith(process.argv[1].split('/').pop())) {
-  const { count, problems } = await shots();
+  const { count, problems, notes } = await shots();
   console.log(`${count} screenshots in tests/out/shots, contact sheets in tests/out/sheets`);
   for (const n of notes) console.log('  · ' + n);
   for (const p of problems) console.log('  ✗ ' + p);
