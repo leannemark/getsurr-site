@@ -1,6 +1,6 @@
 // Builds the pages that are copies or plain pages.
 // The one page is index.html — edit that, then run: node scripts/build.mjs
-// It writes: the deep-link copies (rings, map, nights, list, drive, beta), the plain pages (deal, press, support, 404),
+// It writes: the deep-link copies (rings, map, nights, list, beta), the plain pages (deal, press, support, 404),
 // the legal pages (privacy, imprint — their text comes word for word from _legal/, which the site never serves),
 // and the forwarding pages under preview/ that send the old hidden addresses to the live ones.
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
@@ -18,13 +18,13 @@ const write = (rel, html) => {
   writeFileSync(f, html);
 };
 
-// deep links: the same page, its own title; the page reads its path and opens the branch
+// deep links: the same page, its own title; the page reads its path and opens the branch.
+// the drive is not one of them: drive/ is a page of its own (drive/index.html, by hand)
 const branches = {
   rings: 'mood rings · surr',
   map: 'map · surr',
   nights: 'nights · surr',
   list: 'the list · surr',
-  drive: 'the list · surr',
   beta: 'surr',
 };
 for (const [slug, title] of Object.entries(branches)) {
@@ -181,6 +181,20 @@ write(
   ),
 );
 
+// the allies' door: getsurr.com/drive/allies/ is the drive page with the door set (drive.js reads data-door and opens on section 03).
+// it is a door, not a page of its own: always noindex, canonical to /drive/ — so switch-on never has to touch it.
+const drivePage = readFileSync(join(root, 'drive/index.html'), 'utf8');
+write(
+  'drive/allies/index.html',
+  drivePage
+    .replace('<html lang="en">', '<html lang="en" data-door="allies">')
+    .replace(/<!-- hidden until the drive is public[^\n]*-->\n<meta name="robots" content="noindex">\n/, '')
+    .replace(
+      '<meta name="theme-color"',
+      `<meta name="robots" content="noindex">\n<link rel="canonical" href="${SITE}${BASE}drive/">\n<meta name="theme-color"`,
+    ),
+);
+
 // the old hidden addresses: each forwards to its live address, and is never indexed
 const forward = (to) => `<!DOCTYPE html>
 <html lang="en">
@@ -194,10 +208,10 @@ const forward = (to) => `<!DOCTYPE html>
 <body style="background:#050505;color:#E8E8E8;font-family:ui-monospace,Menlo,monospace;font-size:12px;padding:24px"><a href="${to}" style="color:inherit">surr →</a></body>
 </html>
 `;
-const moved = ['', ...Object.keys(branches), 'deal', 'press', 'support'];
+const moved = ['', ...Object.keys(branches), 'drive', 'deal', 'press', 'support'];
 for (const slug of moved) write(`preview/${slug ? slug + '/' : ''}index.html`, forward(`${BASE}${slug ? slug + '/' : ''}`));
 
 // the guidelines are the deal: the welcome email links /guidelines
 write('guidelines/index.html', forward(`${BASE}deal/`));
 
-console.log(`built: 6 deep-link copies, deal, support, press, 404, privacy, imprint, terms, ${moved.length} forwarding pages, guidelines`);
+console.log(`built: ${Object.keys(branches).length} deep-link copies, deal, support, press, 404, privacy, imprint, terms, the allies door, ${moved.length} forwarding pages, guidelines`);

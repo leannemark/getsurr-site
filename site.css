@@ -23,6 +23,8 @@ h3{margin:0;font-family:var(--head);font-weight:700;font-size:21px;line-height:1
 .k{font-family:var(--mono);font-size:10px;color:var(--grey);letter-spacing:.04em;margin-bottom:8px;display:block}
 .body{color:var(--grey2);font-size:14px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+/* the forms' bot trap: off-screen, unreachable, never read aloud (aria-hidden) — not .sr, which screen readers read */
+.hp{position:absolute;left:-10000px;top:0;width:1px;height:1px;overflow:hidden}
 [hidden]{display:none!important}
 
 /* which version: the desk on a wide, tall-enough screen held sideways (or any screen with a mouse); the snap everywhere else —
@@ -250,6 +252,20 @@ form.ask .err{margin:8px 0 0 16px}
 .ticks i.on{background:var(--ink)}
 .snap-wrap.pre .snapdoor{opacity:0;pointer-events:none}
 .snapdoor{transition:opacity .4s}
+
+/* ————— the drive's fuse (the band's fifth tile, the phone's drive screen, the drive page) — path and timing from the a3 mockup ————— */
+.fuse{display:block;width:100%;height:auto}
+.fuse .cord{stroke:#8a8a8a;stroke-width:2;fill:none;stroke-dasharray:1 1;-webkit-animation:burn 14s linear infinite;animation:burn 14s linear infinite}
+.fuse .cord.dark{stroke:#262626;-webkit-animation:none;animation:none;stroke-dasharray:none}
+.fuse .mover{offset-path:path("M 4 34 C 50 4, 100 12, 130 28 S 210 50, 250 22 S 320 6, 376 26");offset-rotate:0deg;-webkit-animation:travel 14s linear infinite;animation:travel 14s linear infinite}
+.fuse .spark{fill:var(--red)}
+.fuse .glow{fill:var(--red);opacity:.35;-webkit-animation:flick .25s steps(2) infinite alternate;animation:flick .25s steps(2) infinite alternate}
+@keyframes burn{from{stroke-dashoffset:0}to{stroke-dashoffset:-1}}
+@keyframes travel{from{offset-distance:0%}to{offset-distance:100%}}
+@keyframes flick{to{transform:scale(1.25)}}
+.cell.fusecell .fuse{width:82%}
+.sec.drive .bg .fuse{width:84%}
+.sec.drive .go{align-self:flex-start;text-decoration:none;color:var(--ink)}
 
 /* the snap on a short, wide screen (a phone on its side) or a tall tablet (an iPad upright): the picture beside the words
    (owner, 2026-10-09: sideways option a, iPad option c). the picture fills the left, the big word at its foot; the words scroll on the right. */
