@@ -34,7 +34,7 @@ jobs:
             name="${pair%%|*}"; url="${pair#*|}"; title="down: $name"
             open=$(gh issue list --repo "$REPO" --state open --search "\"$title\" in:title" --json number --jq '.[0].number')
             if check "$name" "$url"; then
-              [ -n "$open" ] && gh issue close "$open" --repo "$REPO" --comment "back up at $(TZ=Europe/Berlin date '+%a %d %b %H:%M') Berlin time."
+              if [ -n "$open" ]; then gh issue close "$open" --repo "$REPO" --comment "back up at $(TZ=Europe/Berlin date '+%a %d %b %H:%M') Berlin time."; fi
             elif [ -z "$open" ]; then
               gh issue create --repo "$REPO" --title "$title" --body "@leannemark $name did not answer three times in a row, a minute apart ($url), at $(TZ=Europe/Berlin date '+%a %d %b %H:%M') Berlin time. This closes by itself when it answers again."
             fi
