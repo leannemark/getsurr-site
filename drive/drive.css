@@ -7,7 +7,8 @@
 .ds h3{text-wrap:balance}
 .ds .k{margin-bottom:0}
 .ds .body{line-height:1.45;text-wrap:pretty}
-.num{font-family:var(--mono);font-size:10px;color:var(--red);letter-spacing:.08em;display:block}
+/* the numbers are 10px: cherry is 4.05:1 on black, this brighter cherry is 4.58 (owner, 2026-10-10) */
+.num{font-family:var(--mono);font-size:10px;color:#EA1C36;letter-spacing:.08em;display:block}
 
 /* ————— desktop: the band stays veiled; the tiles under the veil go to the site; the fuse tile sits above it ————— */
 .dsite .veil{pointer-events:none}
