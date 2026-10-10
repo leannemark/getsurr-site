@@ -508,8 +508,9 @@
       inner.innerHTML = parts.join('');
       dsnap.innerHTML = '';
     } else {
-      inner.innerHTML = parts.map(function (h) {
-        return '<section class="dscreen"><div class="scrollwrap"><div class="scroll">' + h + '</div><div class="fade"></div><span class="more" aria-hidden="true">↓ more</span></div></section>';
+      inner.innerHTML = parts.map(function (h, i) {
+        /* each screen scrolls on its own: a keyboard can reach it, a screen reader can name it */
+        return '<section class="dscreen"><div class="scrollwrap"><div class="scroll" tabindex="0" role="region" aria-label="' + (i + 1) + ' of ' + parts.length + '">' + h + '</div><div class="fade"></div><span class="more" aria-hidden="true">↓ more</span></div></section>';
       }).join('');
       $('#dscroll').innerHTML = '';
       dticks.innerHTML = parts.length > 1 ? parts.map(function () { return '<i></i>'; }).join('') : '';
