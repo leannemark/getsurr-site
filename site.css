@@ -27,10 +27,11 @@ h3{margin:0;font-family:var(--head);font-weight:700;font-size:21px;line-height:1
 .hp{position:absolute;left:-10000px;top:0;width:1px;height:1px;overflow:hidden}
 [hidden]{display:none!important}
 
-/* which version: the desk above 720px, the snap below */
+/* which version: the desk on a wide, tall-enough screen held sideways (or any screen with a mouse); the snap everywhere else —
+   phones, a phone on its side, an iPad held upright (owner, 2026-10-09). site.js uses the same query (deskMQ). */
 .desk{display:none}
 .snap-wrap{display:block}
-@media (min-width:721px){.desk{display:block}.snap-wrap{display:none}}
+@media (min-width:721px) and (min-height:501px) and (orientation:landscape),(min-width:721px) and (min-height:501px) and (pointer:fine){.desk{display:block}.snap-wrap{display:none}}
 
 /* ————— desktop ————— */
 body.is-desk{overflow:hidden}
@@ -265,6 +266,25 @@ form.ask .err{margin:8px 0 0 16px}
 .cell.fusecell .fuse{width:82%}
 .sec.drive .bg .fuse{width:84%}
 .sec.drive .go{align-self:flex-start;text-decoration:none;color:var(--ink)}
+
+/* the snap on a short, wide screen (a phone on its side) or a tall tablet (an iPad upright): the picture beside the words
+   (owner, 2026-10-09: sideways option a, iPad option c). the picture fills the left, the big word at its foot; the words scroll on the right. */
+@media (max-width:720px) and (orientation:landscape),(orientation:landscape) and (max-height:500px),(min-width:721px) and (orientation:portrait) and (pointer:coarse){
+  .snap>section.sec{flex-direction:row}
+  .sec .bg{height:auto;width:42%;align-self:stretch}
+  .sec .bg::after{background:linear-gradient(90deg,rgba(5,5,5,0) 55%,var(--bg) 100%)}
+  .sec .word{left:20px;right:auto;width:calc(42% - 30px);bottom:72px;font-size:26px}
+  .sec .bg .mark{font-size:48px}
+  .sec .scrollwrap{margin-top:44px}
+}
+/* a phone on its side: the splash scissors sized to the short screen, same shape (2 : 1) */
+@media (max-width:720px) and (orientation:landscape),(orientation:landscape) and (max-height:500px){.ssplash .one{width:min(78%,120vh);height:min(39vw,60vh)}}
+@media (min-width:721px) and (orientation:portrait) and (pointer:coarse){
+  .sec .word{font-size:40px}
+  .sec .bg .mark{font-size:80px}
+  .sec .scroll{padding:8px 28px 28px}
+  .sec .body{font-size:16px}
+}
 
 /* ————— plain pages: deal, press, support, 404 ————— */
 .plain{max-width:40rem;margin:0 auto;padding:max(28px,calc(env(safe-area-inset-top) + 16px)) 20px 48px;min-height:100%;display:flex;flex-direction:column}

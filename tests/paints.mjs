@@ -15,7 +15,7 @@ export async function paints() {
     const events = [];
     cdp.on('Tracing.dataCollected', (e) => events.push(...e.value));
     await cdp.send('Tracing.start', { categories: 'devtools.timeline,disabled-by-default-devtools.timeline', transferMode: 'ReportEvents' });
-    await page.evaluate(() => (innerWidth > 720 ? document.querySelector('#splash') : document.querySelector('#ssplash')).click());
+    await page.evaluate(() => (document.querySelector('#splash')?.offsetParent ? document.querySelector('#splash') : document.querySelector('#ssplash')).click());
     await page.waitForTimeout(700); // the blades' turn
     const done = new Promise((r) => cdp.once('Tracing.tracingComplete', r));
     await cdp.send('Tracing.end');
