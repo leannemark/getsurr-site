@@ -289,6 +289,7 @@
       case 'done': return who + 'marked feedback from ' + at(l.handle) + ' done';
       case 'keep': return who + 'kept a quote from ' + at(l.handle);
       case 'takedown': return who + 'took a quote down';
+      case 'add': return who + 'made ' + at(l.handle) + ' a day one';
       default: return who + l.action;
     }
   }
@@ -378,6 +379,7 @@
           fb.takedowns ? fb.takedowns + (fb.takedowns === 1 ? ' quote' : ' quotes') + ' to take down'
             : fb.count ? 'oldest ' + since(fb.oldest) + ' ago' : 'nothing waiting',
           false, function () { location.hash = 'feedback'; }),
+        pile('day ones', d.day_ones ? d.day_ones.count : 0, '', false, function () { location.hash = 'day-ones'; }),
         h('div', { class: 'kick', text: '// quotes' }),
         h('div', { class: 'acts left' }, h('a', { class: 'link', href: '#quotes', text: d.quotes + ' kept →' })),
         betaSection(d.beta, my),
@@ -433,6 +435,65 @@
       show(h('div', { class: 'bar' }, h('a', { class: 'back', href: '#', text: '‹ the desk' }), h('span', { text: 'the list by city' })),
         h('div', { class: 'log' }, rows.length ? rows : h('div', { text: 'nobody on the list yet.' })));
     }).catch(function (err) { if (my === gen && !guard(err)) failed(citiesView); });
+  }
+
+  /* ---------- day ones (doors-open-server) ---------- */
+
+  // Everyone in with the day ones code or added by hand, newest first. Add
+  // only — nobody is taken off here.
+  var DAY_ONE_NO = {
+    unknown: 'no one with that handle.',
+    not_in: "she isn't in yet.",
+    already: 'already a day one.',
+  };
+  function dayOnesView() {
+    var my = ++gen;
+    desk('day_ones').then(function (d) {
+      if (my !== gen) return;
+      var people = (d && d.people) || [];
+      var msg = h('p', { class: 'line', hidden: true });
+      var handleIn = h('input', { id: 'day-one', type: 'text', placeholder: '@handle', autocomplete: 'off', autocapitalize: 'none', spellcheck: 'false', maxlength: '40', required: true });
+      var go = h('button', { class: 'btn go', type: 'submit', text: 'add' });
+      var form = h('form', { class: 'form' },
+        h('label', { for: 'day-one', text: 'add a day one by handle' }), handleIn, go);
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var handle = handleIn.value.trim();
+        if (!handle) return;
+        go.disabled = true;
+        msg.hidden = true;
+        desk('day_one_add', { handle: handle }).then(function (r) {
+          if (my !== gen) return;
+          if (r && r.ok) {
+            dayOnesView.added = r.handle;
+            dayOnesView();
+            return;
+          }
+          go.disabled = false;
+          msg.textContent = DAY_ONE_NO[r && r.reason] || COPY.failed;
+          msg.className = 'line err';
+          msg.hidden = false;
+        }).catch(function (err) {
+          if (my !== gen || guard(err)) return;
+          go.disabled = false;
+          msg.textContent = COPY.failed;
+          msg.className = 'line err';
+          msg.hidden = false;
+        });
+      });
+      var rows = people.map(function (p) {
+        return h('div', { text: [at(p.handle), p.city || 'no city', 'in since ' + day(p.joined_at), p.how === 'code' ? 'code' : 'by hand'].join(' · ') });
+      });
+      show(h('div', { class: 'bar' }, h('a', { class: 'back', href: '#', text: '‹ the desk' }), h('span', { text: 'day ones · ' + (d ? d.count : 0) })),
+        form, msg,
+        h('div', { class: 'log' }, rows.length ? rows : h('div', { text: 'no day ones yet.' })));
+      if (dayOnesView.added) {
+        msg.textContent = '@' + dayOnesView.added + ' is a day one.';
+        msg.className = 'line';
+        msg.hidden = false;
+        dayOnesView.added = null;
+      }
+    }).catch(function (err) { if (my === gen && !guard(err)) failed(dayOnesView); });
   }
 
   /* ---------- a pile, one at a time ---------- */
@@ -842,6 +903,7 @@
     else if (hash === '#quotes') quotesView();
     else if (hash === '#history') historyView();
     else if (hash === '#cities') citiesView();
+    else if (hash === '#day-ones') dayOnesView();
     else home();
   }
   window.addEventListener('hashchange', route);
