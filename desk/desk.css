@@ -268,3 +268,9 @@ button, input { font: inherit; color: inherit; }
 .kept .acts { align-items: center; }
 .credit { font-family: var(--mono); font-size: 13px; color: var(--ink-3); margin-right: auto; }
 .offscreen { position: fixed; left: -9999px; top: 0; opacity: 0; }
+
+/* the first read (desk-first-read): the AI's note under the name line */
+.fr .line { padding-bottom: 10px; }
+.fr .sum { color: var(--ink-2); }
+.fr .flag { color: var(--brand); }
+.fr .small { color: var(--ink-4); font-size: 12px; margin-top: 4px; }

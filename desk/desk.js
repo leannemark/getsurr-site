@@ -577,6 +577,46 @@
       src ? h('img', { src: src, alt: label }) : null, h('span', { text: label }));
   }
 
+  /* ---------- the first read (desk-first-read) ---------- */
+
+  // The AI's short note on an application or a report, asked for after the
+  // item is on screen so the item never waits for it. Switch off, or not a
+  // test item while it runs on test items only: no block at all. "reading…"
+  // shows only if the answer takes a moment, so an off answer never flashes.
+  // A failure says so; reopening the item tries again.
+  function firstRead(kind, id) {
+    var my = gen;
+    var box = h('div', { class: 'fr', hidden: true });
+    function fill(rows) {
+      box.textContent = '';
+      add(box, [h('div', { class: 'kick', text: '// first read' }), h('div', { class: 'line' }, rows)]);
+      box.hidden = false;
+    }
+    var waiting = setTimeout(function () { if (my === gen) fill(h('div', { text: 'reading…' })); }, 400);
+    desk('first_read', { kind: kind, id: id }).then(function (r) {
+      clearTimeout(waiting);
+      if (my !== gen) return;
+      if (!r || r.state === 'off') { box.hidden = true; return; }
+      if (r.state !== 'ready' || !r.note) { fill(h('div', { text: "first read didn't load. decide as usual." })); return; }
+      var flags = r.note.flags || [];
+      fill([
+        h('div', { class: 'sum', text: r.note.summary }),
+        flags.length
+          ? flags.map(function (f) {
+            return h('div', null, h('span', { class: 'flag', text: f.kind }), f.why ? ' · ' + f.why : null);
+          })
+          : h('div', { text: 'nothing stood out.' }),
+        h('div', { class: 'small', text: 'ai can be wrong. you decide.' }),
+      ]);
+    }).catch(function (err) {
+      clearTimeout(waiting);
+      if (my !== gen) return;
+      if (err === Expired || err === NotMine) { box.hidden = true; return; }
+      fill(h('div', { text: "first read didn't load. decide as usual." }));
+    });
+    return box;
+  }
+
   function application(id) {
     var my = ++gen;
     desk('application', { id: id }).then(function (a) {
@@ -608,6 +648,7 @@
       show(itemBar(),
         h('div', { class: 'photos' }, photos),
         h('div', { class: 'who' }, h('strong', { text: '@' + a.handle }), h('span', { text: ident })),
+        firstRead('application', a.id),
         h('div', { class: 'facts' }, h('div', null, codeLine), h('div', { text: 'applied ' + since(a.applied_at) + ' ago' })),
         h('div', { class: 'grow' }),
         note,
@@ -718,7 +759,7 @@
         bottom = [note, h('div', { class: 'acts dock' }, main, dismiss, remove, later())];
       }
 
-      show(itemBar(), head, facts, frozenLine,
+      show(itemBar(), head, r.state === 'open' ? firstRead('report', r.id) : null, facts, frozenLine,
         r.detail ? h('div', { class: 'quote', text: r.detail }) : null,
         folds.length ? h('div', { class: 'acts left' }, folds.map(function (f) { return f.btn; })) : null,
         folds.map(function (f) { return f.box; }),
