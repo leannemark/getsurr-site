@@ -342,6 +342,23 @@
     return [h('div', { class: 'kick', text: '// beta link' }), count, note, acts];
   }
 
+  /* ---------- home: totals (desk-totals) ---------- */
+
+  // Counts only, counted live on the server. The weekly change shows only when
+  // it is above zero. An older server sends no totals: nothing is drawn.
+  function totalsSection(t) {
+    if (!t) return null;
+    function line(name, n, week) {
+      return h('div', { text: name + ' · ' + n + (week > 0 ? ' · +' + week + ' this week' : '') });
+    }
+    return [h('div', { class: 'kick', text: '// totals' }), h('div', { class: 'line' },
+      line('members', t.members),
+      line('the list', t.list, t.list_week),
+      line('waiting for the beta link', t.beta, t.beta_week),
+      line('sapphic happenings', t.happenings, t.happenings_week),
+      line('day ones', t.day_ones, t.day_ones_week))];
+  }
+
   /* ---------- home ---------- */
 
   function home() {
@@ -385,6 +402,7 @@
         betaSection(d.beta, my),
         frozen.length ? [h('div', { class: 'kick', text: '// frozen' }), frozen] : null,
         todayLines.length ? [h('div', { class: 'kick', text: '// handled today' }), h('div', { class: 'log' }, todayLines)] : null,
+        totalsSection(d.totals),
         h('div', { class: 'grow' }),
         h('div', { class: 'foot' },
           h('span', { class: 'links' },
