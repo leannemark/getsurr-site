@@ -22,9 +22,9 @@
   var SETS = {
     /* list: a year, three years (after the drive: listAfter a year); backstage: a year, three years (owner, 2026-10-09: three for two;
        after the drive: backAfter a year); for life: list in two steps, backstage for life; soli */
-    eur: { sym: '€', year: 120, three: 300, listAfter: 150, back1: 300, back3: 600, backAfter: 350, life: [450, 550], blife: 888, soli: 30 },
-    gbp: { sym: '£', year: 140, three: 340, listAfter: 170, back1: 340, back3: 680, backAfter: 400, life: [500, 600], blife: 888, soli: 45 },
-    usd: { sym: '$', year: 160, three: 400, listAfter: 200, back1: 390, back3: 780, backAfter: 450, life: [600, 725], blife: 1188, soli: 50 }
+    eur: { sym: '€', year: 100, three: 240, listAfter: 150, back1: 300, back3: 600, backAfter: 350, life: [300, 400], blife: 888, soli: 30 },
+    gbp: { sym: '£', year: 120, three: 280, listAfter: 170, back1: 340, back3: 680, backAfter: 400, life: [350, 450], blife: 888, soli: 45 },
+    usd: { sym: '$', year: 130, three: 320, listAfter: 200, back1: 390, back3: 780, backAfter: 450, life: [400, 530], blife: 1188, soli: 50 }
   };
   /* the visitor's country decides the set (owner, 2026-10-09): preset from the phone's own time zone, nothing asked of a server */
   var COUNTRIES = ['germany', 'austria', 'belgium', 'denmark', 'france', 'greece', 'ireland', 'italy', 'netherlands', 'poland', 'portugal', 'spain', 'sweden', 'switzerland',
@@ -47,8 +47,8 @@
   var HOME = { eur: 'berlin', gbp: 'london', usd: 'new york' };
   /* the weekend is a Berlin event: euros in every set (the allies and the pieces too) */
   var WEEKEND = 1800, WEEKEND_FRIEND = 2100;
-  /* for life: the first 100 in each city at the lower price, then the higher one, up to the city's cap */
-  var LIFE_FIRST = 100;
+  /* for life: the first 25 in each city at the lower price, then the higher one, up to the city's cap */
+  var LIFE_FIRST = 25;
   var LIFE_CAP = { berlin: 200, paris: 100, amsterdam: 50, barcelona: 50, london: 300, 'new york': 500 };
   var CITIES = ['berlin', 'amsterdam', 'barcelona', 'london', 'paris', 'new york', 'toronto', 'montreal', 'los angeles', 'mexico city', 'são paulo', 'rio de janeiro', 'athens', 'copenhagen', 'melbourne'];
   var PLAN = ['berlin', 'amsterdam', 'barcelona', 'london', 'paris', 'new york'];
@@ -229,7 +229,8 @@
   /* ————— the sections ————— */
   var head = function (n, k, t) { return '<span class="num">' + n + '</span><span class="k">' + k + '</span>' + (t ? '<h3>' + t + '</h3>' : ''); };
   function counter() {
-    if (n0(D.RAISED) > 0) return '<span class="count"><b>' + eur(n0(D.RAISED)) + '</b> from <b>' + n0(D.SUPPORTERS).toLocaleString('en-US') + '</b> supporters so far</span>';
+    if (n0(D.RAISED) > 0) var goal = n0(D.GOAL) > 0 ? ' of ' + eur(n0(D.GOAL)) : '';
+      return '<span class="count"><b>' + eur(n0(D.RAISED)) + '</b>' + goal + ' from <b>' + n0(D.SUPPORTERS).toLocaleString('en-US') + '</b> supporters so far</span>';
     return PICK ? '' : '<span class="count">paying opens soon.</span>';
   }
   function secDrive() {
@@ -251,13 +252,13 @@
     var rows = LENGTHS.map(function (t) {
       return '<div class="mrow' + (t.hero ? ' hero' : '') + '"><span class="nm">' + t.nm + '</span><span class="b">' + nb(t.bids) + '</span>' + cell(t.id, 'list') + cell(t.id, 'back') +
         (t.hero ? '<span class="left">' + lifeInfo().left + '</span>' : '') +
-        (t.hero ? '<span class="sub">List for as long as surr exists, with backstage for the first three years. Backstage for life keeps backstage for good. Either way: a place on the guest list for the opening, with a plus one, the first drinks on us, and the tank.</span>' : '') +
+        (t.hero ? '<span class="sub">List for as long as surr exists. Backstage for life adds backstage for good. Either way: a place on the guest list for the opening, with a plus one, the first drinks on us, and the tank.</span>' : '') +
         '<small>' + lengthNote(t.id) + '</small></div>';
     }).join('');
     var wk = on('weekend', '');
     var weekend = '<' + tag + ' class="row"' + (PICK ? ' type="button" data-tier="weekend" data-lvl="" aria-pressed="' + wk + '"' : '') + '>' +
       '<span class="nm">the weekend</span><span class="b">10 bids</span><span class="p">' + eur(WEEKEND) + '</span>' +
-      '<span class="sub">Backstage for life, and a place at the house: a weekend outside Berlin with sixteen of us, a cook and a lake.<small>Twelve places. Four more for friends, at ' + eur(WEEKEND_FRIEND) + '.</small></span></' + tag + '>';
+      '<span class="sub">Backstage for life, and a place at the house: a weekend outside Berlin with sixteen of us, a cook and a lake.<small>Twelve places. Four more for friends, at ' + eur(WEEKEND_FRIEND) + '. It happens if eight of us book; if not, you keep backstage for life and the difference comes back.</small></span></' + tag + '>';
     var where = '<label class="where"><span class="k">prices for</span><select class="field" id="pcountry" name="country">' +
       COUNTRIES.map(function (c) { return '<option value="' + c + '"' + (S.country === c ? ' selected' : '') + '>' + c + ' · ' + SETS[countrySet(c)].sym + '</option>'; }).join('') + '</select></label>';
     return '<section class="ds"><div>' + head('02', "for the ones who'll be on the app", 'become a patron.') +
