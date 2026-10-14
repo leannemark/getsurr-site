@@ -659,7 +659,11 @@
         folds.push(fold('the messages', r.messages.map(function (m) {
           return h('div', { class: 'msg' },
             h('div', null, at(m.sender) + ' · ' + stamp(m.at), m.reported ? h('em', { text: ' · reported' }) : null),
-            h('div', { text: chatText(m) }));
+            h('div', null, chatText(m), (function () {
+              var src = safeImg(m.media_url);
+              return src ? h('a', { class: 'thumb', href: src, target: '_blank', rel: 'noopener noreferrer' },
+                h('img', { src: src, alt: 'photo in the chat' })) : null;
+            })()));
         })));
       }
       if (p.handle) {
