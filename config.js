@@ -28,9 +28,9 @@ window.SURR = {
          (the page is reachable at its address either way — that is how day ones get it before it is public.)
      PAY_ON: false = the page is for looking: prices shown, nothing can be picked, "paying opens soon." where the counter goes.
              true  = rows can be picked and the pay bar rises (the payments brief wires the money; until then pay() only shows the after-screen).
-     RAISED / SUPPORTERS: the counter, "€<raised> from <n> supporters so far" — hidden while RAISED is 0.
+     RAISED / SUPPORTERS / GOAL: the counter, "€<raised> of €<goal> from <n> supporters so far" — hidden while RAISED is 0; GOAL 0 = no goal shown.
      BIDS: city → bids for the city race board, e.g. { amsterdam: 131, barcelona: 148 }. missing = 0.
-     LIFE_SOLD: city → for life places sold, for the "41 of the first 100 left" line, e.g. { berlin: 59 }. missing = 0.
+     LIFE_SOLD: city → for life places sold, for the "13 of the first 25 left" line, e.g. { berlin: 12 }. missing = 0.
      PIECES: the tank's and the ring's prices in euros (placeholders until decided).
      RING_MAKER: the ring maker's name; empty = the ring's line ends after "Made once."
      STRIP: the strip in the allies section: newest first, each { name, city, rung, at }; name empty = "someone"; city optional;
@@ -40,6 +40,7 @@ window.SURR = {
     ON: false,
     PAY_ON: false,
     RAISED: 0,
+    GOAL: 5000,
     SUPPORTERS: 0,
     BIDS: {},
     LIFE_SOLD: {},
