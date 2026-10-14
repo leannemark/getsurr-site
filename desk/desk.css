@@ -223,6 +223,8 @@ button, input { font: inherit; color: inherit; }
 .msg { padding: 0 18px 10px; }
 .msg div:first-child { font-family: var(--mono); font-size: 13px; color: var(--ink-4); }
 .msg div:first-child em { font-style: normal; color: var(--brand); }
+.msg .thumb { display: inline-block; vertical-align: middle; margin-left: 8px; }
+.msg .thumb img { display: block; width: 56px; height: 56px; object-fit: cover; border-radius: 8px; }
 .msg div:last-child { font-size: 15px; line-height: 1.4; overflow-wrap: anywhere; white-space: pre-wrap; }
 
 /* login */
