@@ -138,6 +138,10 @@ form.list{display:flex;flex-wrap:wrap;gap:10px 12px;margin-top:14px;align-items:
 form.list input{background:none;border:0;border-bottom:1px solid #333;border-radius:0;color:var(--ink);font-family:var(--mono);font-size:12px;padding:6px 0;flex:1 1 30%;min-width:120px;-webkit-appearance:none;appearance:none}
 form.list input::placeholder{color:var(--grey)}
 form.list input[name=link]{flex-basis:100%}
+/* the phone question: two small toggles under the city, neither lit until tapped */
+form.list .phone{flex-basis:100%;display:flex;gap:8px}
+form.list .phone button{font-family:var(--mono);font-size:11px;padding:5px 11px;border:1px solid #333;border-radius:999px;color:var(--grey)}
+form.list .phone button[aria-pressed=true]{border-color:var(--ink);color:var(--ink)}
 .go{font-family:var(--mono);font-size:11px;padding:7px 12px;border:1px solid var(--grey2);border-radius:999px;white-space:nowrap}
 .go:disabled{opacity:.6;cursor:default}
 .err{flex-basis:100%;font-family:var(--mono);font-size:11px;color:var(--grey2)}
@@ -229,6 +233,7 @@ form.ask .err{margin:8px 0 0 16px}
 .sec .mapline{font-size:24px}
 .sec form.list input{flex-basis:100%;font-size:16px}
 .sec form.list{margin-top:4px}
+.sec form.list .phone button{font-size:12px;padding:8px 14px}
 /* the footer on the phone: under the list form, the last thing on the last screen */
 .sfoot{margin-top:28px;font-family:var(--mono);font-size:10px;color:var(--grey);display:flex;flex-wrap:wrap;gap:8px 14px}
 .sfoot a{text-decoration:none}

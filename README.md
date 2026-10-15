@@ -31,7 +31,7 @@ A friend on a slow desktop line saw the pictures load oddly and the page lag (20
 
 ## What the site never does
 
-- No third-party request on load: fonts are self-hosted (OFL, licences in `fonts/`), no analytics, no cookies. Only two things talk to Supabase: the list form (the `join_waitlist` function — email, city and an optional instagram or link, the same list as the app) and the beta box (the `ask_beta_link` function — one email, nothing else, kept until the "it's live" email has gone out and then deleted). Only the radio's own `play →` tap loads SoundCloud. The privacy policy depends on this.
+- No third-party request on load: fonts are self-hosted (OFL, licences in `fonts/`), no analytics, no cookies. Only two things talk to Supabase: the list form (the `join_waitlist` function — email, city, an optional instagram or link and an optional `iphone` / `android` answer, the same list as the app) and the beta box (the `ask_beta_link` function — one email, nothing else, kept until the "it's live" email has gone out and then deleted). Only the radio's own `play →` tap loads SoundCloud. The privacy policy depends on this.
 - `cum inside` on the splash is drawn as outlines (`img/cum-inside.svg`), so it is never indexable text. The scissors are an inline SVG placeholder until the photograph.
 ## The drive
 
