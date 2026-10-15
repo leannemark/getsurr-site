@@ -359,6 +359,13 @@
       line('day ones', t.day_ones, t.day_ones_week))];
   }
 
+  // The list pile's phone split (list-phone-question): rows on the pile by the
+  // form's optional answer. An older server sends no split: nothing is drawn.
+  function phoneSplit(t) {
+    if (!t || t.list_iphone == null) return null;
+    return 'iphone ' + t.list_iphone + ' · android ' + t.list_android + ' · unsaid ' + t.list_unsaid;
+  }
+
   /* ---------- home ---------- */
 
   function home() {
@@ -366,10 +373,10 @@
     desk('home').then(function (d) {
       if (my !== gen) return;
       var rep = d.reports, apps = d.applications, list = d.list, fb = d.feedback;
-      function pile(title, n, lineText, hot, go) {
+      function pile(title, n, lineText, hot, go, line2) {
         var zero = !n;
         return h('button', { class: 'pile' + (zero ? ' zero' : ''), type: 'button', disabled: !go, onclick: go },
-          h('div', { class: 't' }, h('strong', { text: title }), h('span', { text: lineText })),
+          h('div', { class: 't' }, h('strong', { text: title }), h('span', { text: lineText }), line2 ? h('span', { text: line2 }) : null),
           n == null ? null : h('div', { class: 'n' + (hot && n ? ' hot' : ''), text: String(n) }));
       }
       var frozen = (d.frozen || []).map(function (f) {
@@ -391,7 +398,7 @@
         h('div', { class: 'bar' }, h('span', { class: 'name', text: 'the desk' }), h('span', { text: today() })),
         pile('reports', rep.count, rep.count ? 'waiting ' + since(rep.oldest) : 'nothing waiting', true, function () { location.hash = 'reports'; }),
         pile('applications', apps.count, apps.count ? 'oldest ' + since(apps.oldest) + ' ago' : 'nothing waiting', false, function () { location.hash = 'applications'; }),
-        pile('the list', list.count, list.count ? list.new + ' new since yesterday' : 'nothing waiting', false, function () { location.hash = 'list'; }),
+        pile('the list', list.count, list.count ? list.new + ' new since yesterday' : 'nothing waiting', false, function () { location.hash = 'list'; }, phoneSplit(d.totals)),
         pile('feedback', fb.count,
           fb.takedowns ? fb.takedowns + (fb.takedowns === 1 ? ' quote' : ' quotes') + ' to take down'
             : fb.count ? 'oldest ' + since(fb.oldest) + ' ago' : 'nothing waiting',

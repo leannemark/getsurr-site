@@ -127,11 +127,21 @@
       '<form class="list" novalidate>' +
       '<label class="sr" for="em' + n + '">email</label><input id="em' + n + '" name="email" type="email" inputmode="email" autocomplete="email" autocapitalize="none" spellcheck="false" placeholder="email">' +
       '<label class="sr" for="ci' + n + '">city</label><input id="ci' + n + '" name="city" type="text" autocomplete="address-level2" placeholder="city">' +
+      '<div class="phone" role="group" aria-labelledby="ph' + n + '"><span class="sr" id="ph' + n + '">your phone, optional</span>' +
+      '<button type="button" aria-pressed="false" data-phone="iphone">iphone</button><button type="button" aria-pressed="false" data-phone="android">android</button></div>' +
       '<label class="sr" for="li' + n + '">instagram or a link, optional</label><input id="li' + n + '" name="link" type="text" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="instagram or a link, optional">' +
       '<div class="hp" aria-hidden="true"><input name="website" type="text" tabindex="-1" autocomplete="off"></div>' +
       '<button class="go" type="submit">put me on the list →</button>' +
       '<p class="err" role="status" aria-live="polite" hidden></p></form>';
-    var form = wrap.firstChild, btn = $('button', form), err = $('.err', form);
+    var form = wrap.firstChild, btn = $('button.go', form), err = $('.err', form);
+    /* the phone question (list-phone-question): optional, neither lit at first; a tap lights one, a second tap puts it out */
+    var phone = null, phones = $$('[data-phone]', form);
+    phones.forEach(function (b) {
+      b.addEventListener('click', function () {
+        phone = phone === b.dataset.phone ? null : b.dataset.phone;
+        phones.forEach(function (o) { o.setAttribute('aria-pressed', String(o.dataset.phone === phone)); });
+      });
+    });
     slot.replaceWith(form);
     form.addEventListener('submit', function (e) {
       e.preventDefault();
@@ -141,7 +151,7 @@
       fetch(C.SUPABASE_URL + '/rest/v1/rpc/join_waitlist', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', apikey: C.SUPABASE_ANON_KEY },
-        body: JSON.stringify(hp ? { p_email: email, p_city: city, p_link: link, p_hp: hp } : { p_email: email, p_city: city, p_link: link }),
+        body: JSON.stringify(Object.assign({ p_email: email, p_city: city, p_link: link }, hp ? { p_hp: hp } : {}, phone ? { p_phone: phone } : {})),
         credentials: 'omit', cache: 'no-store', referrerPolicy: 'no-referrer', signal: patience()
       }).then(function (r) {
         if (r.ok) return null;
