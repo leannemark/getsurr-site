@@ -921,7 +921,8 @@
         banned.textContent = 'banned · ' + ((r && r.banned) || ad.email);
         banned.hidden = false;
         ban.hidden = true;
-        putBack.disabled = false;
+        // Banned ads leave the pile: show it, then move on.
+        setTimeout(function () { if (mine === gen) advance(); }, 1200);
       }).catch(function (err) {
         if (mine !== gen || guard(err)) return;
         putBack.disabled = ban.disabled = false;
