@@ -273,7 +273,7 @@
       ads.appendChild(adEl(a));
     });
     if (list.length <= 2) ads.appendChild(house());
-    onboard.textContent = String(total);
+    setCount(total);
     endLine.hidden = !finished;
   }
   function appendAds(more) {
@@ -298,7 +298,7 @@
       else {
         var known = {}; list.forEach(function (a) { known[a.id] = 1; });
         var fresh = j.ads.filter(function (a) { return !known[a.id]; });
-        list = list.concat(fresh); appendAds(fresh); onboard.textContent = String(total);
+        list = list.concat(fresh); appendAds(fresh); setCount(total);
       }
       hint();
       setTimeout(recheck, 50);
@@ -356,7 +356,8 @@
   };
   var TOO_MANY = {
     place: "that's a lot of ads from here. try again in an hour.",
-    takedown: "one take-down an hour. if it's bad, someone else will get it."
+    takedown: "one take-down an hour. if it's bad, someone else will get it.",
+    thats_me: "that's a lot from here. try again in an hour."
   };
   function gone(j) {
     if (j && (j.error === 'bad_code' || j.error === 'not_open')) {
@@ -366,8 +367,13 @@
     }
     return false;
   }
+  function setCount(n) {
+    onboard.textContent = String(n);
+    $('#onboard-w').textContent = n === 1 ? 'ad' : 'ads';
+  }
   function words(err, action) {
     if (err === 'too_many') return TOO_MANY[action] || WORDS.other;
+    if (err === 'has_contact' && action === 'thats_me') return 'no names, numbers or @ in your note.';
     return WORDS[err] || WORDS.other;
   }
   function say(p, text) { p.textContent = text; p.hidden = !text; }
