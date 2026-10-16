@@ -11,7 +11,7 @@ export async function links({ live = true } = {}) {
   const seen = new Map(); // path → status
   const from = new Map(); // path → first page that links it
   const outside = new Set();
-  const queue = ['/', '/babes/']; // /babes/ is unlinked on purpose (noindex, for the beta testers) — walked from its own address
+  const queue = ['/', '/babes/', '/backpages/']; // /babes/ and /backpages/ are unlinked on purpose (noindex) — walked from their own addresses
   while (queue.length) {
     const path = queue.shift();
     if (seen.has(path)) continue;

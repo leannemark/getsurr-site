@@ -1,4 +1,4 @@
-// Weight check for the one page (index.html) and the drive (drive/index.html). Run: node scripts/check-weight.mjs
+// Weight check for the one page (index.html), the drive (drive/index.html) and the back pages (backpages/index.html). Run: node scripts/check-weight.mjs
 // Fails (exit 1) when: either page's first load is over 250 KB, a picture a page shows is over 110 KB,
 // site.css names a font that is not .woff2, or a src= points at a .png/.jpg/.jpeg other than the two icons.
 // Text files (html, css, js, svg) are counted gzipped (GitHub Pages gzips them); pictures and fonts as they are.
@@ -52,6 +52,8 @@ function check(page) {
 check('index.html');
 // the drive's band pictures sit behind the veil and load after the page (data-src), so they are not part of its first load
 check('drive/index.html');
+// the back pages: the first load is the entrance (no pictures); the corner picture and the board's photos come later
+check('backpages/index.html');
 
 if (problems.length) {
   console.error(problems.map((p) => 'FAIL: ' + p).join('\n'));
