@@ -20,7 +20,7 @@
     gone: 'someone who has left',
     emailFailed: "the email didn't go out. nothing was sent.",
   };
-  var TITLES = { applications: 'applications', reports: 'reports', list: 'the list', feedback: 'feedback' };
+  var TITLES = { applications: 'applications', reports: 'reports', list: 'the list', feedback: 'feedback', back_pages: 'back pages' };
 
   /* ---------- tiny dom ---------- */
 
@@ -290,6 +290,8 @@
       case 'keep': return who + 'kept a quote from ' + at(l.handle);
       case 'takedown': return who + 'took a quote down';
       case 'add': return who + 'made ' + at(l.handle) + ' a day one';
+      case 'put_back': return who + 'put an ad back on the back pages';
+      case 'ban': return who + 'banned an email on the back pages';
       default: return who + l.action;
     }
   }
@@ -366,6 +368,16 @@
     return 'iphone ' + t.list_iphone + ' · android ' + t.list_android + ' · unsaid ' + t.list_unsaid;
   }
 
+  /* ---------- the back pages: counts (back-pages-server) ---------- */
+
+  // Yesterday's numbers, or `switched off` while the board is off.
+  function backPagesLine(b) {
+    if (!b.open) return 'switched off';
+    var y = b.yesterday || {};
+    return 'yesterday: ' + (y.visits || 0) + ' visits · ' + (y.ads || 0) + ' new ads · ' +
+      (y.replies || 0) + " that's me · " + (y.takedowns || 0) + ' taken down';
+  }
+
   /* ---------- home ---------- */
 
   function home() {
@@ -404,6 +416,8 @@
             : fb.count ? 'oldest ' + since(fb.oldest) + ' ago' : 'nothing waiting',
           false, function () { location.hash = 'feedback'; }),
         pile('day ones', d.day_ones ? d.day_ones.count : 0, '', false, function () { location.hash = 'day-ones'; }),
+        d.back_pages ? pile('back pages', d.back_pages.count, d.back_pages.count ? 'taken down' : 'nothing waiting', false,
+          function () { location.hash = 'back-pages'; }, backPagesLine(d.back_pages)) : null,
         h('div', { class: 'kick', text: '// quotes' }),
         h('div', { class: 'acts left' }, h('a', { class: 'link', href: '#quotes', text: d.quotes + ' kept →' })),
         betaSection(d.beta, my),
@@ -531,7 +545,11 @@
     var my = ++gen;
     desk(pile).then(function (ids) {
       if (my !== gen) return;
-      run = { pile: pile, queue: ids || [], pos: 0, single: false };
+      if (pile === 'back_pages') {
+        run = { pile: pile, queue: (ids && ids.items) || [], pos: 0, single: false, line: ids ? backPagesLine(ids) : null };
+      } else {
+        run = { pile: pile, queue: ids || [], pos: 0, single: false };
+      }
       next();
     }).catch(function (err) { if (my === gen && !guard(err)) failed(function () { openPile(pile); }); });
   }
@@ -551,11 +569,12 @@
     if (run.pos >= run.queue.length) {
       show(h('div', { class: 'bar' }, h('a', { class: 'back', href: '#', text: '‹ the desk' }), h('span', { text: TITLES[run.pile] })),
         h('p', { class: 'line', text: COPY.empty }),
+        run.line ? h('p', { class: 'line', text: run.line }) : null,
         h('div', { class: 'acts left' }, h('a', { class: 'link', href: '#', text: '‹ the desk' })));
       return;
     }
     var id = run.queue[run.pos];
-    ({ applications: application, reports: report, list: person, feedback: feedbackItem })[run.pile](id);
+    ({ applications: application, reports: report, list: person, feedback: feedbackItem, back_pages: backPagesItem })[run.pile](id);
   }
   function counter() {
     return run.single ? '' : (run.pos + 1) + ' of ' + run.queue.length;
@@ -615,7 +634,8 @@
       show(itemBar(),
         h('div', { class: 'photos' }, photos),
         h('div', { class: 'who' }, h('strong', { text: '@' + a.handle }), h('span', { text: ident })),
-        h('div', { class: 'facts' }, h('div', null, codeLine), h('div', { text: 'applied ' + since(a.applied_at) + ' ago' })),
+        h('div', { class: 'facts' }, h('div', null, codeLine), h('div', { text: 'applied ' + since(a.applied_at) + ' ago' }),
+          a.banned ? h('div', null, h('b', { text: 'banned on the back pages' })) : null),
         h('div', { class: 'grow' }),
         note,
         h('div', { class: 'acts dock' }, approve, decline, later()));
@@ -874,6 +894,57 @@
     }).catch(function (err) { if (my === gen && !guard(err)) failed(function () { note(id); }); });
   }
 
+  /* ---------- the back pages: one taken-down ad at a time ---------- */
+
+  // The ad as posted, when it came down, how many took it down, and the
+  // poster's address (shown here and nowhere else). `put it back` puts it up
+  // again for good; `ban this email` stops that address placing or answering
+  // ads, and flags an application from it.
+  function backPagesItem(ad) {
+    ++gen;
+    var msg = h('p', { class: 'line err', hidden: true });
+    var putBack = h('button', { class: 'btn go', type: 'button', text: 'put it back' });
+    var ban = h('button', { class: 'btn', type: 'button', text: 'ban this email' });
+    var banned = h('p', { class: 'line', text: ad.banned ? 'banned · ' + ad.email : '' });
+    banned.hidden = !ad.banned;
+    if (ad.banned) ban.hidden = true;
+    putBack.onclick = function () {
+      act([putBack, ban], msg, function () { return desk('back_pages_decide', { id: ad.id, decision: 'put_back' }); });
+    };
+    ban.onclick = function () {
+      var mine = gen;
+      putBack.disabled = ban.disabled = true;
+      msg.hidden = true;
+      desk('back_pages_decide', { id: ad.id, decision: 'ban' }).then(function (r) {
+        if (mine !== gen) return;
+        ad.banned = true;
+        banned.textContent = 'banned · ' + ((r && r.banned) || ad.email);
+        banned.hidden = false;
+        ban.hidden = true;
+        // Banned ads leave the pile: show it, then move on.
+        setTimeout(function () { if (mine === gen) advance(); }, 1200);
+      }).catch(function (err) {
+        if (mine !== gen || guard(err)) return;
+        putBack.disabled = ban.disabled = false;
+        msg.textContent = COPY.failed;
+        msg.hidden = false;
+      });
+    };
+    show(itemBar(),
+      h('div', { class: 'facts' },
+        h('div', { text: ad.place + ' · ' + ad.at_time }),
+        h('div', null, h('b', { text: ad.headline }))),
+      h('div', { class: 'quote', text: ad.body }),
+      h('div', { class: 'facts' },
+        h('div', { text: 'taken down ' + since(ad.hidden_at) + ' ago' + (ad.takedowns > 1 ? ' · ' + ad.takedowns + ' take-downs' : '') }),
+        h('div', { text: ad.email })),
+      banned,
+      run.line ? h('p', { class: 'line', text: run.line }) : null,
+      h('div', { class: 'grow' }),
+      msg,
+      h('div', { class: 'acts dock' }, putBack, ban, later()));
+  }
+
   /* ---------- kept quotes ---------- */
 
   // The older select-and-copy first, while the tap still counts; the
@@ -933,6 +1004,7 @@
     else if (hash === '#history') historyView();
     else if (hash === '#cities') citiesView();
     else if (hash === '#day-ones') dayOnesView();
+    else if (hash === '#back-pages') openPile('back_pages');
     else home();
   }
   window.addEventListener('hashchange', route);
