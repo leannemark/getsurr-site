@@ -306,7 +306,7 @@
   }
   /* the observer only speaks when the end crosses into view; after a load (or a skipped one) look again */
   function recheck() {
-    if (finished || loading || !opened) return;
+    if (finished || loading || !opened || back.hidden) return;
     var end = $('#more-ads'), root = DESK.matches ? board : back;
     var r = end.getBoundingClientRect(), rr = root.getBoundingClientRect();
     if (r.top < rr.bottom + 700) load(false);
@@ -358,6 +358,14 @@
     place: "that's a lot of ads from here. try again in an hour.",
     takedown: "one take-down an hour. if it's bad, someone else will get it."
   };
+  function gone(j) {
+    if (j && (j.error === 'bad_code' || j.error === 'not_open')) {
+      $$('dialog').forEach(function (d) { if (d.open) close(d); });
+      backToEntrance(WORDS_E[j.error]);
+      return true;
+    }
+    return false;
+  }
   function words(err, action) {
     if (err === 'too_many') return TOO_MANY[action] || WORDS.other;
     return WORDS[err] || WORDS.other;
@@ -385,6 +393,7 @@
     fGo.disabled = true;
     rpc('backpages_place', args).then(function (j) {
       fGo.disabled = false;
+      if (gone(j)) return;
       if (j && j.id) {
         say(fMsg, 'your ad is up.');
         var email = form.email.value;
@@ -443,6 +452,7 @@
     meGo.disabled = true; meBusy = true;
     rpc('backpages_thats_me', args).then(function (j) {
       meBusy = false;
+      if (gone(j)) return;
       if (j && j.error === 'not_found') drop(ad.id);
       if (meAd !== ad) { meGo.disabled = false; return; } /* the sheet moved on to another ad */
       if (j && j.ok) { meGo.hidden = true; say(meMsg, 'sent. if they write back, it comes to your email.'); return; }
@@ -465,6 +475,7 @@
     var ad = downAd, id = ad.id;
     rpc('backpages_takedown', { p_code: code, p_id: id }).then(function (j) {
       downBusy = false;
+      if (gone(j)) return;
       if (j && (j.ok || j.error === 'not_found')) drop(id);
       if (downAd !== ad) { downYes.disabled = false; return; } /* the sheet moved on to another ad */
       if (j && j.ok) {
@@ -488,7 +499,11 @@
   /* the code stopped working (changed, or the board switched off): back to the band, with its line */
   function backToEntrance(words) {
     code = null; store.del('bp.code'); store.del('bp.screen');
-    moves++;
+    moves++; asks++;
+    /* the board starts over the next time the page turns */
+    opened = false; list = []; total = 0; finished = false; loading = false;
+    if (moreIO) moreIO.disconnect();
+    if (jumpIO) jumpIO.disconnect();
     [gift, back].forEach(function (s) { s.hidden = true; });
     topband.hidden = true;
     entrance.hidden = false; screen = 'entrance';
