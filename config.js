@@ -6,6 +6,14 @@ window.SURR = {
   SUPABASE_URL: 'https://wdhfuqxkjxwecpmhdujk.supabase.co',
   SUPABASE_ANON_KEY: 'sb_publishable_WHUyr1I_RYZudp92L9rDuw_GS58dyWi',
 
+  /* the back pages (getsurr.com/backpages) talk to the project above on getsurr.com, and to this one — staging, the test
+     server — anywhere else (localhost, a LAN address), so a phone on the same wi-fi can try it without touching production.
+     public (publishable) key only, the same one the desk's staging copy uses. */
+  BACKPAGES_STAGING: {
+    URL: 'https://yvgaajzgrkeyzsztedvh.supabase.co',
+    KEY: 'sb_publishable_Fqr-XXQVymA7AFwVqtqhDA_C_-6VlzY',
+  },
+
   /* the public TestFlight link for "open in testflight →". empty = the line is hidden. */
   APP_URL: '',
 

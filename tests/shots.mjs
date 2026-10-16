@@ -19,7 +19,7 @@ const OUT = join(root, 'tests', 'out');
 export const PAGES = {
   home: '/', 'home-in': '/', rings: '/rings/', map: '/map/', nights: '/nights/', list: '/list/', drive: '/drive/',
   beta: '/beta/', deal: '/deal/', press: '/press/', support: '/support/', privacy: '/privacy/', imprint: '/imprint/',
-  terms: '/terms/', babes: '/babes/', '404': '/no-such-page/',
+  terms: '/terms/', babes: '/babes/', backpages: '/backpages/', '404': '/no-such-page/',
 };
 const PLAIN = new Set(['babes', 'deal', 'press', 'support', 'privacy', 'imprint', 'terms', '404']);
 
@@ -47,7 +47,8 @@ function contextOptions(engine, d, extra = {}) {
 async function open(page, base, key) {
   const errors = [];
   page.on('pageerror', (e) => errors.push(String(e.message || e)));
-  page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
+  // the back pages talk to staging away from getsurr.com, which the live security headers (and so the test server) refuse: not a fault
+  page.on('console', (m) => { if (m.type() === 'error' && !(key === 'backpages' && /supabase\.co/.test(m.text()))) errors.push(m.text()); });
   page.on('requestfailed', (r) => { if (!r.url().includes('supabase')) errors.push(`failed: ${r.url()}`); });
   const res = await page.goto(base + PAGES[key], { waitUntil: 'load' });
   await settle(page);

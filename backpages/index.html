@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- the back pages: unlinked on purpose (behind the flyer's code). never in a sitemap, the nav or any other page. -->
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#050505">
+<title>the back pages · surr</title>
+<meta property="og:type" content="website">
+<meta property="og:title" content="the back pages · surr">
+<meta property="og:url" content="https://getsurr.com/backpages/">
+<meta property="og:image" content="https://getsurr.com/img/share.jpg">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="surr">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/png" sizes="32x32" href="/img/icon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/img/icon-180.png">
+<link rel="stylesheet" href="/backpages/backpages.css">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/ArchivoExpanded.woff2">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/ArchivoRegular.woff2">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/FragmentMono-Regular.woff2">
+<script src="/config.js"></script>
+<script src="/backpages/backpages.js" defer></script>
+</head>
+<body class="bp">
+
+<!-- ————————————————— 1 · the entrance ————————————————— -->
+<section class="scr entrance" id="entrance" aria-labelledby="e-h">
+  <a class="mark e-mark" href="/">surr</a>
+  <div class="e-mid">
+    <h1 class="big e-h" id="e-h" tabindex="-1">show your<br>wristband</h1>
+    <form class="band e-band" id="e-form" novalidate autocomplete="off">
+      <span class="b-side">sun 29 nov<span class="d-only"> · berlin</span></span>
+      <input class="slot" id="e-code" name="code" type="text" enterkeyhint="go" autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false" maxlength="40" aria-label="show your wristband" aria-describedby="e-flyer e-msg">
+      <span class="b-side d-only">admit one · 18+</span>
+    </form>
+    <p class="e-msg" id="e-msg" role="status" aria-live="polite"></p>
+    <p class="e-flyer" id="e-flyer"><span>the code was on the flyer</span><span class="e-dot"> · </span><button class="hint" id="e-hint" type="button">hint</button><span class="hinttext" id="e-hinttext" role="status" hidden>hint: the name of the party, one word</span></p>
+  </div>
+  <a class="out e-out" href="/">what's surr? →</a>
+</section>
+
+<!-- ————————————————— the wristband at the top (the gift + the back pages) ————————————————— -->
+<header class="band topband" id="topband" hidden>
+  <span class="adm d-only">admit one</span>
+  <nav class="tabs">
+    <button type="button" data-go="gift">the gift</button>
+    <button type="button" data-go="back">the back pages<i class="dot" aria-hidden="true"></i></button>
+  </nav>
+  <a class="wis d-only" href="/">what's surr? →</a>
+</header>
+
+<!-- ————————————————— 2 · the gift ————————————————— -->
+<section class="scr gift" id="gift" aria-labelledby="g-h" hidden>
+  <div class="g-grid">
+    <div class="g-left">
+      <span class="kick">the gift</span>
+      <h1 class="big g-h" id="g-h" tabindex="-1">your crush <br class="d-only">got the same <br class="d-only">wristband.</h1>
+      <p class="g-p">surr is the dating app for lesbians and sapphics in berlin. it's invite-only, and the hotties from sunday got the same wristband you did. this is your early access.</p>
+    </div>
+    <div class="g-right">
+      <p class="g-line">it's not even in the app store yet. get it free, before anyone else.</p>
+      <p class="g-taps">two minutes, four taps:</p>
+      <ol class="steps">
+        <li><b>01</b><span>get testflight from the app store.</span></li>
+        <li><b>02</b><span>open the surr link and tap install.</span></li>
+        <li><b>03</b><span>open surr, tap create profile, paste the code.</span></li>
+        <li><b>04</b><span>you'll get an email.</span></li>
+      </ol>
+      <div class="g-btns">
+        <a class="tf" href="https://testflight.apple.com/join/U5TSYwqy" target="_blank" rel="noopener noreferrer">get surr →</a>
+        <button class="copy" id="g-copy" type="button"><span class="dot" aria-hidden="true"></span><span class="t" aria-live="polite">copy the code</span></button>
+      </div>
+    </div>
+  </div>
+  <div class="sign"><a class="mark" href="/">surr</a><a class="out" href="/">what's surr? →</a></div>
+  <!-- the corner: it breathes, lifts on hover or a first touch, and turns the page when tapped -->
+  <div class="curl" id="curl">
+    <div class="under"></div>
+    <span class="peek d-only" aria-hidden="true">the back pages →</span>
+    <button class="flapw" id="flap" type="button" aria-label="the back pages →"><span class="shade"></span><span class="flap"></span></button>
+  </div>
+</section>
+
+<!-- ————————————————— 3 · the back pages ————————————————— -->
+<section class="scr back" id="back" aria-labelledby="b-h" hidden>
+  <div class="spread">
+
+    <!-- the right-hand page: the board (first, so a phone reads it first) -->
+    <div class="page board" id="board" tabindex="-1">
+      <div class="poster-wrap">
+        <div class="art" id="art">
+          <div class="folio"><span>THE BACK PAGES</span><span>— 29 —</span><span>SUNDAY 29 NOVEMBER</span></div>
+          <div class="wallmh">
+            <h2 class="t" id="b-h" tabindex="-1">Missed<br>Connections</h2>
+            <span class="s"><em>the back pages</em>sightings by where you stood</span>
+          </div>
+          <div class="wall">
+            <div class="bx how">
+              <span class="t">Grab that phone!</span><span class="s">here's how it works:</span>
+              <ol>
+                <li>Find the ad that's you.</li>
+                <li>Tap <b>that's me</b>.</li>
+                <li>They get one email from us. Your address stays with us.</li>
+              </ol>
+              <div class="rec"><b>Placing your ad</b>Say where you stood, what they wore, and what you should have said. It's free. Every ad comes down after a month.</div>
+            </div>
+            <div class="bx psa">
+              <p class="q">Someone you saw<br>will go home alone.<br>Don't let it be you.</p>
+              <p class="a">Answer an ad.<br>Place an ad.<br>Say less, but say something.</p>
+              <p class="c">Tap that's me.</p>
+              <small>A public service message from the back pages</small>
+            </div>
+            <div class="bx jb"><span class="fe">just in</span><div id="ja"></div></div>
+            <div class="bx jb"><span class="fe">just in</span><div id="jb"></div></div>
+          </div>
+          <div class="poster" aria-hidden="true">
+            <div class="cut f1"><img data-src="/img/backpages-f1.webp" alt="" width="200" height="662"></div>
+            <div class="cut f2"><img data-src="/img/backpages-f2.webp" alt="" width="500" height="603"></div>
+            <div class="cut her"><img data-src="/img/backpages-her.webp" alt="" width="500" height="469"></div>
+            <div class="numline">
+              <svg viewBox="0 0 632 112">
+                <text class="sh" x="5" y="104" textLength="627" lengthAdjust="spacingAndGlyphs">1-800-KISS</text>
+                <text class="fg" x="0" y="99" textLength="627" lengthAdjust="spacingAndGlyphs">1-800-KISS</text>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="list">
+        <div class="rules"><b>No <br class="d-only">moderator</b><span>We look after each other. If an ad isn't right, tap <i>take this down</i> and it's gone for everyone. No names, no numbers, no @.</span></div>
+        <div class="adshead"><b><span class="d-only">More ads</span><span class="p-only">All ads</span></b><small>newest first</small></div>
+        <div class="ads" id="ads"></div>
+        <div class="more-ads" id="more-ads" aria-hidden="true"></div>
+        <p class="end" id="end" hidden>That's every ad. Each one comes down after a month.</p>
+        <p class="end out2 p-only"><a href="/">what's surr? →</a></p>
+      </div>
+    </div>
+
+    <!-- the left-hand page: place an ad (stays still on a desktop) -->
+    <div class="page coupon-page" id="coupon-page">
+      <div class="folio"><span>THE BACK PAGES</span><span>— 28 —</span><span>SUNDAY 29 NOVEMBER</span></div>
+      <div class="wallmh">
+        <h2 class="t">Place<br>an ad</h2>
+        <span class="s"><em>it's free</em>one ad, one night, one crush</span>
+      </div>
+      <form class="coupon" id="placeform" novalidate>
+        <span class="sc" aria-hidden="true">✂︎</span>
+        <fieldset class="fld">
+          <legend class="l">Where were you?</legend>
+          <div class="chips">
+            <label><input type="radio" name="place" value="the queue" required><span>the queue</span></label>
+            <label><input type="radio" name="place" value="the bar"><span>the bar</span></label>
+            <label><input type="radio" name="place" value="the dance floor"><span>the dance floor</span></label>
+            <label><input type="radio" name="place" value="the toilets"><span>the toilets</span></label>
+            <label><input type="radio" name="place" value="smoking area"><span>smoking area</span></label>
+            <label><input type="radio" name="place" value="cloakroom"><span>cloakroom</span></label>
+            <label><input type="radio" name="place" value="outside"><span>outside</span></label>
+            <label><input type="radio" name="place" value="somewhere else"><span>somewhere else</span></label>
+          </div>
+        </fieldset>
+        <div class="row2">
+          <div class="fld"><label class="l" for="f-time">What time?</label><input class="v" id="f-time" name="time" type="time" required></div>
+          <div class="fld"><label class="l" for="f-head">What were they wearing? <small>your headline</small></label><input class="v" id="f-head" name="headline" type="text" maxlength="60" autocomplete="off" required></div>
+        </div>
+        <div class="fld"><label class="l" for="f-body">What should you have said? <small>no names, numbers or @</small></label><textarea class="v lines" id="f-body" name="body" rows="4" maxlength="280" required></textarea></div>
+        <div class="fld"><label class="l" for="f-email">Your email <small>needed to place it · never shown · their reply comes here</small></label><input class="v" id="f-email" name="email" type="email" inputmode="email" autocomplete="email" autocapitalize="none" spellcheck="false" placeholder="you@…" required></div>
+        <div class="hp" aria-hidden="true"><input name="website" type="text" tabindex="-1" autocomplete="off"></div>
+        <div class="send">
+          <button class="go" type="submit">Place my ad</button>
+          <p>It goes up straight away. There's no moderator here. We look after each other: if an ad isn't right, anyone can take it down.</p>
+        </div>
+        <p class="f-msg" id="f-msg" role="status" aria-live="polite" hidden></p>
+      </form>
+      <div class="more">
+        <div class="bx"><b>On the board</b><span id="onboard">0</span> ads up now, newest first. <span class="d-only">Scroll the right-hand page.</span><span class="p-only">Scroll up.</span></div>
+        <div class="bx"><b>Was that you?</b>Tap <i>that's me</i> on any ad. They get one email from us, and you never see their address.</div>
+      </div>
+    </div>
+
+  </div>
+  <span class="scrollhint d-only" id="scrollhint" aria-hidden="true">scroll<b>↓</b></span>
+  <button class="place p-only" id="jump" type="button">place an ad ↓</button>
+</section>
+
+<!-- ————————————————— the newsprint sheets ————————————————— -->
+<dialog class="sheet" id="d-rules" aria-labelledby="r-t">
+  <p class="s-t" id="r-t">there's no moderator here.</p>
+  <p class="s-p">we look after each other. no names, no numbers, no @. if an ad isn't right, anyone can take it down.</p>
+  <button class="s-go" type="button" data-ok>i understand</button>
+</dialog>
+
+<dialog class="sheet" id="d-me" aria-labelledby="m-l">
+  <button class="s-x" type="button" data-close aria-label="close">×</button>
+  <p class="s-ad" id="m-ad"></p>
+  <form id="meform" novalidate>
+    <div class="fld"><label class="l" id="m-l" for="m-note">say something back <small>no names, numbers or @</small></label><textarea class="v lines" id="m-note" name="note" rows="4" maxlength="280"></textarea></div>
+    <div class="fld"><label class="l" for="m-email">your email <small>they'll see this so they can write back</small></label><input class="v" id="m-email" name="email" type="email" inputmode="email" autocomplete="email" autocapitalize="none" spellcheck="false" required></div>
+    <div class="hp" aria-hidden="true"><input name="website" type="text" tabindex="-1" autocomplete="off"></div>
+    <button class="s-go" type="submit">send it</button>
+    <p class="s-msg" role="status" aria-live="polite" hidden></p>
+  </form>
+</dialog>
+
+<dialog class="sheet" id="d-down" aria-labelledby="d-t">
+  <p class="s-t" id="d-t">take this ad down for everyone?</p>
+  <div class="s-row"><button class="s-go" type="button" data-yes>take it down</button><button class="s-no" type="button" data-close>keep it</button></div>
+  <p class="s-msg" role="status" aria-live="polite" hidden></p>
+</dialog>
+
+</body>
+</html>
