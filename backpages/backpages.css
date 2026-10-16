@@ -267,7 +267,10 @@ input[type=time].v::-webkit-date-and-time-value{text-align:left}
   .e-dot{display:none}
   .hint{display:inline-flex;align-items:flex-end;min-height:44px;padding:0 6px 12px;border:0;text-decoration:underline;text-underline-offset:3px;text-decoration-color:#444}
   .hinttext{display:block;padding-top:12px;min-height:44px}
-  .e-out{bottom:calc(var(--safe-b) + 30px);font-size:11px}
+  .e-out{bottom:calc(var(--safe-b) + 18px);font-size:11px}
+  .e-out,.sign .out,.mark{display:inline-flex;align-items:center;min-height:44px}
+  .e-out,.sign .out{border-bottom:0;text-decoration:underline;text-decoration-color:#444;text-underline-offset:3px}
+  .e-mark{top:calc(var(--safe-t) + 12px)}
 
   .topband{display:block;padding:var(--safe-t) 18px 0}
   .tabs{display:grid;grid-template-columns:1fr 1fr;gap:0;text-align:center}
@@ -344,7 +347,7 @@ input[type=time].v::-webkit-date-and-time-value{text-align:left}
 
 @media (prefers-reduced-motion:reduce){
   .curl{animation:none;--c:118px}
-  .curl.open,.gift:hover .curl{transition:none}
+  .curl.open,.gift:hover .curl{transition:none;--c:118px}
   .scrollhint b{animation:none}
   .e-band.snap,.e-band.no,.topband.drop{animation:none}
   .entrance.leaving{animation:fadeout .15s linear forwards}

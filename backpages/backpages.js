@@ -61,6 +61,7 @@
     });
     if (id === 'back') topband.classList.add('seen');
   }
+  var moves = 0;
   function show(id, how) {
     var from = screen ? $('#' + (screen === 'back' ? 'back' : screen)) : null;
     var to = $('#' + id);
@@ -70,14 +71,18 @@
     if (id === 'gift') readyBoard();
     if (id === 'back') { openBoard(); layout(); }
     count(id === 'back' ? 'board' : id);
+    var mine = ++moves;
     var done = function () {
-      if (from && from !== to) { from.hidden = true; from.classList.remove('turning', 'leaving', 'fading', 'sliding', 'arriving'); }
-      to.classList.remove('turning', 'fading', 'sliding', 'arriving');
+      if (mine !== moves) return; /* a newer move took over: leave its screens alone */
+      [gift, back].forEach(function (s) {
+        if (s !== to) s.hidden = true;
+        s.classList.remove('turning', 'fading', 'sliding');
+      });
       var h = id === 'gift' ? $('#g-h') : id === 'back' ? $('#b-h') : $('#e-h');
       if (how !== 'start') h.focus({ preventScroll: true });
       if (id === 'back') layout();
     };
-    if (!from || how === 'start') { if (from) from.hidden = true; done(); return; }
+    if (!from || how === 'start') { done(); return; }
     var anim;
     if (how === 'turn') {
       if (STILL.matches) { from.classList.add('turning'); anim = from; }
@@ -85,8 +90,8 @@
       else { to.classList.add('sliding'); anim = to; }
     } else { to.classList.add('fading'); anim = to; }
     var finished = false;
-    var end = function () { if (finished) return; finished = true; done(); };
-    anim.addEventListener('animationend', end, { once: true });
+    var end = function (e) { if (finished || (e && e.target !== anim)) return; finished = true; anim.removeEventListener('animationend', end); done(); };
+    anim.addEventListener('animationend', end);
     setTimeout(end, 900);
   }
 
@@ -132,6 +137,7 @@
       screen = '';
       show('gift', 'start');
       setTimeout(function () { entrance.hidden = true; entrance.classList.remove('leaving'); topband.classList.remove('drop'); $('#g-h').focus({ preventScroll: true }); }, 340);
+      setTimeout(function () { gift.classList.remove('arriving'); }, 450);
     };
     if (STILL.matches) return go();
     eBand.classList.remove('no');
@@ -274,14 +280,17 @@
     more.forEach(function (a) { ads.appendChild(adEl(a)); });
     endLine.hidden = !finished;
   }
-  var jumping = 0;
+  var jumping = 0, asks = 0;
   function load(first) {
-    if (!first && Date.now() < jumping) return;
-    if (loading || (!first && finished) || !code) return;
+    if (!code) return;
+    if (!first && (loading || finished || Date.now() < jumping)) { if (!first && Date.now() < jumping) setTimeout(recheck, 1600); return; }
     loading = true;
+    var ask = ++asks;
     var before = first || !list.length ? null : list[list.length - 1].created_at;
     rpc('backpages_ads', { p_code: code, p_before: before }).then(function (j) {
+      if (ask !== asks) return; /* a newer load (after placing an ad) replaced this one */
       loading = false;
+      if (j && (j.error === 'bad_code' || j.error === 'not_open')) return backToEntrance(WORDS_E[j.error]);
       if (!j || j.error || !j.ads) return;
       total = j.total || 0;
       finished = j.ads.length < 30;
@@ -292,7 +301,15 @@
         list = list.concat(fresh); appendAds(fresh); onboard.textContent = String(total);
       }
       hint();
-    }).catch(function () { loading = false; });
+      setTimeout(recheck, 50);
+    }).catch(function () { if (ask === asks) loading = false; });
+  }
+  /* the observer only speaks when the end crosses into view; after a load (or a skipped one) look again */
+  function recheck() {
+    if (finished || loading || !opened) return;
+    var end = $('#more-ads'), root = DESK.matches ? board : back;
+    var r = end.getBoundingClientRect(), rr = root.getBoundingClientRect();
+    if (r.top < rr.bottom + 700) load(false);
   }
   /* more ads as you near the end: the right-hand page scrolls on a desktop, the whole screen on a phone */
   var moreIO = null;
@@ -398,56 +415,67 @@
   $$('dialog').forEach(function (d) {
     $$('[data-close]', d).forEach(function (b) { b.addEventListener('click', function () { close(d); }); });
     /* a tap on the dimmed page around the sheet closes it */
-    d.addEventListener('click', function (e) { if (e.target === d) close(d); });
+    d.addEventListener('click', function (e) {
+      if (e.target !== d) return;
+      var r = d.getBoundingClientRect();
+      if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) close(d);
+    });
   });
 
   /* that's me */
-  var dMe = $('#d-me'), meForm = $('#meform'), meMsg = $('.s-msg', meForm), meGo = $('.s-go', meForm), meAd = null;
+  var dMe = $('#d-me'), meForm = $('#meform'), meMsg = $('.s-msg', meForm), meGo = $('.s-go', meForm), meAd = null, meBusy = false;
   function openMe(a) {
     meAd = a;
     $('#m-ad').textContent = a.headline;
-    meForm.note.value = ''; say(meMsg, ''); meGo.disabled = false; meGo.hidden = false;
+    meForm.note.value = ''; say(meMsg, ''); meGo.disabled = meBusy; meGo.hidden = false;
     open(dMe);
     meForm.note.focus();
   }
   meForm.addEventListener('submit', function (e) {
     e.preventDefault();
-    if (meGo.disabled || !meAd) return;
+    if (meGo.disabled || meBusy || !meAd) return;
     say(meMsg, '');
     if (meForm.reportValidity && !meForm.reportValidity()) return;
     var hp = meForm.website.value;
-    var args = { p_code: code, p_id: meAd.id, p_note: meForm.note.value.trim(), p_email: meForm.email.value.trim().toLowerCase() };
+    var ad = meAd;
+    var args = { p_code: code, p_id: ad.id, p_note: meForm.note.value.trim(), p_email: meForm.email.value.trim().toLowerCase() };
     if (hp) args.p_hp = hp;
-    meGo.disabled = true;
+    meGo.disabled = true; meBusy = true;
     rpc('backpages_thats_me', args).then(function (j) {
+      meBusy = false;
+      if (j && j.error === 'not_found') drop(ad.id);
+      if (meAd !== ad) { meGo.disabled = false; return; } /* the sheet moved on to another ad */
       if (j && j.ok) { meGo.hidden = true; say(meMsg, 'sent. if they write back, it comes to your email.'); return; }
       meGo.disabled = false;
-      if (j && j.error === 'not_found') drop(meAd.id);
       say(meMsg, words(j && j.error, 'thats_me'));
-    }).catch(function () { meGo.disabled = false; say(meMsg, WORDS.other); });
+    }).catch(function () { meBusy = false; meGo.disabled = false; if (meAd === ad) say(meMsg, WORDS.other); });
   });
 
   /* take this down */
-  var dDown = $('#d-down'), downMsg = $('.s-msg', dDown), downYes = $('[data-yes]', dDown), downRow = $('.s-row', dDown), downAd = null;
+  var dDown = $('#d-down'), downMsg = $('.s-msg', dDown), downYes = $('[data-yes]', dDown), downRow = $('.s-row', dDown), downAd = null, downBusy = false, downTimer = 0;
   function openDown(a) {
-    downAd = a; say(downMsg, ''); downRow.hidden = false; downYes.disabled = false;
+    clearTimeout(downTimer);
+    downAd = a; say(downMsg, ''); downRow.hidden = false; downYes.disabled = downBusy;
     open(dDown);
     downYes.focus();
   }
   downYes.addEventListener('click', function () {
-    if (downYes.disabled || !downAd) return;
-    downYes.disabled = true;
-    var id = downAd.id;
+    if (downYes.disabled || downBusy || !downAd) return;
+    downYes.disabled = true; downBusy = true;
+    var ad = downAd, id = ad.id;
     rpc('backpages_takedown', { p_code: code, p_id: id }).then(function (j) {
+      downBusy = false;
+      if (j && (j.ok || j.error === 'not_found')) drop(id);
+      if (downAd !== ad) { downYes.disabled = false; return; } /* the sheet moved on to another ad */
       if (j && j.ok) {
-        downRow.hidden = true; say(downMsg, 'taken down.'); drop(id);
-        setTimeout(function () { close(dDown); }, 1400);
+        downRow.hidden = true; say(downMsg, 'taken down.');
+        downTimer = setTimeout(function () { close(dDown); }, 1400);
         return;
       }
       downYes.disabled = false;
-      if (j && j.error === 'not_found') { downRow.hidden = true; drop(id); }
+      if (j && j.error === 'not_found') downRow.hidden = true;
       say(downMsg, words(j && j.error, 'takedown'));
-    }).catch(function () { downYes.disabled = false; say(downMsg, WORDS.other); });
+    }).catch(function () { downBusy = false; downYes.disabled = false; if (downAd === ad) say(downMsg, WORDS.other); });
   });
   /* an ad that's gone leaves the board for this visitor straight away */
   function drop(id) {
@@ -455,6 +483,18 @@
     list = list.filter(function (a) { return a.id !== id; });
     if (list.length < before) total = Math.max(0, total - 1);
     renderList(); justIn();
+  }
+
+  /* the code stopped working (changed, or the board switched off): back to the band, with its line */
+  function backToEntrance(words) {
+    code = null; store.del('bp.code'); store.del('bp.screen');
+    moves++;
+    [gift, back].forEach(function (s) { s.hidden = true; });
+    topband.hidden = true;
+    entrance.hidden = false; screen = 'entrance';
+    eBand.classList.remove('snap');
+    eMsg.textContent = words;
+    $('#e-h').focus({ preventScroll: true });
   }
 
   /* ————— start ————— */
