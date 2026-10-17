@@ -64,16 +64,23 @@
     </div>
     <div class="g-right">
       <p class="g-line">it's not even in the app store yet. get it free, before anyone else.</p>
-      <p class="g-taps">two minutes, four taps:</p>
-      <ol class="steps">
-        <li><b>01</b><span>get testflight from the app store.</span></li>
-        <li><b>02</b><span>open the surr link and tap install.</span></li>
-        <li><b>03</b><span>open surr, tap create profile, paste the code.</span></li>
-        <li><b>04</b><span>you'll get an email.</span></li>
-      </ol>
-      <div class="g-btns">
-        <a class="tf" href="https://testflight.apple.com/join/U5TSYwqy" target="_blank" rel="noopener noreferrer">get surr →</a>
-        <button class="copy" id="g-copy" type="button"><span class="dot" aria-hidden="true"></span><span class="t" aria-live="polite">copy the code</span></button>
+      <div class="g-demo">
+        <!-- the drawn phone (decoration): backpages.js draws the loop and the four still phones into these -->
+        <div class="ph-loop" id="ph-loop" aria-hidden="true"></div>
+        <div class="g-side">
+          <p class="g-taps">two minutes, four taps:</p>
+          <div class="four" id="ph-four" aria-hidden="true"></div>
+          <ol class="steps">
+            <li style="--d:0s"><b>01</b><span>get testflight from the app store.</span></li>
+            <li style="--d:-12s"><b>02</b><span>open the surr link and tap install.</span></li>
+            <li style="--d:-8s"><b>03</b><span>open surr, tap create profile, paste the code.</span></li>
+            <li style="--d:-4s"><b>04</b><span>you'll get an email.</span></li>
+          </ol>
+          <div class="g-btns">
+            <a class="tf" href="https://testflight.apple.com/join/U5TSYwqy" target="_blank" rel="noopener noreferrer">get surr →</a>
+            <button class="copy" id="g-copy" type="button"><span class="dot" aria-hidden="true"></span><span class="t" aria-live="polite">copy the code</span></button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
