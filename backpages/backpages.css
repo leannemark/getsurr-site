@@ -89,17 +89,105 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 .g-p{color:var(--grey2);font-size:16px;line-height:1.5;max-width:440px;margin-top:22px}
 .g-right{padding:22px 72px 0 0}
 .g-line{font-family:var(--mono);font-size:12px;color:var(--ink);letter-spacing:.02em}
-.g-taps{font-family:var(--mono);font-size:11px;color:var(--grey);letter-spacing:.02em;margin-top:4px}
-.steps{list-style:none;padding:0;display:grid;gap:14px;margin-top:20px;font-size:15px}
-.steps li{display:grid;grid-template-columns:26px 1fr;gap:10px;color:var(--grey2)}
-.steps b{font-family:var(--mono);font-weight:400;font-size:11px;color:var(--grey);padding-top:3px}
-.g-btns{display:flex;gap:14px;align-items:center;margin-top:28px;flex-wrap:wrap}
+.g-demo{--T:16s;display:grid;grid-template-columns:auto 1fr;gap:28px;align-items:end;margin-top:18px}
+.g-side{padding-bottom:6px;min-width:0}
+.g-taps{font-family:var(--mono);font-size:11px;color:var(--grey);letter-spacing:.02em;margin-bottom:12px}
+/* the four small steps: the one the phone is on lights up (same 16s, same offsets as the scenes) */
+.steps{list-style:none;padding:0;display:grid;gap:10px;font-family:var(--mono);font-size:12px;letter-spacing:.01em}
+.steps li{display:grid;grid-template-columns:22px 1fr;gap:8px;color:var(--grey);animation:lit var(--T) infinite;animation-delay:var(--d)}
+.steps b{position:relative;font-weight:400;color:inherit}
+.steps b::before{content:'';position:absolute;left:-11px;top:5px;width:5px;height:5px;border-radius:50%;background:var(--red);opacity:0;animation:litdot var(--T) infinite;animation-delay:var(--d)}
+@keyframes lit{0%,24%{color:var(--ink)}25%,100%{color:var(--grey)}}
+@keyframes litdot{0%,24%{opacity:1}25%,100%{opacity:0}}
+.g-btns{display:flex;gap:14px;align-items:center;margin-top:26px;flex-wrap:wrap}
 .tf{display:inline-flex;align-items:center;min-height:44px;font-family:var(--mono);font-size:12px;color:var(--bg);background:var(--ink);padding:10px 18px;border-radius:999px;text-decoration:none}
 .copy{display:inline-flex;align-items:center;gap:8px;min-height:44px;font-family:var(--mono);font-size:11px;color:var(--ink);border:1px solid #2a2a2a;padding:9px 14px;border-radius:999px;background:var(--panel)}
 .copy .dot{width:6px;height:6px;border-radius:50%;background:var(--red)}
 .sign{display:flex;align-items:baseline;gap:14px;margin-top:auto;padding:48px 64px calc(var(--safe-b) + 40px)}
 .sign .mark{font-size:30px}
 .sign .out{font-size:11px}
+
+/* ————— the drawn phone: HTML and CSS only, sized in em (set font-size on .ph). 16s, four scenes of 4s, a crossfade. ————— */
+.ph-loop{font-size:9.3px}
+.ph{--ios:#f2f2f7;--ios-ink:#111;--ios-grey:#8e8e93;--ios-blue:#1e8bf2;position:relative;width:20em;height:41.4em;border-radius:3em;background:#000;border:.45em solid #1c1c1c;box-shadow:0 0 0 .08em #333,0 2em 5em rgba(0,0,0,.6);overflow:hidden;font-family:var(--sans);font-weight:400;letter-spacing:0;line-height:1.3;user-select:none;-webkit-user-select:none;pointer-events:none}
+.ph .isl{position:absolute;left:50%;top:.9em;width:5.6em;height:1.6em;margin-left:-2.8em;border-radius:1em;background:#000;z-index:5}
+.ph .sc{position:absolute;inset:0;padding:4.2em 1.6em 0;opacity:0;animation:ph-show var(--T) infinite;animation-delay:var(--d)}
+.ph .light{background:var(--ios);color:var(--ios-ink);font-family:-apple-system,BlinkMacSystemFont,system-ui,'Helvetica Neue',sans-serif}
+.ph .dark{background:#050505;color:var(--ink)}
+@keyframes ph-show{0%,23.5%{opacity:1}25%,98.5%{opacity:0}100%{opacity:1}}
+.ph .before{animation:ph-before var(--T) infinite;animation-delay:var(--d)}
+.ph .after{animation:ph-after var(--T) infinite;animation-delay:var(--d);opacity:0}
+@keyframes ph-before{0%,12%{opacity:1}12.5%,100%{opacity:0}}
+@keyframes ph-after{0%,12%{opacity:0}12.5%,100%{opacity:1}}
+/* the finger: a red ring that grows in and fades out on the thing being tapped */
+.ph .ring{position:absolute;width:2.6em;height:2.6em;margin:-1.3em 0 0 -1.3em;border-radius:50%;background:rgba(222,10,38,.35);border:.12em solid var(--red);opacity:0;animation:ph-ring var(--T) infinite;animation-delay:var(--d);z-index:4}
+@keyframes ph-ring{0%,9%{opacity:0;transform:scale(.5)}11%{opacity:.95;transform:scale(1)}15%{opacity:0;transform:scale(1.7)}100%{opacity:0}}
+/* scene 1 · the app store */
+.p-srch{height:2.4em;border-radius:.8em;background:#e3e3e8;color:var(--ios-grey);font-size:.95em;display:flex;align-items:center;padding:0 .8em;gap:.5em}
+.p-srch i{width:.9em;height:.9em;border:.12em solid var(--ios-grey);border-radius:50%}
+.p-srch b{color:var(--ios-ink);font-weight:400}
+.p-row{display:grid;grid-template-columns:4.2em 1fr auto;gap:.9em;align-items:center;margin-top:1.4em}
+.p-ico{display:block;width:4.2em;height:4.2em;border-radius:1em;position:relative}
+.p-ico.tfi{background:linear-gradient(180deg,#3aa0ff,var(--ios-blue))}
+.p-ico.tfi::before{content:'';position:absolute;left:50%;top:50%;width:2.2em;height:2.2em;margin:-1.1em 0 0 -1.1em;border:.26em solid #fff;border-radius:50%;border-right-color:transparent;transform:rotate(-30deg)}
+.p-ico.tfi::after{content:'';position:absolute;left:50%;top:50%;width:.6em;height:.6em;margin:-.3em 0 0 -.3em;border-radius:50%;background:#fff}
+.p-ico.surr{background:#000;color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-style:normal;font-weight:800;letter-spacing:-.04em;font-size:1.1em}
+.p-ico.surr.big{width:5.4em;height:5.4em;border-radius:1.3em;font-size:1.3em;margin:.2em 0 0}
+.p-row .nm{min-width:0}
+.p-row .nm b{display:block;font-weight:600;font-size:1.05em}
+.p-row .nm small{display:block;color:var(--ios-grey);font-size:.85em}
+.p-pill{position:relative;min-width:4.6em;height:2em;border-radius:1em;background:#e3e3e8;color:var(--ios-blue);font-weight:700;font-size:.9em;letter-spacing:.02em}
+.p-pill em{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-style:normal}
+.p-lines i{display:block;height:.6em;border-radius:.3em;background:#dcdce1;margin-top:.9em}
+.p-lines i:nth-child(2){width:72%}
+.p-lines i:nth-child(3){width:85%}
+.p-shots{display:flex;gap:.7em;margin-top:1.6em}
+.p-shots i{flex:0 0 7em;height:14em;border-radius:1em;background:#0a0a0a;border:.08em solid #ddd}
+.p-shots i.p{background:var(--paper)}
+/* scene 2 · testflight */
+.p-tfhd{font-size:.85em;color:var(--ios-grey);display:flex;justify-content:space-between}
+.p-tfhd b{color:var(--ios-blue);font-weight:400}
+.p-tfrow{display:grid;grid-template-columns:auto 1fr;gap:1em;align-items:end;margin-top:1.2em}
+.p-tfrow .nm b{display:block;font-size:1.4em;font-weight:700;letter-spacing:-.02em}
+.p-tfrow .nm small{display:block;color:var(--ios-grey);font-size:.85em;margin-top:.2em}
+.p-tfrow .p-pill{margin-top:.6em;display:inline-block;min-width:5.4em}
+.p-tfsec{margin-top:1.6em;font-size:.8em;color:var(--ios-grey);text-transform:uppercase;letter-spacing:.06em}
+.p-tfsec+.p-lines i{background:#d6d6db}
+/* scenes 3 + 4 · surr */
+.ph .dark .mk{font-family:var(--display);font-weight:800;letter-spacing:-.04em;font-size:1.2em}
+.p-cover{position:absolute;inset:0;padding:4.2em 1.6em 0;display:flex;flex-direction:column}
+.p-cover .sl{margin-top:auto;font-family:var(--display);font-weight:800;letter-spacing:-.04em;line-height:.95;font-size:2.7em}
+.p-cover .ld{color:var(--grey2);font-size:.95em;margin-top:.9em;max-width:15em}
+.p-btn{display:inline-flex;align-items:center;align-self:flex-start;margin-top:1.6em;padding:.8em 1.3em;border-radius:999px;background:var(--ink);color:#000;font-size:.95em;font-weight:500}
+.p-cover .lg{color:var(--grey);font-size:.8em;margin:1.1em 0 2.4em}
+.p-step{position:absolute;inset:0;padding:5.2em 1.6em 0}
+.p-step .pr{display:flex;gap:.4em;margin-bottom:1.6em}
+.p-step .pr i{height:.2em;flex:1;background:#2a2a2a;border-radius:1em}
+.p-step .pr i.on{background:var(--ink)}
+.p-step h4{margin:0;font-family:var(--display);font-weight:800;letter-spacing:-.04em;font-size:1.45em;line-height:1.05}
+.p-step .sub{color:var(--grey2);font-size:.9em;margin-top:.7em}
+.p-fld{margin-top:2.2em;position:relative}
+.p-fld label{display:block;font-size:.75em;color:var(--grey);margin-bottom:.6em}
+.p-fld .in{height:2.8em;border-bottom:.1em solid #3a3a3a;display:flex;align-items:center;font-family:var(--mono);font-size:1.05em;letter-spacing:.3em;position:relative}
+.p-fld .dots{display:inline-block;overflow:hidden;white-space:nowrap;width:0;animation:ph-dots var(--T) infinite steps(10,end);animation-delay:var(--d)}
+@keyframes ph-dots{0%,17%{width:0}20%,100%{width:100%}}
+.p-fld .cur{display:inline-block;width:.08em;height:1.2em;background:var(--ink);margin-left:.1em;animation:ph-blink 1s steps(2,end) infinite}
+@keyframes ph-blink{50%{opacity:0}}
+.p-chip{position:absolute;left:0;top:-2.2em;background:#2a2a2a;color:var(--ink);font-size:.8em;padding:.45em .9em;border-radius:.6em;opacity:0;animation:ph-chip var(--T) infinite;animation-delay:var(--d)}
+.p-chip::after{content:'';position:absolute;left:1.2em;bottom:-.4em;border:.4em solid transparent;border-top-color:#2a2a2a;border-bottom:0}
+@keyframes ph-chip{0%,13.5%{opacity:0;transform:translateY(.3em)}14.5%,17%{opacity:1;transform:translateY(0)}18%,100%{opacity:0}}
+/* the still phones (reduce motion): labels in their after-state, the field full of dots, no ring, no bubble */
+.four{display:none}
+.ph.still .sc{animation:none;opacity:1}
+.ph.still .before{animation:none;opacity:0}
+.ph.still .after{animation:none;opacity:1}
+.ph.still .ring{animation:none}
+.ph.still .p-chip{animation:none;opacity:0}
+.ph.still .p-fld .dots{animation:none;width:100%}
+.four .fr{display:grid;gap:10px;justify-items:center;align-content:start}
+.four .ph{box-shadow:0 0 0 .08em #333}
+.four .cap2{font-family:var(--mono);font-size:10.5px;color:var(--grey2);text-align:center;line-height:1.35}
+.four .cap2 b{display:block;font-weight:400;color:var(--grey);margin-bottom:2px}
 
 /* the corner you pull: --c is the fold's size. it breathes 96→134px, opens to 230px on hover or a first touch */
 @property --c{syntax:'<length>';inherits:true;initial-value:96px}
@@ -255,7 +343,7 @@ input[type=time].v::-webkit-date-and-time-value{text-align:left}
 
 /* ————— a phone (and anything narrow or short): one scroll ————— */
 @media not all and (min-width:900px) and (min-height:560px){
-  :root{--bandh:calc(var(--safe-t) + 47px)}
+  :root{--bandh:calc(var(--safe-t) + 56px)}
   .e-mark{top:calc(var(--safe-t) + 22px);left:20px;font-size:18px}
   .e-h{font-size:40px;margin-bottom:28px}
   .e-band{margin:0 -20px;padding:14px 34px;justify-content:center}
@@ -273,24 +361,27 @@ input[type=time].v::-webkit-date-and-time-value{text-align:left}
   .e-mark{top:calc(var(--safe-t) + 12px)}
 
   .topband{display:block;padding:var(--safe-t) 18px 0}
-  .tabs{display:grid;grid-template-columns:1fr 1fr;gap:0;text-align:center}
-  .tabs button{display:flex;align-items:center;justify-content:center;min-height:47px;padding:0;border-bottom:0}
+  .tabs{display:grid;grid-template-columns:1fr 1fr;gap:0;text-align:center;font-size:14px;letter-spacing:.02em}
+  .tabs button{display:flex;align-items:center;justify-content:center;min-height:56px;padding:0;border-bottom:0}
   .tabs button>i{display:inline-block;position:static;margin:-10px 0 0 4px;flex:none}
   .tabs button[aria-current]{text-decoration:underline;text-underline-offset:5px}
 
-  .g-grid{display:block;padding:22px 18px 0}
+  .g-grid{display:block;padding:30px 22px 0}
   .g-left,.g-right{padding:0}
   .kick{font-size:10px}
-  .g-h{font-size:clamp(30px,9vw,38px);margin-top:8px}
-  .g-p{font-size:14px;line-height:1.45;margin-top:12px}
-  .g-right{margin-top:18px}
-  .g-line{font-size:11px}
-  .g-taps{font-size:11px}
-  .steps{margin-top:12px;font-size:14px;gap:9px}
-  .g-btns{display:grid;gap:10px;justify-items:start;margin-top:18px}
-  .sign{margin:34px 18px 0;padding:16px 0 calc(var(--safe-b) + 150px);border-top:1px solid var(--line)}
-  .sign .mark{font-size:22px}
-  .sign .out{font-size:10.5px}
+  .g-h{font-size:clamp(30px,10vw,38px);line-height:1;margin-top:12px}
+  .g-p{font-size:15px;line-height:1.5;margin-top:18px}
+  .g-right{margin-top:30px}
+  .g-line{font-size:11.5px;line-height:1.5}
+  .g-demo{display:block;margin-top:0}
+  .ph-loop{display:flex;justify-content:center;font-size:9.6px;margin-top:26px}
+  .g-taps{margin:28px 0 14px}
+  .steps{gap:12px;font-size:12.5px}
+  .steps li{grid-template-columns:22px 1fr}
+  .g-btns{display:grid;gap:10px;justify-items:start;margin-top:28px}
+  .sign{margin:44px 22px 0;padding:16px 0 calc(var(--safe-b) + 150px);border-top:1px solid var(--line)}
+  .sign .mark{font-size:26px}
+  .sign .out{font-size:11px}
   .curl{width:200px;height:200px}
   .under{background-size:200px 200px}
 
@@ -354,4 +445,21 @@ input[type=time].v::-webkit-date-and-time-value{text-align:left}
   .gift.turning{animation:fadeout .18s linear forwards}
   .back.sliding{animation:fadein .18s linear}
   .cut img{transition:none}
+  /* the loop does not run: four still phones, each with its step under it. the written steps stay for VoiceOver, out of sight */
+  .ph-loop{display:none!important}
+  .steps li{animation:none;color:var(--grey2)}
+  .steps b::before{animation:none}
+  .steps{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  .g-demo{display:block;margin-top:18px}
+  .four{--u:7px;display:grid;grid-template-columns:repeat(2,auto);gap:22px 14px;justify-content:start;margin-top:14px}
+  .four .ph{font-size:var(--u)}
+  .four .cap2{width:calc(var(--u) * 20);font-size:10.5px}
+  .gift .ph *{animation:none!important}
+}
+@media (prefers-reduced-motion:reduce) and (min-width:1100px) and (min-height:560px){
+  .four{--u:clamp(4.6px,.43vw,6px);grid-template-columns:repeat(4,auto);gap:16px 12px}
+  .four .cap2{font-size:10px}
+}
+@media (prefers-reduced-motion:reduce) and (max-width:899px){
+  .four{--u:7.4px}
 }

@@ -146,6 +146,48 @@
   }
 
   /* ————— 2 · the gift ————— */
+  /* the drawn phone (decoration, aria-hidden): HTML and CSS only, 16s, four scenes. the same scenes, still, for reduce motion.
+     the code's letters never appear: the paste fills the field with ten dots. */
+  (function drawPhone() {
+    var STEPS = ['get testflight from the app store.', 'open the surr link and tap install.', 'open surr, tap create profile, paste the code.', 'you’ll get an email.'];
+    var D = ['0s', '-12s', '-8s', '-4s'];
+    function scene(i) {
+      var d = ' style="--d:' + D[i] + '"';
+      if (i === 0) return '<div class="sc light"' + d + '><div class="p-srch"><i></i><b>testflight</b></div>' +
+        '<div class="p-row"><i class="p-ico tfi"></i><div class="nm"><b>TestFlight</b><small>Apple</small></div>' +
+        '<span class="p-pill"><em class="before">GET</em><em class="after">OPEN</em></span></div>' +
+        '<div class="p-lines"><i></i><i></i><i></i></div><div class="p-shots"><i></i><i></i><i></i></div>' +
+        '<i class="ring" style="left:16.2em;top:9.3em"></i></div>';
+      if (i === 1) return '<div class="sc light"' + d + '><div class="p-tfhd"><b>‹ Apps</b><span>TestFlight</span><span></span></div>' +
+        '<div class="p-tfrow"><i class="p-ico surr big">surr</i><div class="nm"><b>surr</b><small>say less</small>' +
+        '<span class="p-pill"><em class="before">INSTALL</em><em class="after">OPEN</em></span></div></div>' +
+        '<div class="p-tfsec">what to test</div><div class="p-lines"><i></i><i></i><i></i></div>' +
+        '<div class="p-shots"><i></i><i class="p"></i><i></i></div>' +
+        '<i class="ring" style="left:12em;top:12.5em"></i></div>';
+      if (i === 2) return '<div class="sc dark"' + d + '>' +
+        '<div class="p-cover before"><span class="mk">surr</span><div class="sl">say less</div>' +
+        '<div class="ld">read the room, not an essay.</div><span class="p-btn">create profile →</span>' +
+        '<div class="lg">already a member? log in</div></div>' +
+        '<div class="p-step after"><div class="pr"><i class="on"></i><i></i><i></i><i></i><i></i></div>' +
+        '<h4>your invite code</h4><div class="sub">surr’s invite only. every member has three codes to give.</div>' +
+        '<div class="p-fld"><span class="p-chip">paste</span><label>invite code</label><div class="in"><span class="dots">··········</span><span class="cur"></span></div></div></div>' +
+        '<i class="ring" style="left:6.1em;top:35.3em"></i></div>';
+      return '<div class="sc dark"' + d + '>' +
+        '<div class="p-step"><div class="pr"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></div>' +
+        '<h4>where do we reach you?</h4><div class="sub">we’ll email you when you’re in.</div>' +
+        '<div class="p-fld"><label>email</label><div class="in" style="letter-spacing:0"><span class="cur"></span></div></div></div></div>';
+    }
+    function phone(cls, only) {
+      var h = '<div class="ph ' + cls + '"><span class="isl"></span>';
+      if (only == null) for (var i = 0; i < 4; i++) h += scene(i); else h += scene(only);
+      return h + '</div>';
+    }
+    $('#ph-loop').innerHTML = phone('loop');
+    $('#ph-four').innerHTML = STEPS.map(function (t, i) {
+      return '<div class="fr">' + phone('still', i) + '<div class="cap2"><b>0' + (i + 1) + '</b>' + t + '</div></div>';
+    }).join('');
+  })();
+
   var curl = $('#curl');
   gift.addEventListener('pointerdown', function (e) {
     if (e.pointerType !== 'mouse' && !e.target.closest('a,button')) curl.classList.add('open');
