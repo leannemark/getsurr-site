@@ -107,6 +107,30 @@ export async function shots() {
         const seen = await inspect(page);
         if (seen.sideways) problems.push(`${ename} ${dname} ${key}: scrolls sideways`);
         if (seen.broken.length) problems.push(`${ename} ${dname} ${key}: broken picture ${seen.broken.join(', ')}`);
+        if (key === 'backpages') {
+          // the typing line is thin on a phone: a tap beside it, on the band, must still bring the keyboard up
+          const focused = await page.evaluate(() => {
+            // a point on the band but off the field: try beside the line, then under and above it
+            // (the band is tilted and its side words hide on a phone, so check what the point hits)
+            const band = document.querySelector('.e-band');
+            const code = document.querySelector('#e-code');
+            const i = code.getBoundingClientRect();
+            const spots = [
+              [i.right + 24, i.top + i.height / 2], [i.left - 24, i.top + i.height / 2],
+              [i.left + i.width / 2, i.bottom + 8], [i.left + i.width / 2, i.top - 8],
+            ];
+            const t = spots
+              .filter(([x, y]) => x > 0 && x < innerWidth && y > 0 && y < innerHeight)
+              .map(([x, y]) => document.elementFromPoint(x, y))
+              .find((el) => el && el !== code && band.contains(el) && !el.closest('button, a'));
+            if (!t) return 'no spot';
+            document.activeElement?.blur();
+            t.click();
+            return document.activeElement === code;
+          });
+          if (focused === 'no spot') problems.push(`${ename} ${dname} backpages: no spot on the band beside the line to tap`);
+          else if (!focused) problems.push(`${ename} ${dname} backpages: a tap on the band beside the line doesn't focus the code`);
+        }
         for (const e of errors) if (!(key === '404' && /404/.test(e))) problems.push(`${ename} ${dname} ${key}: ${e}`);
         const dir = join(OUT, 'shots', ename, dname);
         mkdirSync(dir, { recursive: true });
