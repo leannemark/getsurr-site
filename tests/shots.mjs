@@ -107,6 +107,18 @@ export async function shots() {
         const seen = await inspect(page);
         if (seen.sideways) problems.push(`${ename} ${dname} ${key}: scrolls sideways`);
         if (seen.broken.length) problems.push(`${ename} ${dname} ${key}: broken picture ${seen.broken.join(', ')}`);
+        if (key === 'backpages') {
+          // the typing line is thin on a phone: a tap beside it, on the band, must still bring the keyboard up
+          const focused = await page.evaluate(() => {
+            // just right of the line, at its height: on the band, off the field (the band is tilted, so stay near the line)
+            const i = document.querySelector('#e-code').getBoundingClientRect();
+            const t = document.elementFromPoint(Math.min(i.right + 24, innerWidth - 4), i.top + i.height / 2);
+            document.activeElement?.blur();
+            t?.click();
+            return document.activeElement?.id === 'e-code';
+          });
+          if (!focused) problems.push(`${ename} ${dname} backpages: a tap on the band beside the line doesn't focus the code`);
+        }
         for (const e of errors) if (!(key === '404' && /404/.test(e))) problems.push(`${ename} ${dname} ${key}: ${e}`);
         const dir = join(OUT, 'shots', ename, dname);
         mkdirSync(dir, { recursive: true });

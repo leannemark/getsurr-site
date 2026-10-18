@@ -103,6 +103,10 @@
     not_open: 'the back pages open soon.',
     other: "that didn't go through. try again."
   };
+  /* the typing line is thin (28px on a phone): a tap anywhere on the band brings the keyboard up */
+  eBand.addEventListener('click', function (e) {
+    if (e.target !== eCode && !e.target.closest('button, a')) eCode.focus();
+  });
   $('#e-hint').addEventListener('click', function () {
     var t = $('#e-hinttext');
     this.hidden = true; t.hidden = false;
