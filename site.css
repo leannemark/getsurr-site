@@ -299,6 +299,8 @@ form.ask .err{margin:8px 0 0 16px}
 .plain h1{margin:0 0 24px;font-family:var(--display);font-weight:800;font-size:36px;letter-spacing:-.03em;line-height:1}
 .plain main{flex:1}
 .plain main p{color:var(--grey2);margin:0 0 14px;max-width:34rem}
+.plain main section{margin:0 0 22px}
+.plain main section p{margin:0}
 .plain main a{color:var(--ink);text-underline-offset:3px;text-decoration-color:var(--grey)}
 .plain ol{margin:0 0 24px;padding:0;list-style:none;display:grid;gap:12px;color:var(--grey2)}
 .plain ol li{display:grid;grid-template-columns:28px 1fr;gap:8px}
