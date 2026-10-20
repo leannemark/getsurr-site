@@ -18,10 +18,10 @@ const OUT = join(root, 'tests', 'out');
 
 export const PAGES = {
   home: '/', 'home-in': '/', rings: '/rings/', map: '/map/', nights: '/nights/', list: '/list/', drive: '/drive/',
-  beta: '/beta/', deal: '/deal/', press: '/press/', support: '/support/', privacy: '/privacy/', imprint: '/imprint/',
+  beta: '/beta/', deal: '/deal/', press: '/press/', support: '/support/', seen: '/seen/', privacy: '/privacy/', imprint: '/imprint/',
   terms: '/terms/', babes: '/babes/', backpages: '/backpages/', '404': '/no-such-page/',
 };
-const PLAIN = new Set(['babes', 'deal', 'press', 'support', 'privacy', 'imprint', 'terms', '404']);
+const PLAIN = new Set(['babes', 'deal', 'press', 'support', 'seen', 'privacy', 'imprint', 'terms', '404']);
 
 // phones are touch devices with their real pixel density; desktop sizes are a plain window
 const DEVICES = {

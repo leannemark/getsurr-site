@@ -1,6 +1,6 @@
 // Builds the pages that are copies or plain pages.
 // The one page is index.html — edit that, then run: node scripts/build.mjs
-// It writes: the deep-link copies (rings, map, nights, list, beta), the plain pages (deal, press, support, 404),
+// It writes: the deep-link copies (rings, map, nights, list, beta), the plain pages (deal, press, support, seen, 404),
 // the legal pages (privacy, imprint — their text comes word for word from _legal/, which the site never serves),
 // and the forwarding pages under preview/ that send the old hidden addresses to the live ones.
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
@@ -119,9 +119,32 @@ write(
 <p>To delete your account: you tab → account → delete account. Everything goes with it.</p>
 <p>To pause instead: you tab → account → freeze account.</p>
 <p>To report or block someone: the ··· menu on their profile, or in the chat.</p>
-<p>To leave the map: you tab → location, off.</p>`,
+<p>To leave the map: you tab → location, off.</p>
+<p>What the map knows about you, and what keeps you safe: <a href="${BASE}seen/">seen, not tracked →</a></p>`,
     'support',
     'support/',
+  ),
+);
+
+write(
+  'seen/index.html',
+  plain(
+    'seen, not tracked · surr',
+    'seen, not tracked',
+    `<section>
+<span class="k">the map</span>
+<p>We built the map so you can see who's out tonight, and we built it to give away as little as we could. Your face sits somewhere within a kilometre of you and keeps moving on its own. The map only zooms in so far. No exact location is ever stored. Everyone you see on it is sharing theirs too, and one switch takes you off it.</p>
+</section>
+<section>
+<span class="k">the door</span>
+<p>Everyone here was let in by a real person. Every profile goes through a live selfie before it's looked at. A code comes from a member who's already in, from a surr night, or from the list when there's room.</p>
+</section>
+<section>
+<span class="k">every day</span>
+<p>Being seen is a choice, never a trail. Nobody is shown your hearts, your notes or whose profile you looked at. Block, report and unmatch are one tap away on every profile and in every chat, and a person reads every report. Freeze or delete your account any time.</p>
+</section>`,
+    '',
+    'seen/',
   ),
 );
 
@@ -214,4 +237,4 @@ for (const slug of moved) write(`preview/${slug ? slug + '/' : ''}index.html`, f
 // the guidelines are the deal: the welcome email links /guidelines
 write('guidelines/index.html', forward(`${BASE}deal/`));
 
-console.log(`built: ${Object.keys(branches).length} deep-link copies, deal, support, press, 404, privacy, imprint, terms, the allies door, ${moved.length} forwarding pages, guidelines`);
+console.log(`built: ${Object.keys(branches).length} deep-link copies, deal, support, seen, press, 404, privacy, imprint, terms, the allies door, ${moved.length} forwarding pages, guidelines`);
