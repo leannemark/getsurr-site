@@ -8,14 +8,17 @@ do $$
 declare
   r text;
   tries text[][] := array[
-    ['empty', '', ''],
-    ['bad email', 'not-an-email', 'berlin'],
-    ['no city', 'nocity@launch-test.getsurr.test', ''],
-    ['300 characters', repeat('a', 280) || '@launch-test.getsurr.test', repeat('b', 300)],
-    ['emoji', 'emoji@launch-test.getsurr.test', 'berlin 🌈🏳️‍🌈'],
-    ['sql in the city', 'sql@launch-test.getsurr.test', 'berlin''); drop table public.applications; --'],
-    ['same address twice (1)', 'twice@launch-test.getsurr.test', 'berlin'],
-    ['same address twice (2)', 'TWICE@launch-test.getsurr.test ', 'hamburg']
+    ['empty', '', '', ''],
+    ['bad email', 'not-an-email', 'berlin', ''],
+    ['no city', 'nocity@launch-test.getsurr.test', '', ''],
+    ['300 characters', repeat('a', 280) || '@launch-test.getsurr.test', repeat('b', 300), ''],
+    ['emoji', 'emoji@launch-test.getsurr.test', 'berlin 🌈🏳️‍🌈', '@💋'],
+    ['sql in the city', 'sql@launch-test.getsurr.test', 'berlin''); drop table public.applications; --', ''],
+    ['same address twice (1)', 'twice@launch-test.getsurr.test', 'berlin', ''],
+    ['same address twice (2)', 'TWICE@launch-test.getsurr.test ', 'hamburg', ''],
+    ['80-character city', 'eighty@launch-test.getsurr.test', repeat('b', 80), ''],
+    ['501-character link', 'link501@launch-test.getsurr.test', 'berlin', repeat('c', 501)],
+    ['500-character link', 'link500@launch-test.getsurr.test', 'berlin', repeat('c', 500)]
   ];
   i int;
 begin
@@ -23,7 +26,7 @@ begin
   delete from private.rate_hits where key = private.rate_key();
   for i in 1 .. array_length(tries, 1) loop
     begin
-      perform public.join_waitlist(tries[i][2], tries[i][3], case when i = 5 then '@💋' else null end);
+      perform public.join_waitlist(tries[i][2], tries[i][3], nullif(tries[i][4], ''));
       r := 'accepted';
     exception when others then r := 'refused: ' || sqlerrm;
     end;
@@ -50,7 +53,9 @@ begin
   end loop;
   insert into t_out select 200, 'rows for the twice address', count(*)::text from public.applications where email = 'twice@launch-test.getsurr.test';
   insert into t_out select 201, 'city kept for the twice address', max(payload->>'city') from public.applications where email = 'twice@launch-test.getsurr.test';
-  insert into t_out select 202, 'longest city stored', max(length(payload->>'city'))::text from public.applications where email like '%@launch-test.getsurr.test';
+  insert into t_out select 202, 'longest city stored (want 80)', max(char_length(payload->>'city'))::text from public.applications where email like '%@launch-test.getsurr.test';
+  insert into t_out select 206, 'longest link stored (want 500)', max(char_length(payload->>'link'))::text from public.applications where email like '%@launch-test.getsurr.test';
+  insert into t_out select 207, 'rows for refused addresses (want 0)', count(*)::text from public.applications where email in (repeat('a', 280) || '@launch-test.getsurr.test', 'link501@launch-test.getsurr.test');
   insert into t_out select 203, 'burst rows written (want 20)', count(*)::text from public.applications where email like 'burst%@launch-test.getsurr.test';
   insert into t_out select 204, 'applications table still there', to_regclass('public.applications')::text;
   delete from public.applications where email like '%@launch-test.getsurr.test';
