@@ -1,19 +1,24 @@
 // The list form, abused (W11) — in the browser, with the server function stood in for by a copy of its rules
-// (join_waitlist in the app repo's supabase/migrations/20261009190000_list_spam_guard.sql), so nothing is ever written
+// (join_waitlist in the app repo's supabase/migrations/20261020235000_list_refuse_long.sql), so nothing is ever written
 // anywhere. Every case must end in a visible line, never a spinner. The real function is checked separately,
 // on the STAGING server only, by tests/form-staging.sql (see tests/README.md) — never production.
 import { chromium, webkit } from '@playwright/test';
 import { serve } from './serve.mjs';
 
 // the server function's own rules, word for word: the bot trap first (filled → the usual answer, nothing written),
-// then 20 calls per connection per 10 minutes (the 21st: P0001 with no message the page shows), then the checks
-function joinWaitlist({ p_email, p_city, p_hp }, conn) {
+// then 20 calls per connection per 10 minutes (the 21st: P0001 with no message the page shows), then the checks;
+// a city over 80 or a link over 500 characters (after trimming spaces, counted like char_length) is refused, never cut
+const trim = (v) => String(v || '').replace(/^ +| +$/g, '');
+const chars = (v) => [...v].length;
+function joinWaitlist({ p_email, p_city, p_link, p_hp }, conn) {
   if (p_hp) return { status: 204, body: null };
   if (conn.hits >= 20) return { status: 400, body: { code: 'P0001', message: 'list_forms: too many' } };
   conn.hits++;
-  const email = String(p_email || '').trim().toLowerCase(), city = String(p_city || '').trim().slice(0, 80);
+  const email = trim(p_email).toLowerCase(), city = trim(p_city), link = trim(p_link);
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/u.test(email)) return { status: 400, body: { code: '22023', message: "that's not an email" } };
   if (!city) return { status: 400, body: { code: '22023', message: 'which city?' } };
+  if (chars(city) > 80) return { status: 400, body: { code: '22023', message: 'the city can be 80 characters at most' } };
+  if (chars(link) > 500) return { status: 400, body: { code: '22023', message: 'the link can be 500 characters at most' } };
   conn.written.push(email);
   return { status: 204, body: null };
 }
@@ -22,7 +27,11 @@ const CASES = [
   { name: 'empty', email: '', city: '', expect: "That's not an email" },
   { name: 'bad email', email: 'not-an-email', city: 'berlin', expect: "That's not an email" },
   { name: 'no city', email: 'a@b.de', city: '', expect: 'Which city?' },
-  { name: '300 characters', email: 'a'.repeat(290) + '@getsurr.de', city: 'b'.repeat(300), link: 'c'.repeat(300), expect: "We'll email you a code" },
+  { name: '300 characters', email: 'a'.repeat(290) + '@getsurr.de', city: 'b'.repeat(300), link: 'c'.repeat(300), expect: 'The city can be 80 characters at most', writes: 0 },
+  { name: '80-character city', email: 'eighty@getsurr.de', city: 'b'.repeat(80), expect: "We'll email you a code", writes: 1 },
+  { name: '501-character link', email: 'link501@getsurr.de', city: 'berlin', link: 'c'.repeat(501), expect: 'The link can be 500 characters at most', writes: 0 },
+  { name: '500-character link', email: 'link500@getsurr.de', city: 'berlin', link: 'c'.repeat(500), expect: "We'll email you a code", writes: 1 },
+  { name: '81-character city sent twice', email: 'again@getsurr.de', city: 'b'.repeat(81), again: true, expect: 'The city can be 80 characters at most', writes: 0 },
   { name: 'emoji', email: 'emoji@getsurr.de', city: 'berlin 🌈🏳️‍🌈', link: '@💋', expect: "We'll email you a code" },
   { name: 'server down', email: 'down@getsurr.de', city: 'berlin', down: true, expect: "That didn't go through" },
   { name: 'server never answers', email: 'slow@getsurr.de', city: 'berlin', slow: true, expect: "That didn't go through" },
@@ -59,10 +68,11 @@ export async function form() {
       const btn = f.locator('button.go');
       if (c.twice) { await btn.click(); await btn.click({ force: true }).catch(() => {}); await btn.click({ force: true }).catch(() => {}); } else await btn.click();
       const line = page.locator('form.list:visible .err:not([hidden]), p.done').first();
+      if (c.again) { await line.waitFor({ timeout: 8000 }).catch(() => {}); await btn.click(); await page.waitForTimeout(600); }
       let said = '';
       try { await line.waitFor({ timeout: c.slow ? 20000 : 8000 }); said = (await line.innerText()).trim(); } catch { said = '(nothing — still waiting)'; }
-      const ok = said.startsWith(c.expect) && (!c.twice || calls === 1) && (c.writes === undefined || conn.written.length === c.writes);
-      if (!ok) problems.push(`${ename} ${c.name}: said "${said}"${c.twice ? `, sent ${calls}×` : ''}, wrote ${conn.written.length}`);
+      const ok = said.startsWith(c.expect) && (!c.twice || calls === 1) && (!c.again || calls === 2) && (c.writes === undefined || conn.written.length === c.writes);
+      if (!ok) problems.push(`${ename} ${c.name}: said "${said}"${c.twice || c.again ? `, sent ${calls}×` : ''}, wrote ${conn.written.length}`);
       rows.push({ engine: ename, case: c.name, sent: calls, says: said.slice(0, 48), ok });
       await page.close();
     }
