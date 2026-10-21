@@ -1,5 +1,5 @@
 /* surr — getsurr.com. the band, the branches, the snap phone, the list form, the radio.
-   no storage, no analytics; the only calls out are the form (Supabase) and, after its own tap, the radio (SoundCloud). */
+   no storage, no analytics, nothing from another host but the forms' calls to Supabase. the radio plays our own file, after its own tap. */
 (function () {
   'use strict';
   var C = window.SURR || {};
@@ -235,18 +235,248 @@
   }
   $$('[data-aura]').forEach(aura);
 
-  /* ————— shared: the radio (off until the premiere; SoundCloud loads only on its own tap) ————— */
-  var playing = false;
-  function radioPlay(bar) {
-    if (playing || !C.RADIO_EMBED_URL) return;
-    playing = true;
-    var f = document.createElement('iframe');
-    f.title = 'surr radio 001'; f.allow = 'autoplay'; f.scrolling = 'no';
-    f.src = 'https://w.soundcloud.com/player/?url=' + encodeURIComponent(C.RADIO_EMBED_URL) +
-      '&color=%23de0a26&auto_play=true&hide_related=true&show_comments=false&show_user=false&show_reposts=false&show_teaser=false&visual=false';
-    bar.appendChild(f); bar.classList.add('playing');
-  }
-  $$('[data-play]').forEach(function (b) { b.addEventListener('click', function () { radioPlay(b.parentNode); }); });
+  /* ————— shared: the radio — "the chip" (brief getsurr-site-radio-chip; behaviour from the mockup in sap-business/inspo).
+     one chip on the desk, one on the phone, over one <audio> that is made on the first play tap (preload none), so nothing of
+     the mix is on the first load. the wave (600 loudness values, measured once from the file by scripts/wave.mjs) is fetched
+     when nights opens. off — no chip at all — while RADIO_ON is false or RADIO_FILE is missing (an old cached config.js). ————— */
+  var radio = (function () {
+    var els = $$('[data-chip]');
+    if (!(C.RADIO_ON && C.RADIO_FILE)) { els.forEach(function (el) { el.remove(); }); return null; }
+    var LEN = 2618, BARS = 75, REST = '43:38', FAIL = "didn't start · tap again";
+    var bars = [], wave = null, asked = false, audio = null, want = false, failT = 0, stallT = 0, failUntil = 0, raf = 0, ms = false;
+    function fmt(s) { s = Math.max(0, Math.floor(s)); var m = Math.floor(s / 60), r = s % 60; return (m < 10 ? '0' : '') + m + ':' + (r < 10 ? '0' : '') + r; }
+    function len() { return (audio && isFinite(audio.duration) && audio.duration) || LEN; }
+    function pos() { return audio ? audio.currentTime : 0; }
+    function amp(p) { return wave ? wave[Math.min(wave.length - 1, Math.floor(p / len() * wave.length))] / 99 : 0; }
+
+    /* the wave: asked for once nights is on screen; a failed fetch is asked again next time */
+    function loadWave() {
+      if (wave || asked || !C.RADIO_WAVE || !window.fetch) return;
+      asked = true;
+      fetch(C.RADIO_WAVE).then(function (r) { return r.ok ? r.json() : null; }).then(function (w) {
+        if (!Array.isArray(w) || !w.length) { asked = false; return; }
+        wave = w; bars = [];
+        for (var b = 0; b < BARS; b++) {
+          var a = Math.floor(b * w.length / BARS), z = Math.floor((b + 1) * w.length / BARS), s = 0;
+          for (var i = a; i < z; i++) s += w[i];
+          bars.push(s / (z - a) / 99);
+        }
+        drawAll();
+      }).catch(function () { asked = false; });
+    }
+
+    /* the sound: one element for both chips, so switching between desk and phone never plays twice */
+    function make() {
+      if (audio) return;
+      audio = document.createElement('audio');
+      audio.preload = 'none';
+      audio.src = C.RADIO_FILE;
+      audio.hidden = true;
+      document.body.appendChild(audio);
+      audio.addEventListener('play', function () { set(true); });
+      audio.addEventListener('pause', function () { if (!audio.ended) set(false); });
+      audio.addEventListener('playing', function () { clearTimeout(failT); clearTimeout(stallT); });
+      /* a stall mid-play: if it has not picked up again in 20 s, show play again (never a dead button) */
+      audio.addEventListener('waiting', function () {
+        clearTimeout(stallT);
+        stallT = setTimeout(function () { if (want && audio.readyState < 3) audio.pause(); }, 20000);
+      });
+      audio.addEventListener('ended', function () { want = false; clearTimeout(stallT); audio.currentTime = 0; set(false); });
+      audio.addEventListener('error', function () { if (want) fail(); });
+      /* leaving the page (press, the deal…): the music stops, and coming back the chip is at rest again */
+      addEventListener('pagehide', function () { want = false; audio.pause(); audio.currentTime = 0; set(false); });
+    }
+    function play() {
+      make();
+      /* after a failed start or a dropped connection the element is stuck: load it again, from the same place */
+      if (audio.error || audio.networkState === 3) { var at = audio.currentTime; audio.load(); if (at) audio.currentTime = at; }
+      failUntil = 0;
+      want = true;
+      clearTimeout(failT);
+      failT = setTimeout(fail, 4000); /* no sound within 4 s of the tap: say so, show play again */
+      var p = audio.play();
+      if (p && p.catch) p.catch(function (e) { if (!(e && e.name === 'AbortError') && want) fail(); });
+      session();
+      set(true);
+    }
+    function pause() { want = false; clearTimeout(failT); clearTimeout(stallT); if (audio) audio.pause(); set(false); }
+    function fail() {
+      want = false; clearTimeout(failT); clearTimeout(stallT);
+      if (audio) audio.pause();
+      failUntil = Date.now() + 3000;
+      setTimeout(drawAll, 3050);
+      set(false);
+    }
+    /* the phone's lock screen: the title, and play / pause from there — nothing else */
+    function session() {
+      if (ms || !('mediaSession' in navigator)) return;
+      ms = true;
+      try {
+        if (window.MediaMetadata) navigator.mediaSession.metadata = new MediaMetadata({ title: 'surr radio 001', artist: 'mobilegirl for surr', artwork: [{ src: BASE + 'img/blue-1-melt-tile.jpg', sizes: '700x700', type: 'image/jpeg' }] });
+        navigator.mediaSession.setActionHandler('play', play);
+        navigator.mediaSession.setActionHandler('pause', pause);
+      } catch (e) { /* an older browser without these: the chip still plays */ }
+    }
+    function set(on) {
+      want = on;
+      chips.forEach(function (c) {
+        c.el.classList.toggle('on', on);
+        c.pp.setAttribute('aria-label', on ? 'pause' : 'play');
+        if (on) c.arm(); else c.unfold();
+      });
+      cancelAnimationFrame(raf);
+      if (on) raf = requestAnimationFrame(frame);
+      drawAll();
+    }
+    function frame() { drawAll(); if (want) raf = requestAnimationFrame(frame); }
+    function drawAll() { chips.forEach(function (c) { c.draw(); }); }
+
+    function Chip(el) {
+      var desk = !!el.closest('.site');
+      var cv = $('canvas', el), cx = cv.getContext('2d'), t = $('[data-time]', el), pp = $('[data-pp]', el), led = $('.led', el), vu = $$('.vu i', el);
+      var run = $('.run', el), link = null, foldT = 0, hideT = 0, shown = false, hover = false;
+      if (C.RADIO_ARTIST_URL) $$('[data-artist]', el).forEach(function (s, i) {
+        var a = document.createElement('a');
+        a.href = C.RADIO_ARTIST_URL; a.target = '_blank'; a.rel = 'noopener'; a.textContent = s.textContent;
+        if (i) a.tabIndex = -1; else link = a;
+        s.replaceWith(a);
+      });
+      /* a keyboard on the link: the label stops with the link in view */
+      if (link) {
+        link.addEventListener('focus', function () { run.style.animation = 'none'; run.style.transform = 'translateX(' + (6 - link.offsetLeft) + 'px)'; });
+        link.addEventListener('blur', function () { run.style.animation = ''; run.style.transform = ''; });
+      }
+      var c = { el: el, pp: pp };
+
+      c.draw = function () {
+        if (!shown) return;
+        var w = cv.clientWidth, h = cv.clientHeight;
+        if (!w) return;
+        var k = Math.min(3, Math.max(2, window.devicePixelRatio || 1)), W = Math.round(w * k), H = Math.round(h * k);
+        if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; }
+        var at = pos(), p = at / len(), mid = at > 0, pitch = W / BARS;
+        cx.clearRect(0, 0, W, H);
+        for (var i = 0; i < bars.length; i++) {
+          var bh = Math.max(k, bars[i] * (H - 4 * k)), x = i * pitch, y = (H - bh) / 2;
+          cx.fillStyle = (i + .5) / BARS <= p ? '#d9dde0' : '#3a4047';
+          cx.fillRect(x + pitch * .25, y, Math.max(1, pitch * .5), bh);
+        }
+        if (want || mid) { cx.fillStyle = '#DE0A26'; cx.fillRect(Math.round(p * W), 0, Math.max(1, k), H); }
+        var txt = Date.now() < failUntil ? FAIL : (want || mid) ? fmt(at) : REST;
+        if (t.textContent !== txt) t.textContent = txt;
+        el.classList.toggle('mid', !want && mid);
+        var a = want ? amp(at) : 0;
+        if (!still) { led.style.transform = 'scale(' + (1 + a * 1.1) + ')'; led.style.opacity = want ? (.45 + a * .55) : 1; }
+        vu.forEach(function (v, i) {
+          var j = want ? a * (still ? 1 : .6 + Math.random() * .7) * (i === 1 ? 1 : .75) : 0;
+          v.style.height = Math.max(2, Math.round(j * 12)) + 'px';
+        });
+      };
+
+      /* folding: six seconds after play, to the light and the meter; never while the mouse or the keyboard is on it */
+      function fold() {
+        var had = el.contains(document.activeElement);
+        el.classList.add('folded');
+        el.setAttribute('role', 'button'); el.tabIndex = 0; el.setAttribute('aria-label', 'surr radio · open');
+        if (had) el.focus({ preventScroll: true });
+      }
+      c.unfold = function () {
+        clearTimeout(foldT);
+        if (!el.classList.contains('folded')) return;
+        el.classList.remove('folded');
+        el.removeAttribute('role'); el.removeAttribute('tabindex'); el.removeAttribute('aria-label');
+      };
+      c.arm = function () {
+        clearTimeout(foldT);
+        foldT = setTimeout(function () {
+          var keys = false;
+          try { keys = !!el.querySelector(':focus-visible'); } catch (e) { /* no :focus-visible: fold anyway */ }
+          if (!want) return;
+          if (hover || keys) c.arm(); else fold();
+        }, 6000);
+      };
+      function open() { c.unfold(); if (want) c.arm(); }
+      pp.addEventListener('click', function (e) { e.stopPropagation(); if (want) pause(); else play(); });
+      $('[data-fold]', el).addEventListener('click', function (e) { e.stopPropagation(); clearTimeout(foldT); fold(); });
+      el.addEventListener('click', function () { if (el.classList.contains('folded')) open(); });
+      el.addEventListener('keydown', function (e) {
+        if (e.target !== el || !el.classList.contains('folded') || (e.key !== 'Enter' && e.key !== ' ')) return;
+        e.preventDefault(); open(); pp.focus({ preventScroll: true });
+      });
+      el.addEventListener('pointerenter', function (e) { if (e.pointerType !== 'mouse') return; hover = true; if (el.classList.contains('folded')) open(); });
+      el.addEventListener('pointerleave', function (e) { if (e.pointerType === 'mouse') hover = false; });
+
+      /* showing and hiding: on the desk it travels out of the nights tile and back into it; on the phone it grows in place.
+         with reduced motion it only fades. */
+      function toTile() {
+        var tile = $('#band .cell[data-i="nights"]');
+        if (!desk || still || !tile) return '';
+        var r = tile.getBoundingClientRect();
+        return 'translate(' + Math.round(r.left + r.width / 2 - (el.offsetLeft + el.offsetWidth / 2)) + 'px,' +
+          Math.round(r.top + r.height / 2 - (el.offsetTop + el.offsetHeight / 2)) + 'px) scale(.2)';
+      }
+      c.show = function () {
+        loadWave();
+        if (shown) return;
+        shown = true;
+        clearTimeout(hideT);
+        el.hidden = false; el.inert = false;
+        el.style.left = el.style.top = el.style.right = '';
+        el.style.transition = 'none';
+        el.style.transform = toTile();
+        void el.offsetWidth;
+        el.style.transition = '';
+        el.classList.remove('hidden-chip');
+        el.style.transform = '';
+        c.draw();
+      };
+      c.hide = function () {
+        if (!shown || want) return;
+        shown = false;
+        c.unfold();
+        el.inert = true;
+        el.style.transform = toTile();
+        el.classList.add('hidden-chip');
+        clearTimeout(hideT);
+        hideT = setTimeout(function () { if (!shown) el.hidden = true; }, 650);
+      };
+      c.desk = desk;
+
+      /* drag (desk only): anywhere in the window, 8 px inside its edges, never from the buttons or the link; kept in memory only */
+      if (desk) {
+        var dx = 0, dy = 0, drag = false;
+        var clamp = function (x, y) {
+          var W = innerWidth - el.offsetWidth - 8, H = innerHeight - el.offsetHeight - 8;
+          el.style.right = 'auto';
+          el.style.left = Math.max(8, Math.min(W, x)) + 'px';
+          el.style.top = Math.max(8, Math.min(H, y)) + 'px';
+        };
+        var end = function () { drag = false; el.classList.remove('dragging'); };
+        el.addEventListener('pointerdown', function (e) {
+          end();
+          if (e.target.closest('button, a') || e.button > 0) return;
+          drag = true; el.classList.add('dragging');
+          try { el.setPointerCapture(e.pointerId); } catch (err) { /* capture is a nicety */ }
+          dx = e.clientX - el.offsetLeft; dy = e.clientY - el.offsetTop;
+        });
+        /* a release outside the window can go missing: no button held means the drag is over */
+        el.addEventListener('pointermove', function (e) { if (!drag) return; if (e.pointerType === 'mouse' && !e.buttons) end(); else clamp(e.clientX - dx, e.clientY - dy); });
+        el.addEventListener('pointerup', end);
+        el.addEventListener('pointercancel', end);
+        addEventListener('resize', function () { if (el.style.left) clamp(el.offsetLeft, el.offsetTop); });
+      }
+      return c;
+    }
+    var chips = els.map(Chip);
+    function pick(desk) { return chips.filter(function (c) { return c.desk === desk; })[0]; }
+    return {
+      /* desk: nights opened (true) or a branch closed (false — it stays while the mix plays) */
+      desk: function (on) { var c = pick(true); if (c) { if (on) c.show(); else c.hide(); } },
+      /* phone: a screen settled; nights shows it, any other screen keeps it only while the mix plays */
+      phone: function (nights) { var c = pick(false); if (!c) return; if (nights || want) c.show(); else c.hide(); },
+      on: function () { return want; },
+    };
+  })();
 
   /* ————————————————— desktop ————————————————— */
   var site = $('#site'), band = $('#band'), splash = $('#splash');
@@ -268,7 +498,7 @@
     $$('.branch', site).forEach(function (b) { b.classList.remove('on'); });
     $$('.cell', band).forEach(function (c) { c.classList.remove('open', 'hot'); });
     band.classList.remove('hot');
-    if (!playing) site.classList.remove('radio');
+    if (radio) radio.desk(false);
     if (!keepAddress) setAddress('', 'surr');
     if (was) { var c = $('.cell[data-i="' + was + '"]', band); if (c && document.activeElement && document.activeElement.closest && document.activeElement.closest('.branch')) c.focus({ preventScroll: true }); }
   }
@@ -291,7 +521,7 @@
     site.classList.add('has-open');
     var br = $('.branch[data-b="' + id + '"]', site);
     br.classList.add('on');
-    if (id === 'nights' && C.RADIO_ON) site.classList.add('radio');
+    if (id === 'nights' && radio) radio.desk(true);
     var d = $('details.beta', br);
     if (d) d.open = !!beta;
     var dl = $('details.deal', br); if (dl && beta) dl.open = false;
@@ -336,7 +566,7 @@
 
   /* ————————————————— phone: snap ————————————————— */
   var wrap = $('#snapwrap'), snap = $('#snap'), ssplash = $('#ssplash'), s0 = $('#s0');
-  var menu = $('#menu'), menuBtns = $$('#menu button'), downBtn = $('#down'), ticks = $$('#ticks i'), tickBox = $('#ticks'), pbar = $('#pbar');
+  var menu = $('#menu'), menuBtns = $$('#menu button'), downBtn = $('#down'), ticks = $$('#ticks i'), tickBox = $('#ticks');
   var secs = $$('.sec', snap);
   function vh() { document.documentElement.style.setProperty('--vh', (innerHeight / 100) + 'px'); }
   vh(); addEventListener('resize', vh);
@@ -395,7 +625,7 @@
     onLanding = !away;
     menuBtns.forEach(function (b) { b.classList.toggle('on', away && b.dataset.i === el.dataset.i); });
     if (away) showMenu(); else hideMenu();
-    if (C.RADIO_ON) pbar.classList.toggle('up', playing || el.dataset.i === 'nights');
+    if (radio) radio.phone(el.dataset.i === 'nights');
     document.title = away ? TITLES[el.dataset.i] : 'surr';
   }
   var ticking = false;
@@ -425,6 +655,9 @@
     else goSec(id, beta, 'auto');
   }
   document.body.classList.toggle('is-desk', deskMQ.matches);
-  if (deskMQ.addEventListener) deskMQ.addEventListener('change', function () { document.body.classList.toggle('is-desk', deskMQ.matches); });
+  if (deskMQ.addEventListener) deskMQ.addEventListener('change', function () {
+    document.body.classList.toggle('is-desk', deskMQ.matches);
+    if (radio && radio.on()) { radio.desk(true); radio.phone(true); } /* turned while the mix plays: the chip is there in the new layout too */
+  });
   if (document.readyState === 'complete') land(); else addEventListener('load', land);
 })();

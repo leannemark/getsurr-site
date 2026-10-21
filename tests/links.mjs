@@ -1,6 +1,6 @@
 // Every link, picture, font, script and page answers (W10). Walks the site from / like a visitor would, locally,
 // then (LIVE=1, or always in `npm test`) checks the real domain: www → bare domain, http → https, both land on the same page.
-// Outside links (App Store, Instagram, SoundCloud) are listed, not fetched — their sites refuse robots, and a
+// Outside links (App Store, Instagram) are listed, not fetched — their sites refuse robots, and a
 // failure there is not ours to fix.
 import { serve } from './serve.mjs';
 
@@ -36,6 +36,14 @@ export async function links({ live = true } = {}) {
       if (!from.has(u)) from.set(u, path);
       if (!seen.has(u)) queue.push(u);
     }
+  }
+  // the radio's files are named in config.js, not in a page: a HEAD request each (never download the 65 MB mix)
+  const config = await (await fetch(base + '/config.js')).text();
+  for (const key of ['RADIO_FILE', 'RADIO_WAVE']) {
+    const m = new RegExp(key + ":\\s*'([^']+)'").exec(config);
+    if (!m) continue;
+    const r = await fetch(base + m[1], { method: 'HEAD' });
+    seen.set(m[1], r.status); from.set(m[1], 'config.js');
   }
   server.close();
   const problems = [...seen].filter(([p, s]) => s !== 200).map(([p, s]) => `${p} answered ${s} (linked from ${from.get(p) || 'start'})`);
