@@ -1,5 +1,5 @@
 /* surr — getsurr.com. the band, the branches, the snap phone, the list form, the radio.
-   no storage, no analytics; the only calls out are the form (Supabase) and, after its own tap, the radio (SoundCloud). */
+   no storage, no analytics; the only calls out are the forms (Supabase) and, after its own play tap, the radio (SoundCloud's player). */
 (function () {
   'use strict';
   var C = window.SURR || {};
@@ -235,18 +235,299 @@
   }
   $$('[data-aura]').forEach(aura);
 
-  /* ————— shared: the radio (off until the premiere; SoundCloud loads only on its own tap) ————— */
-  var playing = false;
-  function radioPlay(bar) {
-    if (playing || !C.RADIO_EMBED_URL) return;
-    playing = true;
-    var f = document.createElement('iframe');
-    f.title = 'surr radio 001'; f.allow = 'autoplay'; f.scrolling = 'no';
-    f.src = 'https://w.soundcloud.com/player/?url=' + encodeURIComponent(C.RADIO_EMBED_URL) +
-      '&color=%23de0a26&auto_play=true&hide_related=true&show_comments=false&show_user=false&show_reposts=false&show_teaser=false&visual=false';
-    bar.appendChild(f); bar.classList.add('playing');
-  }
-  $$('[data-play]').forEach(function (b) { b.addEventListener('click', function () { radioPlay(b.parentNode); }); });
+  /* ————— shared: the radio — "the chip" (brief getsurr-site-radio-chip; look and behaviour from the mockup in sap-business/inspo).
+     one chip on the desk, one on the phone, over one SoundCloud player hidden in the chip's display window. nothing from SoundCloud
+     loads before the play tap: the tap makes the player's iframe and loads its Widget API (the two-click rule). the wave (600 loudness
+     values, measured once from Leanne's copy by scripts/wave.mjs — the audio itself is never in this repo) is fetched when nights opens.
+     no chip at all while RADIO_ON is false or RADIO_EMBED_URL is empty (an old cached config.js). ————— */
+  var radio = (function () {
+    var els = $$('[data-chip]');
+    if (!(C.RADIO_ON && C.RADIO_EMBED_URL)) { els.forEach(function (el) { el.remove(); }); return null; }
+    /* each mix is made for one mood ring and wears its colour (the brand's mood scale); 002 changes RADIO_MOOD only */
+    var MOODS = { spontaneous: '#DE0A26', persuadable: '#FF8C00', lowkey: '#F2C94C', faded: '#3A3A3A' };
+    var MOOD = MOODS[C.RADIO_MOOD] ? C.RADIO_MOOD : '', INK = MOOD ? MOODS[MOOD] : '#DE0A26';
+    var LEN = 2618, BARS = 75, REST = '43:38', FAIL = "didn't start · tap again";
+    var bars = [], wave = null, asked = false;
+    var frame = null, host = null, widget = null, ready = false, noApi = false, want = false, started = false, playing = false, ended = false, len = LEN;
+    var at = 0, atT = 0, last = null, stripT = 0, failT = 0, pollT = 0, failUntil = 0, raf = 0;
+    function now() { return window.performance ? performance.now() : Date.now(); }
+    function fmt(s) { s = Math.max(0, Math.floor(s)); var m = Math.floor(s / 60), r = s % 60; return (m < 10 ? '0' : '') + m + ':' + (r < 10 ? '0' : '') + r; }
+    /* the clock: SoundCloud's position, asked every 250 ms while playing, run on smoothly in between — for a second at most,
+       so a stall stops the clock */
+    function pos() { return Math.min(len, playing ? at + Math.min(1, (now() - atT) / 1000) : at); }
+    function amp(p) { return wave ? wave[Math.min(wave.length - 1, Math.floor(p / len * wave.length))] / 99 : 0; }
+
+    /* the wave: asked for once nights is on screen; a failed fetch is asked again next time */
+    function loadWave() {
+      if (wave || asked || !C.RADIO_WAVE || !window.fetch) return;
+      asked = true;
+      fetch(C.RADIO_WAVE).then(function (r) { return r.ok ? r.json() : null; }).then(function (w) {
+        if (!Array.isArray(w) || !w.length) { asked = false; return; }
+        wave = w; bars = [];
+        for (var b = 0; b < BARS; b++) {
+          var a = Math.floor(b * w.length / BARS), z = Math.floor((b + 1) * w.length / BARS), s = 0;
+          for (var i = a; i < z; i++) s += w[i];
+          bars.push(s / (z - a) / 99);
+        }
+        drawAll();
+      }).catch(function () { asked = false; });
+    }
+
+    /* the sound: SoundCloud's player, made once on the first tap inside the chip that was tapped, never moved after (moving an
+       iframe reloads it), so switching between desk and phone never plays twice */
+    function make(c) {
+      host = c;
+      frame = document.createElement('iframe');
+      frame.title = 'surr radio 001'; frame.allow = 'autoplay; encrypted-media'; frame.scrolling = 'no';
+      frame.src = 'https://w.soundcloud.com/player/?url=' + encodeURIComponent(C.RADIO_EMBED_URL) +
+        '&color=%23de0a26&auto_play=true&hide_related=true&show_comments=false&show_user=false&show_reposts=false&show_teaser=false&visual=false';
+      c.sc.appendChild(frame);
+      if (window.SC && SC.Widget) { hook(); return; }
+      var s = document.createElement('script');
+      s.src = 'https://w.soundcloud.com/player/api.js';
+      s.onload = hook;
+      /* the script did not come: blocked by the site's own headers (Cloudflare not updated yet) → SoundCloud's strip plays by
+         itself; anything else (no connection) → the failure line, and the next tap starts over */
+      s.onerror = function () { s.remove(); setTimeout(function () { if (blocked) noControl(); else fail(); }, 100); };
+      document.head.appendChild(s);
+    }
+    var blocked = false;
+    document.addEventListener('securitypolicyviolation', function (e) { if (/soundcloud\.com/.test(e.blockedURI || '')) blocked = true; });
+    function noControl() { noApi = true; clearTimeout(stripT); clearTimeout(failT); strip(true); }
+    function drop() { if (frame) frame.remove(); frame = widget = host = null; ready = false; }
+    function hook() {
+      if (!window.SC || !SC.Widget) { noControl(); return; }
+      var E = SC.Widget.Events;
+      widget = SC.Widget(frame);
+      widget.bind(E.READY, function () {
+        ready = true;
+        widget.getDuration(function (d) { if (d > 0) len = d / 1000; });
+        if (want) widget.play();
+      });
+      /* "play" alone is not proof (Safari may block a hidden start a moment later): it counts once the position moves */
+      widget.bind(E.PLAY, function () { if (!want && !started) widget.pause(); });
+      widget.bind(E.PLAY_PROGRESS, function (e) {
+        var ms = e && e.currentPosition;
+        if (typeof ms !== 'number') return;
+        if (!want) { if (!started) widget.pause(); return; }
+        if (!playing) {
+          if (last === null || ms <= last) { last = ms; return; }
+          /* it plays: hide SoundCloud's strip again behind the wave */
+          started = true; ended = false; playing = true;
+          clearTimeout(stripT); clearTimeout(failT); failUntil = 0;
+          strip(false); set(true); poll();
+        }
+        if (ms !== at * 1000) { at = ms / 1000; atT = now(); }
+      });
+      /* a pause counts only once it has played (SoundCloud also says "pause" as it gets ready, and when a start is blocked) */
+      widget.bind(E.PAUSE, function () {
+        if (!playing) return;
+        widget.getPosition(function (ms) { if (!playing && !ended) { at = ms / 1000; drawAll(); } });
+        playing = false; want = false; set(false);
+      });
+      widget.bind(E.FINISH, function () { ended = true; playing = false; want = false; at = 0; widget.seekTo(0); widget.pause(); set(false); });
+    }
+    function poll() {
+      clearTimeout(pollT);
+      if (!playing || !widget) return;
+      widget.getPosition(function (ms) { if (playing && ms !== at * 1000) { at = ms / 1000; atT = now(); } });
+      /* stuck for 20 s (the connection went mid-play): show play again — never a dead button */
+      if (now() - atT > 20000) { pause(); return; }
+      pollT = setTimeout(poll, 250);
+    }
+    function strip(show) { if (host) host.el.classList.toggle('strip', show && (want || noApi)); }
+    function play(c) {
+      failUntil = 0; want = true; last = null;
+      if (!frame) make(c); else if (widget) widget.play();
+      clearTimeout(stripT); clearTimeout(failT);
+      if (noApi) strip(true);
+      else {
+        /* an iPhone may not start a hidden player from a page tap: show SoundCloud's strip in the window for one more tap */
+        stripT = setTimeout(function () { if (want && !playing) strip(true); }, 1500);
+        /* nothing within 6 s (no connection, SoundCloud down, the track private): say so, show play again */
+        failT = setTimeout(function () { if (want && !playing && !noApi) fail(); }, 6000);
+      }
+      set(true);
+    }
+    function pause() {
+      at = pos(); want = playing = false; clearTimeout(stripT); clearTimeout(failT); clearTimeout(pollT);
+      if (widget) widget.pause();
+      if (!noApi) strip(false);
+      set(false);
+    }
+    function fail() {
+      want = playing = false; clearTimeout(stripT); clearTimeout(failT);
+      if (widget) widget.pause();
+      strip(false);
+      if (!ready) drop(); /* it never got going: the next tap starts it afresh */
+      failUntil = Date.now() + 3000;
+      setTimeout(drawAll, 3050);
+      set(false);
+    }
+    function set(on) {
+      chips.forEach(function (c) {
+        c.el.classList.toggle('on', on);
+        c.pp.setAttribute('aria-label', on ? 'pause' : 'play');
+        if (on && playing) c.arm(); else if (!on) c.unfold();
+      });
+      cancelAnimationFrame(raf);
+      if (on) raf = requestAnimationFrame(frameLoop);
+      drawAll();
+    }
+    function frameLoop() { drawAll(); if (want) raf = requestAnimationFrame(frameLoop); }
+    function drawAll() { chips.forEach(function (c) { c.draw(); }); }
+    /* leaving the page (press, the deal…): the music stops, and coming back the chip is at rest again */
+    addEventListener('pagehide', function () { if (widget) widget.pause(); want = playing = false; at = 0; set(false); });
+
+    function Chip(el) {
+      var desk = !!el.closest('.site');
+      var cv = $('canvas', el), cx = cv.getContext('2d'), t = $('[data-time]', el), pp = $('[data-pp]', el), led = $('.led', el), vu = $$('.vu i', el);
+      var run = $('.run', el), link = null, foldT = 0, hideT = 0, shown = false, hover = false;
+      if (MOOD) { el.style.setProperty('--mood', INK); $$('[data-mood]', el).forEach(function (s) { s.textContent = MOOD; }); }
+      else $$('[data-moodline]', el).forEach(function (s) { s.remove(); });
+      if (C.RADIO_ARTIST_URL) $$('[data-artist]', el).forEach(function (s, i) {
+        var a = document.createElement('a');
+        a.href = C.RADIO_ARTIST_URL; a.target = '_blank'; a.rel = 'noopener'; a.textContent = s.textContent;
+        if (i) a.tabIndex = -1; else link = a;
+        s.replaceWith(a);
+      });
+      /* a keyboard on the link: the label stops with the link in view */
+      if (link) {
+        link.addEventListener('focus', function () { run.style.animation = 'none'; run.style.transform = 'translateX(' + (6 - link.offsetLeft) + 'px)'; });
+        link.addEventListener('blur', function () { run.style.animation = ''; run.style.transform = ''; });
+      }
+      var c = { el: el, pp: pp, sc: $('.sc', el) };
+
+      c.draw = function () {
+        if (!shown) return;
+        var w = cv.clientWidth, h = cv.clientHeight;
+        if (!w) return;
+        var k = Math.min(3, Math.max(2, window.devicePixelRatio || 1)), W = Math.round(w * k), H = Math.round(h * k);
+        if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; }
+        var p = pos(), f = p / len, mid = p > 0, pitch = W / BARS;
+        cx.clearRect(0, 0, W, H);
+        for (var i = 0; i < bars.length; i++) {
+          var bh = Math.max(k, bars[i] * (H - 4 * k)), x = i * pitch, y = (H - bh) / 2;
+          cx.fillStyle = (i + .5) / BARS <= f ? '#d9dde0' : '#3a4047';
+          cx.fillRect(x + pitch * .25, y, Math.max(1, pitch * .5), bh);
+        }
+        if (want || mid) { cx.fillStyle = INK; cx.fillRect(Math.round(f * W), 0, Math.max(1, k), H); }
+        var txt = Date.now() < failUntil ? FAIL : (want || mid) ? fmt(p) : REST;
+        if (t.textContent !== txt) t.textContent = txt;
+        el.classList.toggle('mid', !want && mid);
+        var a = playing ? amp(p) : 0;
+        if (!still) { led.style.transform = 'scale(' + (1 + a * 1.1) + ')'; led.style.opacity = playing ? (.45 + a * .55) : 1; }
+        vu.forEach(function (v, i) {
+          var j = playing ? a * (still ? 1 : .6 + Math.random() * .7) * (i === 1 ? 1 : .75) : 0;
+          v.style.height = Math.max(2, Math.round(j * 12)) + 'px';
+        });
+      };
+
+      /* folding: six seconds after play, to the light and the meter; never while the mouse or the keyboard is on it */
+      function fold() {
+        var had = el.contains(document.activeElement);
+        el.classList.add('folded');
+        el.setAttribute('role', 'button'); el.tabIndex = 0; el.setAttribute('aria-label', 'surr radio · open');
+        if (had) el.focus({ preventScroll: true });
+      }
+      c.unfold = function () {
+        clearTimeout(foldT);
+        if (!el.classList.contains('folded')) return;
+        el.classList.remove('folded');
+        el.removeAttribute('role'); el.removeAttribute('tabindex'); el.removeAttribute('aria-label');
+      };
+      c.arm = function () {
+        clearTimeout(foldT);
+        foldT = setTimeout(function () {
+          var keys = false;
+          try { keys = !!el.querySelector(':focus-visible'); } catch (e) { /* no :focus-visible: fold anyway */ }
+          if (!playing) return;
+          if (hover || keys) c.arm(); else fold();
+        }, 6000);
+      };
+      function open() { c.unfold(); if (playing) c.arm(); }
+      pp.addEventListener('click', function (e) { e.stopPropagation(); if (want) pause(); else play(c); });
+      $('[data-fold]', el).addEventListener('click', function (e) { e.stopPropagation(); clearTimeout(foldT); fold(); });
+      el.addEventListener('click', function () { if (el.classList.contains('folded')) open(); });
+      el.addEventListener('keydown', function (e) {
+        if (e.target !== el || !el.classList.contains('folded') || (e.key !== 'Enter' && e.key !== ' ')) return;
+        e.preventDefault(); open(); pp.focus({ preventScroll: true });
+      });
+      el.addEventListener('pointerenter', function (e) { if (e.pointerType !== 'mouse') return; hover = true; if (el.classList.contains('folded')) open(); });
+      el.addEventListener('pointerleave', function (e) { if (e.pointerType === 'mouse') hover = false; });
+
+      /* showing and hiding: on the desk it travels out of the nights tile and back into it; on the phone it grows in place.
+         with reduced motion it only fades. */
+      function toTile() {
+        var tile = $('#band .cell[data-i="nights"]');
+        if (!desk || still || !tile) return '';
+        var r = tile.getBoundingClientRect();
+        return 'translate(' + Math.round(r.left + r.width / 2 - (el.offsetLeft + el.offsetWidth / 2)) + 'px,' +
+          Math.round(r.top + r.height / 2 - (el.offsetTop + el.offsetHeight / 2)) + 'px) scale(.2)';
+      }
+      c.show = function () {
+        loadWave();
+        if (shown) return;
+        shown = true;
+        clearTimeout(hideT);
+        el.hidden = false; el.inert = false;
+        el.style.left = el.style.top = el.style.right = '';
+        el.style.transition = 'none';
+        el.style.transform = toTile();
+        void el.offsetWidth;
+        el.style.transition = '';
+        el.classList.remove('hidden-chip');
+        el.style.transform = '';
+        c.draw();
+      };
+      c.hide = function () {
+        if (!shown || want) return;
+        shown = false;
+        c.unfold();
+        el.inert = true;
+        el.style.transform = toTile();
+        el.classList.add('hidden-chip');
+        clearTimeout(hideT);
+        hideT = setTimeout(function () { if (!shown) el.hidden = true; }, 650);
+      };
+      c.desk = desk;
+
+      /* drag (desk only): anywhere in the window, 8 px inside its edges, never from the buttons, the link or SoundCloud's strip;
+         kept in memory only */
+      if (desk) {
+        var dx = 0, dy = 0, drag = false;
+        var clamp = function (x, y) {
+          var W = innerWidth - el.offsetWidth - 8, H = innerHeight - el.offsetHeight - 8;
+          el.style.right = 'auto';
+          el.style.left = Math.max(8, Math.min(W, x)) + 'px';
+          el.style.top = Math.max(8, Math.min(H, y)) + 'px';
+        };
+        var end = function () { drag = false; el.classList.remove('dragging'); };
+        el.addEventListener('pointerdown', function (e) {
+          end();
+          if (e.target.closest('button, a, iframe') || e.button > 0) return;
+          drag = true; el.classList.add('dragging');
+          try { el.setPointerCapture(e.pointerId); } catch (err) { /* capture is a nicety */ }
+          dx = e.clientX - el.offsetLeft; dy = e.clientY - el.offsetTop;
+        });
+        /* a release outside the window can go missing: no button held means the drag is over */
+        el.addEventListener('pointermove', function (e) { if (!drag) return; if (e.pointerType === 'mouse' && !e.buttons) end(); else clamp(e.clientX - dx, e.clientY - dy); });
+        el.addEventListener('pointerup', end);
+        el.addEventListener('pointercancel', end);
+        addEventListener('resize', function () { if (el.style.left) clamp(el.offsetLeft, el.offsetTop); });
+      }
+      return c;
+    }
+    var chips = els.map(Chip);
+    function pick(desk) { return chips.filter(function (c) { return c.desk === desk; })[0]; }
+    return {
+      /* desk: nights opened (true) or a branch closed (false — it stays while the mix plays) */
+      desk: function (on) { var c = pick(true); if (c) { if (on) c.show(); else c.hide(); } },
+      /* phone: a screen settled; nights shows it, any other screen keeps it only while the mix plays */
+      phone: function (nights) { var c = pick(false); if (!c) return; if (nights || want) c.show(); else c.hide(); },
+      on: function () { return want; },
+    };
+  })();
 
   /* ————————————————— desktop ————————————————— */
   var site = $('#site'), band = $('#band'), splash = $('#splash');
@@ -268,7 +549,7 @@
     $$('.branch', site).forEach(function (b) { b.classList.remove('on'); });
     $$('.cell', band).forEach(function (c) { c.classList.remove('open', 'hot'); });
     band.classList.remove('hot');
-    if (!playing) site.classList.remove('radio');
+    if (radio) radio.desk(false);
     if (!keepAddress) setAddress('', 'surr');
     if (was) { var c = $('.cell[data-i="' + was + '"]', band); if (c && document.activeElement && document.activeElement.closest && document.activeElement.closest('.branch')) c.focus({ preventScroll: true }); }
   }
@@ -291,7 +572,7 @@
     site.classList.add('has-open');
     var br = $('.branch[data-b="' + id + '"]', site);
     br.classList.add('on');
-    if (id === 'nights' && C.RADIO_ON) site.classList.add('radio');
+    if (id === 'nights' && radio) radio.desk(true);
     var d = $('details.beta', br);
     if (d) d.open = !!beta;
     var dl = $('details.deal', br); if (dl && beta) dl.open = false;
@@ -336,7 +617,7 @@
 
   /* ————————————————— phone: snap ————————————————— */
   var wrap = $('#snapwrap'), snap = $('#snap'), ssplash = $('#ssplash'), s0 = $('#s0');
-  var menu = $('#menu'), menuBtns = $$('#menu button'), downBtn = $('#down'), ticks = $$('#ticks i'), tickBox = $('#ticks'), pbar = $('#pbar');
+  var menu = $('#menu'), menuBtns = $$('#menu button'), downBtn = $('#down'), ticks = $$('#ticks i'), tickBox = $('#ticks');
   var secs = $$('.sec', snap);
   function vh() { document.documentElement.style.setProperty('--vh', (innerHeight / 100) + 'px'); }
   vh(); addEventListener('resize', vh);
@@ -395,7 +676,7 @@
     onLanding = !away;
     menuBtns.forEach(function (b) { b.classList.toggle('on', away && b.dataset.i === el.dataset.i); });
     if (away) showMenu(); else hideMenu();
-    if (C.RADIO_ON) pbar.classList.toggle('up', playing || el.dataset.i === 'nights');
+    if (radio) radio.phone(el.dataset.i === 'nights');
     document.title = away ? TITLES[el.dataset.i] : 'surr';
   }
   var ticking = false;
@@ -425,6 +706,9 @@
     else goSec(id, beta, 'auto');
   }
   document.body.classList.toggle('is-desk', deskMQ.matches);
-  if (deskMQ.addEventListener) deskMQ.addEventListener('change', function () { document.body.classList.toggle('is-desk', deskMQ.matches); });
+  if (deskMQ.addEventListener) deskMQ.addEventListener('change', function () {
+    document.body.classList.toggle('is-desk', deskMQ.matches);
+    if (radio && radio.on()) { radio.desk(true); radio.phone(true); } /* turned while the mix plays: the chip is there in the new layout too */
+  });
   if (document.readyState === 'complete') land(); else addEventListener('load', land);
 })();
