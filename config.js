@@ -15,7 +15,7 @@ window.SURR = {
   },
 
   /* the public TestFlight link for "open in testflight →". empty = the line is hidden. */
-  APP_URL: '',
+  APP_URL: 'https://testflight.apple.com/join/U5TSYwqy',
 
   /* the radio bar: off until the mix premieres on Refuge. the track's SoundCloud URL goes in RADIO_EMBED_URL. */
   RADIO_ON: false,
