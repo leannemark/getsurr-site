@@ -5,7 +5,8 @@
 //   - nothing runs off the side (no sideways scroll), no picture failed to load, no error in the console;
 //   - dark and light mode look the same (the site is dark only — a difference means something leaked);
 //   - with reduced motion on, nothing animates (no transition or animation is running a second after load);
-//   - with fonts blocked (an ad blocker), the words still show; without JavaScript the page still reads.
+//   - with fonts blocked (an ad blocker), the words still show; without JavaScript the page still reads;
+//   - nothing is asked of SoundCloud: the radio chip loads its player only after its play tap, and no shot taps it.
 // `node tests/shots.mjs` = the whole matrix; `QUICK=1` = Chromium + WebKit at three sizes (what CI runs).
 import { chromium, webkit, firefox } from '@playwright/test';
 import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
@@ -50,6 +51,7 @@ async function open(page, base, key) {
   // the back pages talk to staging away from getsurr.com, which the live security headers (and so the test server) refuse: not a fault
   page.on('console', (m) => { if (m.type() === 'error' && !(key === 'backpages' && /supabase\.co/.test(m.text()))) errors.push(m.text()); });
   page.on('requestfailed', (r) => { if (!r.url().includes('supabase')) errors.push(`failed: ${r.url()}`); });
+  noSoundCloud(page, errors);
   const res = await page.goto(base + PAGES[key], { waitUntil: 'load' });
   await settle(page);
   if (key === 'home-in') { // through the door: cut the splash and land
@@ -58,6 +60,11 @@ async function open(page, base, key) {
     await settle(page);
   }
   return { status: res.status(), errors };
+}
+
+// the two-click rule: SoundCloud is asked for nothing until the chip's play tap (the shots never tap it)
+function noSoundCloud(page, errors) {
+  page.on('request', (r) => { if (/soundcloud\.com|sndcdn\.com/.test(r.url())) errors.push(`asked SoundCloud before any tap: ${r.url()}`); });
 }
 
 // what the eye would call broken, measured on the page
@@ -157,6 +164,8 @@ export async function shots() {
       if (!d.phone) {
         for (const b of ['surr', 'rings', 'map', 'nights', 'list']) {
           const page = await ctx.newPage();
+          const asked = [];
+          noSoundCloud(page, asked);
           await page.goto(base + '/', { waitUntil: 'load' });
           await settle(page);
           await page.evaluate(() => document.querySelector('#splash')?.click());
@@ -165,6 +174,7 @@ export async function shots() {
           await page.waitForTimeout(900);
           const seen = await inspect(page);
           if (seen.sideways) problems.push(`${ename} ${dname} box ${b}: scrolls sideways`);
+          for (const e of asked) problems.push(`${ename} ${dname} box ${b}: ${e}`);
           await page.screenshot({ path: join(OUT, 'shots', ename, dname, `box-${b}.png`) });
           files.push([`box ${b}`, `${ename}/${dname}/box-${b}.png`]);
           count++;

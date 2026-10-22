@@ -57,13 +57,12 @@ body.is-desk{overflow:hidden}
 .photo{width:100%;height:100%;object-fit:cover;display:block;filter:grayscale(1) contrast(1.1) brightness(.8);transition:filter .6s}
 .photo.curtain{filter:grayscale(1) brightness(.75)}
 
-.door{position:absolute;left:24px;bottom:20px;z-index:20;font-family:var(--mono);font-size:11px;color:var(--grey2);display:flex;gap:18px;transition:bottom .4s}
+.door{position:absolute;left:24px;bottom:20px;z-index:20;font-family:var(--mono);font-size:11px;color:var(--grey2);display:flex;gap:18px}
 .door a,.dl a{text-decoration:none}
 .door b,.dl b{color:var(--ink);font-weight:400}
 .door a:hover b{text-decoration:underline;text-underline-offset:3px}
-.foot{position:absolute;right:24px;bottom:20px;z-index:20;font-family:var(--mono);font-size:10px;color:var(--grey);display:flex;gap:14px;transition:bottom .4s}
+.foot{position:absolute;right:24px;bottom:20px;z-index:20;font-family:var(--mono);font-size:10px;color:var(--grey);display:flex;gap:14px}
 .foot a{text-decoration:none}.foot a:hover{color:var(--ink)}
-.site.radio .door,.site.radio .foot{bottom:66px}
 
 /* veil + branches */
 .veil{position:absolute;inset:0;z-index:5;background:rgba(5,5,5,.8);opacity:0;pointer-events:none;transition:opacity .5s}
@@ -122,7 +121,7 @@ body.is-desk{overflow:hidden}
 .look .lean{position:absolute;inset:0;transition:transform 1.2s cubic-bezier(.2,.8,.2,1)}
 .look img{width:118%;height:118%;object-fit:cover;display:block;-webkit-animation:look 19.5s ease-in-out infinite alternate;animation:look 19.5s ease-in-out infinite alternate}
 @keyframes look{from{transform:translate(-9%,-6%)}to{transform:translate(-6%,-12%)}}
-/* nights: text box on the right, between the band and the bar */
+/* nights: text box on the right, between the band and the door line */
 .br-nights{right:5%;top:67%;width:42%;height:23%;border-top:0;flex-direction:column;justify-content:flex-start;gap:10px;padding:18px 22px}
 .br-nights .body{font-size:15px;padding-right:56px}
 .ev{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;line-height:1.3}
@@ -157,12 +156,62 @@ form.ask .dot:disabled{opacity:.6;cursor:default}
 form.ask .err{margin:8px 0 0 16px}
 .beta .done{margin:0 0 12px}
 
-/* the radio bar */
-.bar{position:absolute;left:0;right:0;bottom:0;height:46px;z-index:12;background:#0a0a0a;border-top:1px solid var(--line);display:none;align-items:center;gap:18px;padding:0 24px;font-family:var(--mono);font-size:11px;color:var(--grey2)}
-.site.radio .bar{display:flex}
-.bar .play{color:var(--ink);white-space:nowrap}
-.bar iframe{flex:1;height:20px;border:0;min-width:0}
-.bar.playing .label,.bar.playing .play{display:none}
+/* the radio: "the chip" (brief getsurr-site-radio-chip; sizes, easing and timings from the mockup
+   sap-business/inspo/website-radio-chip-2026-10-21.html). a black capsule: the light, the display window with the mix's own wave,
+   the time, play/pause, fold. on the desk it pops out of the nights tile and can be dragged; on the phone it sits under the header.
+   SoundCloud's player does the sound, hidden in the window (.sc); --mood is the mix's mood colour (site.js, from RADIO_MOOD). */
+.chip{--lcd:#0d1012;--lcd-ink:#d9dde0;--lcd-dim:#3a4047;position:absolute;z-index:25;display:flex;align-items:center;gap:8px;height:38px;padding:0 8px 0 10px;background:#0a0a0a;border:1px solid var(--line);border-radius:999px;
+  font-family:var(--mono);font-size:10px;line-height:1;color:var(--grey2);font-variant-numeric:tabular-nums;cursor:grab;
+  box-shadow:inset 0 1px 0 #181818, 0 6px 24px rgba(0,0,0,.6);
+  transition:left .6s cubic-bezier(.2,.8,.2,1),top .6s cubic-bezier(.2,.8,.2,1),transform .6s cubic-bezier(.2,.8,.2,1),opacity .4s,width .35s cubic-bezier(.2,.8,.2,1)}
+.chip.dragging{transition:none;cursor:grabbing}
+.chip.hidden-chip{opacity:0;transform:scale(.2);pointer-events:none}
+.chip:hover{border-color:#333}
+.chip:focus-visible{outline:1px solid var(--ink);outline-offset:3px}
+.chip .led{width:5px;height:5px;border-radius:50%;border:1px solid var(--mood,var(--grey));background:none;flex:none;box-sizing:border-box;transition:transform .12s}
+.chip canvas{display:block;height:22px;width:150px;flex:none;background:var(--lcd);border:1px solid #171b1e;border-radius:2px;
+  background-image:radial-gradient(rgba(255,255,255,.035) .6px,transparent .7px);background-size:3px 3px}
+.chip .t{white-space:nowrap;color:var(--grey2);min-width:34px;text-align:right}
+.chip button{all:unset;cursor:pointer;color:var(--ink);font-family:var(--mono);white-space:nowrap}
+.chip button:focus-visible{outline:1px solid var(--ink);outline-offset:3px}
+.chip .pp{width:22px;height:22px;border-radius:50%;border:1px solid #2a2a2a;display:flex;align-items:center;justify-content:center;flex:none;box-sizing:border-box}
+.chip .pp:hover{border-color:var(--grey2)}
+.chip .tri{width:0;height:0;border-left:6px solid var(--ink);border-top:4px solid transparent;border-bottom:4px solid transparent;margin-left:1px}
+.chip .pz{display:none;gap:2px}.chip .pz i{display:block;width:2px;height:8px;background:var(--ink)}
+.chip.on .tri{display:none}.chip.on .pz{display:flex}
+.chip .fold{color:var(--grey);font-size:11px;padding:0 2px}
+/* the label scrolls through the display window while it plays (stands still when paused); it sits over the window, last in the
+   tab order (play, fold, mobilegirl). two copies so the loop has no seam; the second is hidden from screen readers. */
+.chip .name{display:none;position:absolute;left:24px;top:50%;width:148px;height:20px;margin-top:-10px;line-height:20px;overflow:hidden;white-space:nowrap;color:var(--grey2);pointer-events:none;text-shadow:0 0 2px var(--lcd),0 0 4px var(--lcd)}
+.chip.on .name,.chip.mid .name{display:block}
+.chip .run{display:inline-flex;-webkit-animation:chipname 14s linear infinite;animation:chipname 14s linear infinite}
+.chip .run>span{padding:0 4em 0 6px}
+.chip:not(.on) .run,.chip .name:hover .run{-webkit-animation-play-state:paused;animation-play-state:paused}
+.chip .name a{pointer-events:auto;color:var(--lcd-ink);text-decoration:underline;text-underline-offset:2px;text-decoration-color:var(--lcd-dim)}
+@keyframes chipname{to{transform:translateX(-50%)}}
+/* SoundCloud's player: 1 px tall and invisible over the window; when a hidden start does not take (some iPhones), its own strip
+   shows in the window for one more tap (.strip). never display:none — the iframe would stop or reload. */
+.chip .sc{position:absolute;left:24px;top:50%;width:148px;height:20px;margin-top:-10px;pointer-events:none}
+.chip .sc iframe{display:block;width:100%;height:1px;border:0;opacity:0}
+.chip.strip .sc{pointer-events:auto}
+.chip.strip .sc iframe{height:20px;opacity:1;background:var(--lcd)}
+.chip.strip .name{display:none}
+/* folded: only the light and the live meter remain */
+.chip.folded{padding:0 10px;gap:7px;cursor:pointer}
+.chip.folded canvas,.chip.folded .t,.chip.folded .pp,.chip.folded .fold,.chip.folded .name{display:none}
+.chip.folded .sc{visibility:hidden}
+.chip .vu{display:none;align-items:flex-end;gap:2px;height:12px}
+.chip.folded .vu{display:flex}
+.chip .vu i{width:2px;height:2px;background:var(--lcd-dim);display:block;transition:height .08s}
+.chip.on .vu i{background:var(--mood,var(--ink))}
+/* desk: resting top right, draggable (pointer events, touch too) */
+.site .chip{right:24px;top:20px;touch-action:none;-webkit-user-select:none;user-select:none}
+/* phone: under the header, top right, not draggable (the page snaps) */
+.snap-wrap .chip{position:fixed;z-index:9;right:12px;top:calc(46px + env(safe-area-inset-top));height:34px;cursor:default}
+.snap-wrap .chip.folded{cursor:pointer}
+.snap-wrap .chip canvas{width:110px;height:20px}
+.snap-wrap .chip .name,.snap-wrap .chip .sc{width:108px;height:18px;margin-top:-9px;line-height:18px}
+.snap-wrap .chip.strip .sc iframe{height:18px}
 
 /* the splash (only at the door) */
 .splash{position:absolute;inset:0;z-index:30;cursor:pointer}
@@ -240,11 +289,6 @@ form.ask .err{margin:8px 0 0 16px}
 .snapdoor{position:fixed;left:0;right:0;bottom:0;z-index:8;background:var(--bg);border-top:1px solid var(--line);padding:12px 20px calc(12px + env(safe-area-inset-bottom));font-family:var(--mono);font-size:11px;color:var(--grey2);display:flex;justify-content:space-between;gap:12px}
 .snapdoor a{white-space:nowrap;text-decoration:none}
 .snapdoor b{color:var(--ink);font-weight:400}
-.pbar{position:fixed;left:0;right:0;bottom:calc(43px + env(safe-area-inset-bottom));z-index:8;display:none;align-items:center;gap:12px;padding:10px 20px;background:#0a0a0a;border-top:1px solid var(--line);font-family:var(--mono);font-size:11px;color:var(--grey2)}
-.pbar.up{display:flex}
-.pbar .play{color:var(--ink);margin-left:auto;white-space:nowrap}
-.pbar iframe{flex:1;height:20px;border:0;min-width:0}
-.pbar.playing .label,.pbar.playing .play{display:none}
 .menu{position:fixed;top:0;left:0;right:0;z-index:9;height:calc(40px + env(safe-area-inset-top));padding:env(safe-area-inset-top) 20px 0;background:var(--bg);border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:stretch;font-size:10px;letter-spacing:.03em;transform:translateY(-100%);transition:transform .35s cubic-bezier(.2,.8,.2,1)}
 .menu.down{transform:none}
 .menu button{font-size:10px;color:var(--grey);padding:0 2px;border-bottom:1px solid transparent;display:flex;align-items:center}
@@ -322,4 +366,7 @@ form.ask .err{margin:8px 0 0 16px}
 
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{-webkit-animation:none!important;animation:none!important;transition:none!important;scroll-behavior:auto!important}
+  /* the radio chip only fades in and out (no travel, no growing); its label stands still and the light does not breathe (site.js) */
+  .chip{transition:opacity .2s!important}
+  .chip.hidden-chip{transform:none}
 }

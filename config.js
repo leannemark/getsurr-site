@@ -17,9 +17,17 @@ window.SURR = {
   /* the public TestFlight link for "open in testflight →". empty = the line is hidden. */
   APP_URL: 'https://testflight.apple.com/join/U5TSYwqy',
 
-  /* the radio bar: off until the mix premieres on Refuge. the track's SoundCloud URL goes in RADIO_EMBED_URL. */
-  RADIO_ON: false,
-  RADIO_EMBED_URL: '',
+  /* the radio ("the chip" on nights): SoundCloud's player does the sound, hidden under our chip, and loads only after the play tap.
+     RADIO_ON: false = no chip anywhere. RADIO_EMBED_URL: the track's SoundCloud address; empty = no chip.
+     RADIO_WAVE: the mix's 600 loudness values, made once with scripts/wave.mjs (the audio itself is never in this repo).
+     RADIO_ARTIST_URL: where the artist's name links (new tab); empty = the name is plain text.
+     RADIO_MOOD: the mood ring the mix is made for — spontaneous, persuadable, lowkey or faded; the chip wears its colour and says its word.
+     a new mix (002): one JSON and these values — see README "The radio". */
+  RADIO_ON: true,
+  RADIO_EMBED_URL: 'https://soundcloud.com/motherloading/surr-radio-001-mobilegirl',
+  RADIO_WAVE: '/radio/surr-radio-001.json',
+  RADIO_ARTIST_URL: 'https://www.instagram.com/mobilegirl/',
+  RADIO_MOOD: 'persuadable',
 
   /* the next-night line in the nights box. null = no line. switch off the morning after. */
   NEXT_NIGHT: {
