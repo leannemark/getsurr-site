@@ -3,8 +3,9 @@
 // It writes: the deep-link copies (rings, map, nights, list, beta), the plain pages (deal, press, support, seen, 404),
 // the legal pages (privacy, imprint — their text comes word for word from _legal/, which the site never serves),
 // and the forwarding pages under preview/ that send the old hidden addresses to the live ones.
-import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, readdirSync, existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
+import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -226,5 +227,24 @@ for (const slug of moved) write(`preview/${slug ? slug + '/' : ''}index.html`, f
 
 // the guidelines are the deal: the welcome email links /guidelines
 write('guidelines/index.html', forward(`${BASE}deal/`));
+
+// the stamp: every page asks for its scripts and styles as name.js?v=<first 8 of the file's hash>, so a change reaches a
+// browser at once instead of after Cloudflare's 4-hour keep (2026-10-22: the nights tap that starts the mix sat unseen
+// behind an old site.js). index.html and the hand-made pages are stamped in place too, so the next build starts from them.
+const stamp = (dir) => {
+  for (const e of readdirSync(dir, { withFileTypes: true })) {
+    const f = join(dir, e.name);
+    if (e.isDirectory()) { if (!['node_modules', 'tests', '_legal', '.git', 'fonts', 'img'].includes(e.name)) stamp(f); continue; }
+    if (!e.name.endsWith('.html')) continue;
+    const html = readFileSync(f, 'utf8');
+    const out = html.replace(/((?:src|href)=")([^":?#]+\.(?:js|css))(?:\?v=[0-9a-f]*)?"/g, (m, a, url) => {
+      const file = url.startsWith('/') ? join(root, url) : join(dirname(f), url);
+      if (!existsSync(file)) return m;
+      return `${a}${url}?v=${createHash('sha256').update(readFileSync(file)).digest('hex').slice(0, 8)}"`;
+    });
+    if (out !== html) writeFileSync(f, out);
+  }
+};
+stamp(root);
 
 console.log(`built: ${Object.keys(branches).length} deep-link copies, deal, support, seen, press, 404, privacy, imprint, terms, the allies door, ${moved.length} forwarding pages, guidelines`);

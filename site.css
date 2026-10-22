@@ -171,6 +171,7 @@ form.ask .err{margin:8px 0 0 16px}
 .chip .led{width:5px;height:5px;border-radius:50%;border:1px solid var(--mood,var(--grey));background:none;flex:none;box-sizing:border-box;transition:transform .12s}
 .chip canvas{display:block;height:22px;width:150px;flex:none;background:var(--lcd);border:1px solid #171b1e;border-radius:2px;
   background-image:radial-gradient(rgba(255,255,255,.035) .6px,transparent .7px);background-size:3px 3px}
+.chip canvas{cursor:pointer;touch-action:none}
 .chip .t{white-space:nowrap;color:var(--grey2);min-width:34px;text-align:right}
 .chip button{all:unset;cursor:pointer;color:var(--ink);font-family:var(--mono);white-space:nowrap}
 .chip button:focus-visible{outline:1px solid var(--ink);outline-offset:3px}

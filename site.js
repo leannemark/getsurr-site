@@ -250,12 +250,15 @@
     var LEN = 2618, BARS = 75, REST = '43:38', FAIL = "didn't start · tap again";
     var bars = [], wave = null, asked = false;
     var frame = null, host = null, widget = null, ready = false, noApi = false, want = false, started = false, playing = false, ended = false, len = LEN;
-    var at = 0, atT = 0, last = null, stripT = 0, failT = 0, pollT = 0, failUntil = 0, raf = 0;
+    var at = 0, atT = 0, seekT = 0, last = null, stripT = 0, failT = 0, pollT = 0, failUntil = 0, raf = 0;
     function now() { return window.performance ? performance.now() : Date.now(); }
     function fmt(s) { s = Math.max(0, Math.floor(s)); var m = Math.floor(s / 60), r = s % 60; return (m < 10 ? '0' : '') + m + ':' + (r < 10 ? '0' : '') + r; }
     /* the clock: SoundCloud's position, asked every 250 ms while playing, run on smoothly in between — for a second at most,
        so a stall stops the clock */
     function pos() { return Math.min(len, playing ? at + Math.min(1, (now() - atT) / 1000) : at); }
+    /* just after a seek SoundCloud can still report the old place for a moment: a position far from where we sent it is
+       ignored for 1 s, so the playhead never jumps back */
+    function fresh(ms) { return now() - seekT > 1000 || Math.abs(ms / 1000 - at) < 2; }
     function amp(p) { return wave ? wave[Math.min(wave.length - 1, Math.floor(p / len * wave.length))] / 99 : 0; }
 
     /* the wave: asked for once nights is on screen; a failed fetch is asked again next time */
@@ -303,6 +306,7 @@
       widget.bind(E.READY, function () {
         ready = true;
         widget.getDuration(function (d) { if (d > 0) len = d / 1000; });
+        if (at > 0) widget.seekTo(at * 1000); /* scrubbed before the first play: start there */
         if (want) widget.play();
       });
       /* "play" alone is not proof (Safari may block a hidden start a moment later): it counts once the position moves */
@@ -318,7 +322,7 @@
           clearTimeout(stripT); clearTimeout(failT); failUntil = 0;
           strip(false); set(true); poll();
         }
-        if (ms !== at * 1000) { at = ms / 1000; atT = now(); }
+        if (ms !== at * 1000 && fresh(ms)) { at = ms / 1000; atT = now(); }
       });
       /* a pause counts only once it has played (SoundCloud also says "pause" as it gets ready, and when a start is blocked) */
       widget.bind(E.PAUSE, function () {
@@ -326,12 +330,17 @@
         widget.getPosition(function (ms) { if (!playing && !ended) { at = ms / 1000; drawAll(); } });
         playing = false; want = false; set(false);
       });
-      widget.bind(E.FINISH, function () { ended = true; playing = false; want = false; at = 0; widget.seekTo(0); widget.pause(); set(false); });
+      /* the end: it goes round again from the start, for as long as the page is open (2026-10-22); SoundCloud may say
+         "pause" just before "finish", so the chip is put back to playing here */
+      widget.bind(E.FINISH, function () {
+        at = 0; atT = seekT = now(); want = playing = true;
+        widget.seekTo(0); widget.play(); set(true); poll();
+      });
     }
     function poll() {
       clearTimeout(pollT);
       if (!playing || !widget) return;
-      widget.getPosition(function (ms) { if (playing && ms !== at * 1000) { at = ms / 1000; atT = now(); } });
+      widget.getPosition(function (ms) { if (playing && ms !== at * 1000 && fresh(ms)) { at = ms / 1000; atT = now(); } });
       /* stuck for 20 s (the connection went mid-play): show play again — never a dead button */
       if (now() - atT > 20000) { pause(); return; }
       pollT = setTimeout(poll, 250);
@@ -355,6 +364,12 @@
       if (widget) widget.pause();
       if (!noApi) strip(false);
       set(false);
+    }
+    /* scrub: a tap or a drag on the wave moves the mix there, playing or not; the arrow keys on the play button move it 10 s */
+    function seek(p) {
+      at = Math.max(0, Math.min(len - 1, p)); atT = seekT = now();
+      if (widget && ready) widget.seekTo(at * 1000);
+      drawAll();
     }
     function fail() {
       want = playing = false; clearTimeout(stripT); clearTimeout(failT);
@@ -457,6 +472,27 @@
       el.addEventListener('pointerenter', function (e) { if (e.pointerType !== 'mouse') return; hover = true; if (el.classList.contains('folded')) open(); });
       el.addEventListener('pointerleave', function (e) { if (e.pointerType === 'mouse') hover = false; });
 
+      /* scrub on the wave (its own pointer, so the desk drag and the phone's scroll leave it alone) */
+      var scrub = false;
+      function to(e) { var r = cv.getBoundingClientRect(); seek(Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) * len); }
+      cv.addEventListener('pointerdown', function (e) {
+        if (e.button > 0) return;
+        e.stopPropagation(); e.preventDefault();
+        scrub = true; el.classList.add('scrubbing');
+        try { cv.setPointerCapture(e.pointerId); } catch (err) { /* capture is a nicety */ }
+        to(e);
+      });
+      cv.addEventListener('pointermove', function (e) { if (scrub) to(e); });
+      var stop = function () { if (!scrub) return; scrub = false; el.classList.remove('scrubbing'); if (playing) c.arm(); };
+      cv.addEventListener('pointerup', stop);
+      cv.addEventListener('pointercancel', stop);
+      cv.addEventListener('click', function (e) { e.stopPropagation(); });
+      pp.addEventListener('keydown', function (e) {
+        var d = e.key === 'ArrowRight' ? 10 : e.key === 'ArrowLeft' ? -10 : 0;
+        if (!d) return;
+        e.preventDefault(); seek(pos() + d);
+      });
+
       /* showing and hiding: on the desk it travels out of the nights tile and back into it; on the phone it grows in place.
          with reduced motion it only fades. */
       function toTile() {
@@ -493,7 +529,7 @@
       };
       c.desk = desk;
 
-      /* drag (desk only): anywhere in the window, 8 px inside its edges, never from the buttons, the link or SoundCloud's strip;
+      /* drag (desk only): anywhere in the window, 8 px inside its edges, never from the buttons, the link, the wave or SoundCloud's strip;
          kept in memory only */
       if (desk) {
         var dx = 0, dy = 0, drag = false;
@@ -506,7 +542,7 @@
         var end = function () { drag = false; el.classList.remove('dragging'); };
         el.addEventListener('pointerdown', function (e) {
           end();
-          if (e.target.closest('button, a, iframe') || e.button > 0) return;
+          if (e.target.closest('button, a, iframe, canvas') || e.button > 0) return;
           drag = true; el.classList.add('dragging');
           try { el.setPointerCapture(e.pointerId); } catch (err) { /* capture is a nicety */ }
           dx = e.clientX - el.offsetLeft; dy = e.clientY - el.offsetTop;
