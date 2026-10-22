@@ -71,7 +71,13 @@ const share = (url) => `<meta property="og:type" content="website">
 <link rel="icon" type="image/png" sizes="32x32" href="${BASE}img/icon-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="${BASE}img/icon-180.png">`;
 
-const plain = (title, h1, body, here, path) => `<!DOCTYPE html>
+// a plain page's way out (seen only): a `close` word at the top right. with the page opened from the site it goes back to
+// where she came from; opened from a shared link or typed, it goes to the one page. no script: the link alone goes to the door.
+const closeWord = `<a class="x" href="${BASE}" data-back>close</a>`;
+const closeScript = `<script>document.querySelector('[data-back]').addEventListener('click',function(e){if(document.referrer.indexOf(location.origin+'/')===0&&history.length>1){e.preventDefault();history.back();}});</script>
+`;
+
+const plain = (title, h1, body, here, path, close) => `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -88,13 +94,13 @@ ${share(SITE + BASE + path)}
 </head>
 <body>
 <div class="plain">
-<header><a href="${BASE}" class="big">surr</a><span class="mono">say less</span></header>
+<header><a href="${BASE}" class="big">surr</a><span class="mono">say less</span>${close ? closeWord : ''}</header>
 <main>
 ${h1 ? `<h1>${h1}</h1>\n` : ''}${body}
 </main>
 <footer>${footer(here)}</footer>
 </div>
-</body>
+${close ? closeScript : ''}</body>
 </html>
 `;
 
@@ -126,27 +132,11 @@ write(
   ),
 );
 
-write(
-  'seen/index.html',
-  plain(
-    'seen, not tracked · surr',
-    'seen, not tracked',
-    `<section>
-<span class="k">the map</span>
-<p>We built the map so you can see who's out tonight, and we built it to give away as little as we could. Your face sits somewhere within a kilometre of you and keeps moving on its own. The map only zooms in so far. No exact location is ever stored. Everyone you see on it is sharing theirs too, and one switch takes you off it.</p>
-</section>
-<section>
-<span class="k">the door</span>
-<p>Everyone here was let in by a real person. Every profile goes through a live selfie before it's looked at. A code comes from a member who's already in, from a surr night, or from the list when there's room.</p>
-</section>
-<section>
-<span class="k">every day</span>
-<p>Being seen is a choice, never a trail. Nobody is shown your hearts, your notes or whose profile you looked at. Block, report and unmatch are one tap away on every profile and in every chat, and a person reads every report. Freeze or delete your account any time.</p>
-</section>`,
-    '',
-    'seen/',
-  ),
-);
+// seen, not tracked: the words are set once, in the sheet at the end of index.html (between the seen-words marks), where the
+// one page shows them over itself; this is the same page on its own, for a direct visit, with the close word at the top right.
+const seenWords = (page.match(/<!-- seen-words -->\n([\s\S]*?)\n<!-- \/seen-words -->/) || [])[1];
+if (!seenWords) throw new Error('index.html: the seen-words marks are missing');
+write('seen/index.html', plain('seen, not tracked · surr', 'seen, not tracked', seenWords, '', 'seen/', true));
 
 write(
   'press/index.html',
