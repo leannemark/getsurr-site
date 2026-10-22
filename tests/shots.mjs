@@ -11,6 +11,8 @@
 import { chromium, webkit, firefox } from '@playwright/test';
 import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { PNG } from 'pngjs';
+import pixelmatch from 'pixelmatch';
 import { serve, root } from './serve.mjs';
 import { settle } from './splash.mjs';
 
@@ -60,6 +62,21 @@ async function open(page, base, key) {
     await settle(page);
   }
   return { status: res.status(), errors };
+}
+
+// nothing left moving, for a picture that is compared byte for byte: the fonts are in, every picture has loaded, the phone's
+// menu row has left (it drops in when a screen settles and holds 1.8 s; a scroll event while it is down re-arms it), and no
+// transition or animation is still running (the words rising in, a picture's fade, the row leaving — the endless ones were
+// paused by `settle`). Checked twice, 300 ms apart, since a late font or scroll can start something again.
+async function quiet(page) {
+  const stillness = () => document.fonts.status === 'loaded'
+    && !document.querySelector('#menu.down')
+    && [...document.images].every((i) => i.complete)
+    && !document.getAnimations().some((a) => a.playState === 'running');
+  for (let i = 0; i < 2; i++) {
+    await page.waitForFunction(stillness, null, { timeout: 15000, polling: 100 });
+    await page.waitForTimeout(300);
+  }
 }
 
 // the two-click rule: SoundCloud is asked for nothing until the chip's play tap (the shots never tap it)
@@ -195,7 +212,7 @@ export async function shots() {
           const ctx = await browser.newContext(contextOptions(ename, d, { colorScheme: scheme }));
           const page = await ctx.newPage();
           await open(page, base, key);
-          await page.waitForTimeout(2600); // the phone's menu row drops in for 1.8 s when a screen settles; let it leave
+          await quiet(page);
           shotsBy[scheme] = await page.screenshot();
           await ctx.close();
         }
@@ -203,7 +220,16 @@ export async function shots() {
           const dir = join(OUT, 'shots', ename, `${dname}-light`);
           mkdirSync(dir, { recursive: true });
           writeFileSync(join(dir, `${key}.png`), shotsBy.light);
-          problems.push(`${ename} ${dname} ${key}: light mode looks different from dark (see ${dname}-light/)`);
+          // and the dark picture it was compared against, with the difference drawn, so a failure can be read from the pictures
+          writeFileSync(join(dir, `${key}-dark.png`), shotsBy.dark);
+          const a = PNG.sync.read(shotsBy.dark), b = PNG.sync.read(shotsBy.light);
+          let differ = 'different sizes';
+          if (a.width === b.width && a.height === b.height) {
+            const diff = new PNG({ width: a.width, height: a.height });
+            differ = `${pixelmatch(a.data, b.data, diff.data, a.width, a.height, { threshold: 0 })} pixels differ`;
+            writeFileSync(join(dir, `${key}-diff.png`), PNG.sync.write(diff));
+          }
+          problems.push(`${ename} ${dname} ${key}: light mode looks different from dark — ${differ} (see ${dname}-light/)`);
         }
         // reduced motion: nothing may be moving a second after load
         const ctx = await browser.newContext(contextOptions(ename, d, { reducedMotion: 'reduce' }));
