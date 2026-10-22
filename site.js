@@ -522,12 +522,79 @@
     var chips = els.map(Chip);
     function pick(desk) { return chips.filter(function (c) { return c.desk === desk; })[0]; }
     return {
-      /* desk: nights opened (true) or a branch closed (false — it stays while the mix plays) */
-      desk: function (on) { var c = pick(true); if (c) { if (on) c.show(); else c.hide(); } },
-      /* phone: a screen settled; nights shows it, any other screen keeps it only while the mix plays */
-      phone: function (nights) { var c = pick(false); if (!c) return; if (nights || want) c.show(); else c.hide(); },
+      /* desk: nights opened (true) or a branch closed (false — it stays while the mix plays).
+         tap: nights was opened by a tap on its tile — the mix starts on that tap (the earliest a browser lets sound start),
+         not on a second one; opened by its address alone, the chip waits for play */
+      desk: function (on, tap) { var c = pick(true); if (!c) return; if (on) { c.show(); if (tap && !want) play(c); } else c.hide(); },
+      /* phone: a screen settled; nights shows it, any other screen keeps it only while the mix plays.
+         tap: nights was tapped in the menu row — the mix starts on that tap; a swipe to nights only shows the chip */
+      phone: function (nights, tap) { var c = pick(false); if (!c) return; if (nights || want) { c.show(); if (tap && nights && !want) play(c); } else c.hide(); },
       on: function () { return want; },
     };
+  })();
+
+  /* ————— both: "seen, not tracked" as a sheet over the one page (the link at the end of the map's text, desk and phone).
+     the sheet's words are the seen page's own (index.html, seen-words); /seen/ goes into the address bar while it is open, so
+     the link still works shared, and the page of its own stays for a direct visit (decision 2026-10-20-site-seen-never-found).
+     close, Escape, the backdrop, a swipe down from the top of the words, or the browser's back put the one page back. ————— */
+  var seen = (function () {
+    var sheet = $('[data-sheet]');
+    if (!sheet) return null;
+    var pane = $('.pane', sheet), words = $('[data-sheet-words]', sheet), x = $('[data-sheet-close]', sheet);
+    var open = false, pushed = false, from = null, title = '', hideT = 0;
+    var under = [$('#desk'), $('#snapwrap')];
+    function show(link) {
+      if (open) return;
+      open = true; from = link; title = document.title;
+      clearTimeout(hideT);
+      sheet.hidden = false;
+      words.scrollTop = 0; pane.style.transform = ''; pane.style.transition = '';
+      void sheet.offsetWidth;
+      sheet.classList.add('in');
+      under.forEach(function (el) { if (el) el.inert = true; });
+      try { history.pushState({ seen: true }, '', BASE + 'seen/'); pushed = true; } catch (e) { pushed = false; }
+      document.title = 'seen, not tracked · surr';
+      x.focus({ preventScroll: true });
+    }
+    function hide(fromHistory) {
+      if (!open) return;
+      open = false;
+      sheet.classList.remove('in');
+      pane.style.transform = ''; pane.style.transition = '';
+      under.forEach(function (el) { if (el) el.inert = false; });
+      document.title = title;
+      if (pushed && !fromHistory) history.back();
+      pushed = false;
+      hideT = setTimeout(function () { if (!open) sheet.hidden = true; }, still ? 0 : 400);
+      if (from) { from.focus({ preventScroll: true }); from = null; }
+    }
+    $$('[data-seen]').forEach(function (a) { a.addEventListener('click', function (e) { e.preventDefault(); show(a); }); });
+    x.addEventListener('click', function () { hide(); });
+    sheet.addEventListener('click', function (e) { if (e.target === sheet) hide(); });
+    addEventListener('popstate', function () { if (open) hide(true); });
+    /* a finger on the words, at their top, pulling down: the sheet follows, and past 80 px it goes */
+    var y0 = 0, dy = 0, pull = false;
+    pane.addEventListener('touchstart', function (e) {
+      if (e.touches.length !== 1) { pull = false; return; }
+      y0 = e.touches[0].clientY; dy = 0; pull = words.scrollTop <= 0;
+    }, { passive: true });
+    pane.addEventListener('touchmove', function (e) {
+      if (!pull) return;
+      dy = e.touches[0].clientY - y0;
+      if (dy <= 0) { dy = 0; pane.style.transform = ''; return; }
+      if (e.cancelable) e.preventDefault();
+      pane.style.transition = 'none';
+      pane.style.transform = 'translateY(' + Math.round(dy) + 'px)';
+    }, { passive: false });
+    function release() {
+      if (!pull) return;
+      pull = false;
+      pane.style.transition = '';
+      if (dy > 80) hide(); else pane.style.transform = '';
+    }
+    pane.addEventListener('touchend', release);
+    pane.addEventListener('touchcancel', release);
+    return { on: function () { return open; }, close: function () { hide(); } };
   })();
 
   /* ————————————————— desktop ————————————————— */
@@ -565,7 +632,8 @@
     $$('img[data-src]').forEach(function (img) { img.src = img.getAttribute('data-src'); img.removeAttribute('data-src'); fadeIn(img); });
   }
   if (document.readyState === 'complete') loadPoster(); else addEventListener('load', loadPoster);
-  function openDesk(id, beta) {
+  /* tap: opened by a click on the band (nights then starts the mix); false from an address or the door line */
+  function openDesk(id, beta, tap) {
     if (id === 'map') loadPoster();
     closeDesk(true);
     openId = id;
@@ -573,7 +641,7 @@
     site.classList.add('has-open');
     var br = $('.branch[data-b="' + id + '"]', site);
     br.classList.add('on');
-    if (id === 'nights' && radio) radio.desk(true);
+    if (id === 'nights' && radio) radio.desk(true, !!tap);
     var d = $('details.beta', br);
     if (d) d.open = !!beta;
     var dl = $('details.deal', br); if (dl && beta) dl.open = false;
@@ -589,12 +657,12 @@
     var c = e.target.closest('.cell'); if (!c) return;
     if (openId) { closeDesk(); return; }
     if (c.dataset.i === 'drive') { location.href = BASE + 'drive/'; return; }
-    openDesk(c.dataset.i);
+    openDesk(c.dataset.i, false, true);
   });
   $('#veil').addEventListener('click', function () { closeDesk(); });
   $$('[data-close]', site).forEach(function (b) { b.addEventListener('click', function () { closeDesk(); }); });
   document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && openId) closeDesk();
+    if (e.key === 'Escape') { if (seen && seen.on()) seen.close(); else if (openId) closeDesk(); }
     if ((e.key === 'Enter' || e.key === ' ') && (e.target === splash || e.target === ssplash)) { e.preventDefault(); e.target.click(); }
   });
 
@@ -685,7 +753,10 @@
     if (ticking) return; ticking = true;
     requestAnimationFrame(function () { ticking = false; mark(); if (menu.classList.contains('down')) showMenu(); });
   }, { passive: true });
-  menuBtns.forEach(function (b) { b.addEventListener('click', function () { goSec(b.dataset.i); showMenu(); }); });
+  menuBtns.forEach(function (b) { b.addEventListener('click', function () {
+    if (b.dataset.i === 'nights' && radio) radio.phone(true, true); /* the tap that opens nights starts the mix */
+    goSec(b.dataset.i); showMenu();
+  }); });
   $$('.sec .word', snap).forEach(function (w) { w.addEventListener('click', showMenu); });
   downBtn.addEventListener('click', function () { goSec('surr'); });
 

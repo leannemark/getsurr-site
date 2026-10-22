@@ -340,6 +340,9 @@ form.ask .err{margin:8px 0 0 16px}
 .plain header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:48px}
 .plain header a{text-decoration:none}
 .plain header .big{font-size:18px}
+/* the way out (seen): a close word at the top right, after the tagline */
+.plain header .mono{margin-left:auto}
+.plain header .x{position:static;margin-left:22px;padding:6px 0;color:var(--ink)}
 .plain h1{margin:0 0 24px;font-family:var(--display);font-weight:800;font-size:36px;letter-spacing:-.03em;line-height:1}
 .plain main{flex:1}
 .plain main p{color:var(--grey2);margin:0 0 14px;max-width:34rem}
@@ -351,6 +354,29 @@ form.ask .err{margin:8px 0 0 16px}
 .plain ol b{font-family:var(--mono);font-weight:400;font-size:11px;color:var(--grey);padding-top:3px}
 .plain footer{margin-top:48px;font-family:var(--mono);font-size:10px;color:var(--grey);display:flex;flex-wrap:wrap;gap:8px 14px}
 .plain footer a{text-decoration:none}.plain footer a:hover,.plain footer a[aria-current]{color:var(--ink)}
+
+/* ————— "seen, not tracked" as a sheet over the one page (site.js opens it from the map text's link).
+   on the phone it rises from the bottom, with a grab bar and a swipe down to dismiss; on the desk it sits in the middle.
+   its words are set in the plain page's type; the page of its own at /seen/ is the same words from the same place. ————— */
+.sheet{position:fixed;inset:0;z-index:40;display:flex;align-items:flex-end;justify-content:center;background:rgba(5,5,5,.8);opacity:0;transition:opacity .35s}
+.sheet[hidden]{display:none}
+.sheet.in{opacity:1}
+.sheet .pane{position:relative;width:100%;max-width:40rem;max-height:calc(100% - 40px);display:flex;flex-direction:column;box-sizing:border-box;background:var(--bg);border:1px solid var(--line);border-bottom:0;border-radius:14px 14px 0 0;transform:translateY(100%);transition:transform .4s cubic-bezier(.2,.8,.2,1);touch-action:pan-y}
+.sheet.in .pane{transform:none}
+.sheet .pane::before{content:"";position:absolute;left:50%;top:10px;width:36px;height:3px;margin-left:-18px;border-radius:2px;background:#2a2a2a}
+.sheet .x{color:var(--ink)}
+.sheet .words{overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:40px 20px calc(28px + env(safe-area-inset-bottom))}
+.sheet h1{margin:0 0 24px;font-family:var(--display);font-weight:800;font-size:36px;letter-spacing:-.03em;line-height:1}
+.sheet section{margin:0 0 22px}
+.sheet section:last-child{margin-bottom:0}
+.sheet section p{color:var(--grey2);margin:0;max-width:34rem}
+@media (min-width:721px) and (min-height:501px) and (orientation:landscape),(min-width:721px) and (min-height:501px) and (pointer:fine){
+  .sheet{align-items:center}
+  .sheet .pane{max-height:calc(100% - 96px);border-bottom:1px solid var(--line);border-radius:14px;transform:translateY(24px)}
+  .sheet.in .pane{transform:none}
+  .sheet .pane::before{display:none}
+  .sheet .words{padding:40px 28px 32px}
+}
 /* legal texts (privacy, imprint): the generator's own headings and lists, in the plain page's type */
 .legal{color:var(--grey2);font-size:14px;overflow-wrap:anywhere}
 .legal h1{margin:0 0 20px;font-family:var(--head);font-weight:700;font-size:22px;letter-spacing:-.01em;line-height:1.2;color:var(--ink)}

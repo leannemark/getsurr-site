@@ -6,7 +6,8 @@
 //   - dark and light mode look the same (the site is dark only — a difference means something leaked);
 //   - with reduced motion on, nothing animates (no transition or animation is running a second after load);
 //   - with fonts blocked (an ad blocker), the words still show; without JavaScript the page still reads;
-//   - nothing is asked of SoundCloud: the radio chip loads its player only after its play tap, and no shot taps it.
+//   - nothing is asked of SoundCloud before a tap: the radio chip loads its player on the tap that opens nights (the mix
+//     starts on it) or on its play tap; of the shots only the nights box taps, and SoundCloud may answer after that tap.
 // `node tests/shots.mjs` = the whole matrix; `QUICK=1` = Chromium + WebKit at three sizes (what CI runs).
 import { chromium, webkit, firefox } from '@playwright/test';
 import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
@@ -79,9 +80,12 @@ async function quiet(page) {
   }
 }
 
-// the two-click rule: SoundCloud is asked for nothing until the chip's play tap (the shots never tap it)
+// the two-click rule: SoundCloud is asked for nothing until a tap — the one that opens nights (the mix starts on it) or the
+// chip's play tap. a shot that taps nights sets `tapped` first; everything else never taps
 function noSoundCloud(page, errors) {
-  page.on('request', (r) => { if (/soundcloud\.com|sndcdn\.com/.test(r.url())) errors.push(`asked SoundCloud before any tap: ${r.url()}`); });
+  const guard = { tapped: false };
+  page.on('request', (r) => { if (!guard.tapped && /soundcloud\.com|sndcdn\.com/.test(r.url())) errors.push(`asked SoundCloud before any tap: ${r.url()}`); });
+  return guard;
 }
 
 // what the eye would call broken, measured on the page
@@ -182,11 +186,12 @@ export async function shots() {
         for (const b of ['surr', 'rings', 'map', 'nights', 'list']) {
           const page = await ctx.newPage();
           const asked = [];
-          noSoundCloud(page, asked);
+          const guard = noSoundCloud(page, asked);
           await page.goto(base + '/', { waitUntil: 'load' });
           await settle(page);
           await page.evaluate(() => document.querySelector('#splash')?.click());
           await page.waitForTimeout(2000);
+          if (b === 'nights') guard.tapped = true; // the tap that opens nights starts the mix: SoundCloud may answer from here
           await page.click(`.cell[data-i="${b}"]`);
           await page.waitForTimeout(900);
           const seen = await inspect(page);

@@ -26,7 +26,7 @@
 </head>
 <body>
 <div class="plain">
-<header><a href="/" class="big">surr</a><span class="mono">say less</span></header>
+<header><a href="/" class="big">surr</a><span class="mono">say less</span><a class="x" href="/" data-back>close</a></header>
 <main>
 <h1>seen, not tracked</h1>
 <section>
@@ -44,5 +44,6 @@
 </main>
 <footer><a href="/press/">press</a><a href="/support/">support</a><a href="/imprint/">imprint</a><a href="/privacy/">privacy</a><a href="/deal/">the deal</a></footer>
 </div>
+<script>document.querySelector('[data-back]').addEventListener('click',function(e){if(document.referrer.indexOf(location.origin+'/')===0&&history.length>1){e.preventDefault();history.back();}});</script>
 </body>
 </html>
