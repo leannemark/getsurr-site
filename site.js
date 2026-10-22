@@ -182,7 +182,8 @@
     var el = $('.scroll', w);
     var upd = function () { w.classList.toggle('end', el.scrollHeight - el.clientHeight <= el.scrollTop + 2); };
     el.addEventListener('scroll', upd, { passive: true });
-    if (window.ResizeObserver) new ResizeObserver(upd).observe(el);
+    /* watch the box and what is in it: fonts arriving late change the height of the words, not of the box */
+    if (window.ResizeObserver) { var ro = new ResizeObserver(upd); ro.observe(el); $$(':scope > *', el).forEach(function (c) { ro.observe(c); }); }
     hints.push(upd); upd();
   });
   function hintAll() { hints.forEach(function (f) { f(); }); }
