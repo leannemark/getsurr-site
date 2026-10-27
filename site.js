@@ -250,7 +250,7 @@
     var LEN = 2618, BARS = 75, REST = '43:38', FAIL = "didn't start · tap again";
     var bars = [], wave = null, asked = false;
     var frame = null, host = null, widget = null, ready = false, noApi = false, want = false, started = false, playing = false, ended = false, len = LEN;
-    var at = 0, atT = 0, seekT = 0, last = null, stripT = 0, failT = 0, pollT = 0, failUntil = 0, raf = 0;
+    var at = 0, atT = 0, seekT = 0, startT = 0, retries = 0, last = null, stripT = 0, failT = 0, pollT = 0, failUntil = 0, raf = 0;
     function now() { return window.performance ? performance.now() : Date.now(); }
     function fmt(s) { s = Math.max(0, Math.floor(s)); var m = Math.floor(s / 60), r = s % 60; return (m < 10 ? '0' : '') + m + ':' + (r < 10 ? '0' : '') + r; }
     /* the clock: SoundCloud's position, asked every 250 ms while playing, run on smoothly in between — for a second at most,
@@ -318,7 +318,7 @@
         if (!playing) {
           if (last === null || ms <= last) { last = ms; return; }
           /* it plays: hide SoundCloud's strip again behind the wave */
-          started = true; ended = false; playing = true;
+          started = true; ended = false; playing = true; startT = now(); retries = 0;
           clearTimeout(stripT); clearTimeout(failT); failUntil = 0;
           strip(false); set(true); poll();
         }
@@ -327,6 +327,10 @@
       /* a pause counts only once it has played (SoundCloud also says "pause" as it gets ready, and when a start is blocked) */
       widget.bind(E.PAUSE, function () {
         if (!playing) return;
+        /* our own pause clears `playing` first, so this one came from the player: in its first 4 s that is SoundCloud
+           stopping itself while it gets going (seen on a desk on the nights tap, 2026-10-27), not a person — start it again,
+           twice at most */
+        if (now() - startT < 4000 && retries < 2) { retries++; widget.play(); return; }
         widget.getPosition(function (ms) { if (!playing && !ended) { at = ms / 1000; drawAll(); } });
         playing = false; want = false; set(false);
       });
