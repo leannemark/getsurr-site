@@ -307,7 +307,7 @@
         ready = true;
         widget.getDuration(function (d) { if (d > 0) len = d / 1000; });
         if (at > 0) widget.seekTo(at * 1000); /* scrubbed before the first play: start there */
-        if (want) widget.play();
+        if (want) { widget.play(); checkStart(); }
       });
       /* "play" alone is not proof (Safari may block a hidden start a moment later): it counts once the position moves */
       widget.bind(E.PLAY, function () { if (!want && !started) widget.pause(); });
@@ -349,17 +349,24 @@
       if (now() - atT > 20000) { pause(); return; }
       pollT = setTimeout(poll, 250);
     }
+    /* a hidden start that does not take (some iPhones refuse one made from a page tap): once the player is READY and has been
+       asked to play, one second without the position moving shows SoundCloud's strip for the second tap. never before READY:
+       on a desk the player takes 2–3 s to get going, and a strip shown earlier flashes white for nothing */
+    function checkStart() {
+      clearTimeout(stripT);
+      stripT = setTimeout(function () { if (want && !playing) strip(true); }, 1000);
+    }
     function strip(show) { if (host) host.el.classList.toggle('strip', show && (want || noApi)); }
     function play(c) {
       failUntil = 0; want = true; last = null;
       if (!frame) make(c); else if (widget) widget.play();
       clearTimeout(stripT); clearTimeout(failT);
       if (noApi) strip(true);
+      else if (ready) checkStart();
       else {
-        /* an iPhone may not start a hidden player from a page tap: show SoundCloud's strip in the window for one more tap */
-        stripT = setTimeout(function () { if (want && !playing) strip(true); }, 1500);
-        /* nothing within 6 s (no connection, SoundCloud down, the track private): say so, show play again */
-        failT = setTimeout(function () { if (want && !playing && !noApi) fail(); }, 6000);
+        /* still loading: no strip yet, the light pulses. nothing from SoundCloud within 15 s (no connection, SoundCloud down,
+           the track private — on mobile data it can take its time): say so, show play again */
+        failT = setTimeout(function () { if (want && !playing && !ready && !noApi) fail(); }, 15000);
       }
       set(true);
     }
@@ -435,6 +442,8 @@
         var txt = Date.now() < failUntil ? FAIL : (want || mid) ? fmt(p) : REST;
         if (t.textContent !== txt) t.textContent = txt;
         el.classList.toggle('mid', !want && mid);
+        /* the light pulses while the player loads (no strip shown yet, not playing) */
+        el.classList.toggle('loading', want && !playing && !noApi && !el.classList.contains('strip'));
         var a = playing ? amp(p) : 0;
         if (!still) { led.style.transform = 'scale(' + (1 + a * 1.1) + ')'; led.style.opacity = playing ? (.45 + a * .55) : 1; }
         vu.forEach(function (v, i) {

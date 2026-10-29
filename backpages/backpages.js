@@ -192,6 +192,34 @@
     }).join('');
   })();
 
+  /* the written steps are buttons: a tap makes the loop phone jump to that scene and hold it for its 4 s, and the loop carries on from
+     there. every scene and step gets its delay again, with the tapped one at the start, and the animations are restarted so "now"
+     is the start. with reduce motion the loop does not run: the buttons are switched off (the four still phones show every scene). */
+  (function steps() {
+    var list = $('.steps'), loop = $('#ph-loop'), tapT = 0;
+    var btns = $$('button', list), lis = $$('li', list);
+    function dis() { btns.forEach(function (b) { b.disabled = STILL.matches; }); }
+    dis();
+    if (STILL.addEventListener) STILL.addEventListener('change', dis);
+    btns.forEach(function (b) {
+      b.addEventListener('click', function () {
+        if (STILL.matches) return;
+        var k = +b.dataset.step, scenes = $$('.sc', loop);
+        lis.forEach(function (li, i) {
+          var d = (-(16 - 4 * ((i - k + 4) % 4)) % 16) + 's';
+          li.style.setProperty('--d', d);
+          if (scenes[i]) scenes[i].style.setProperty('--d', d);
+          li.classList.toggle('tapped', i === k);
+        });
+        loop.classList.add('rs'); list.classList.add('rs');
+        void loop.offsetWidth;
+        loop.classList.remove('rs'); list.classList.remove('rs');
+        clearTimeout(tapT);
+        tapT = setTimeout(function () { lis[k].classList.remove('tapped'); }, 4000);
+      });
+    });
+  })();
+
   var curl = $('#curl');
   gift.addEventListener('pointerdown', function (e) {
     if (e.pointerType !== 'mouse' && !e.target.closest('a,button')) curl.classList.add('open');
