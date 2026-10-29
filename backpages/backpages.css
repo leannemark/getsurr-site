@@ -94,7 +94,12 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 .g-taps{font-family:var(--mono);font-size:11px;color:var(--grey);letter-spacing:.02em;margin-bottom:12px}
 /* the four small steps: the one the phone is on lights up (same 16s, same offsets as the scenes) */
 .steps{list-style:none;padding:0;display:grid;gap:10px;font-family:var(--mono);font-size:12px;letter-spacing:.01em}
-.steps li{display:grid;grid-template-columns:22px 1fr;gap:8px;color:var(--grey);animation:lit var(--T) infinite;animation-delay:var(--d)}
+.steps li{color:var(--grey);animation:lit var(--T) infinite;animation-delay:var(--d)}
+/* a step is a button: a tap jumps the phone to its scene (backpages.js); the colour and the dot still come from the li's own loop */
+.steps button{all:unset;box-sizing:border-box;display:grid;grid-template-columns:22px 1fr;gap:8px;width:100%;padding:3px 0;cursor:pointer;color:inherit;font:inherit;letter-spacing:inherit;-webkit-tap-highlight-color:transparent}
+.steps button:focus-visible{outline:1px solid var(--ink);outline-offset:3px;border-radius:2px}
+.steps li.tapped b{color:var(--red)}
+.ph-loop.rs *,.steps.rs li,.steps.rs b::before{animation:none!important}
 .steps b{position:relative;font-weight:400;color:inherit}
 .steps b::before{content:'';position:absolute;left:-11px;top:5px;width:5px;height:5px;border-radius:50%;background:var(--red);opacity:0;animation:litdot var(--T) infinite;animation-delay:var(--d)}
 @keyframes lit{0%,24%{color:var(--ink)}25%,100%{color:var(--grey)}}
@@ -377,7 +382,7 @@ input[type=time].v::-webkit-date-and-time-value{text-align:left}
   .ph-loop{display:flex;justify-content:center;font-size:9.6px;margin-top:26px}
   .g-taps{margin:28px 0 14px}
   .steps{gap:12px;font-size:12.5px}
-  .steps li{grid-template-columns:22px 1fr}
+  .steps button{padding:5px 0}
   .g-btns{display:grid;gap:10px;justify-items:start;margin-top:28px}
   .sign{margin:44px 22px 0;padding:16px 0 calc(var(--safe-b) + 150px);border-top:1px solid var(--line)}
   .sign .mark{font-size:26px}
@@ -387,6 +392,13 @@ input[type=time].v::-webkit-date-and-time-value{text-align:left}
 
   .back{background:var(--paper)}
   .poster-wrap{background:var(--paper)}
+  /* the three figures stand in a row under the two "just in" ads, never over a word (the desk keeps them beside and over the ads).
+     the number is still in front of their feet */
+  .poster{height:auto;display:flex;align-items:flex-end;justify-content:center;gap:12px;padding:12px 0 0}
+  .cut.f1,.cut.f2,.cut.her{position:relative;left:auto;right:auto;bottom:auto}
+  .cut.f1{width:60px;margin-bottom:36px}
+  .cut.f2{width:150px;margin-bottom:30px}
+  .cut.her{width:170px;margin-bottom:40px}
   .list{padding:4px 16px 24px}
   .rules{margin-top:0;grid-template-columns:1fr;gap:4px}
   .ads{display:block}
@@ -448,6 +460,7 @@ input[type=time].v::-webkit-date-and-time-value{text-align:left}
   /* the loop does not run: four still phones, each with its step under it. the written steps stay for VoiceOver, out of sight */
   .ph-loop{display:none!important}
   .steps li{animation:none;color:var(--grey2)}
+  .steps li.tapped b{color:inherit}
   .steps b::before{animation:none}
   .steps{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
   .g-demo{display:block;margin-top:18px}

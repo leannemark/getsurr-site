@@ -190,6 +190,8 @@ form.ask .err{margin:8px 0 0 16px}
 .chip:not(.on) .run,.chip .name:hover .run{-webkit-animation-play-state:paused;animation-play-state:paused}
 .chip .name a{pointer-events:auto;color:var(--lcd-ink);text-decoration:underline;text-underline-offset:2px;text-decoration-color:var(--lcd-dim)}
 @keyframes chipname{to{transform:translateX(-50%)}}
+@keyframes chipload{50%{opacity:.25}}
+@media (prefers-reduced-motion:no-preference){.chip.loading .led{-webkit-animation:chipload 1.4s ease-in-out infinite;animation:chipload 1.4s ease-in-out infinite}}
 /* SoundCloud's player: 1 px tall and invisible over the window; when a hidden start does not take (some iPhones), its own strip
    shows in the window for one more tap (.strip). never display:none — the iframe would stop or reload. */
 .chip .sc{position:absolute;left:24px;top:50%;width:148px;height:20px;margin-top:-10px;pointer-events:none}
