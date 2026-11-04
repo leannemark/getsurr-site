@@ -266,6 +266,18 @@ button, input { font: inherit; color: inherit; }
 .ph.shot { margin: 0 18px 14px; height: 320px; max-width: 220px; border-radius: 4px; }
 .ph.shot img { object-fit: contain; background: var(--raised); }
 .quote.it { font-style: italic; }
+/* the one line back to the person who wrote a note */
+.oneline {
+  display: block;
+  width: calc(100% - 36px);
+  margin: 0 18px 14px;
+  padding: 12px 14px;
+  border: 1px solid var(--rule-2);
+  border-radius: 4px;
+  background: var(--raised);
+  font-size: 16px;
+}
+.oneline:focus { outline: none; border-color: var(--ink-3); }
 .kept { border-top: 1px solid var(--rule); padding-top: 14px; }
 .kept .acts { align-items: center; }
 .credit { font-family: var(--mono); font-size: 13px; color: var(--ink-3); margin-right: auto; }
