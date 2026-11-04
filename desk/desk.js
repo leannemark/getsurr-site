@@ -287,6 +287,7 @@
       case 'send': return l.pile === 'beta' ? who + 'sent the beta link to ' + l.count : who + 'sent a code to someone on the list';
       case 'pass': return who + 'passed on someone on the list';
       case 'done': return who + 'marked feedback from ' + at(l.handle) + ' done';
+      case 'reply': return who + 'sent a line to ' + at(l.handle);
       case 'keep': return who + 'kept a quote from ' + at(l.handle);
       case 'takedown': return who + 'took a quote down';
       case 'add': return who + 'made ' + at(l.handle) + ' a day one';
@@ -869,17 +870,48 @@
     var my = ++gen;
     desk('note', { id: id }).then(function (n) {
       if (my !== gen) return;
-      if (!n || n.state !== 'new') { advance(); return; }
+      if (!n || (n.state !== 'new' && !n.reply)) { advance(); return; }
       var compliment = n.category === 'compliment';
       var wish = compliment ? QUOTE_WISH[n.quote] : null;
-      var meta = [since(n.at) + ' ago', n.app_version ? 'build ' + n.app_version : null].filter(Boolean).join(' · ');
+      var meta = [since(n.at) + ' ago', n.app_version ? 'build ' + n.app_version : null, n.screen ? 'screen ' + n.screen : null].filter(Boolean).join(' · ');
       var shot = safeImg(n.screenshot_url);
       var msg = h('p', { class: 'line err', hidden: true });
       var keep = wish ? h('button', { class: 'btn go', type: 'button', text: 'keep as a quote' }) : null;
-      var done = h('button', { class: 'btn' + (wish ? '' : ' go'), type: 'button', text: 'done' });
-      var all = [keep, done].filter(Boolean);
+      var done = h('button', { class: 'btn', type: 'button', text: 'done' });
+      var send = h('button', { class: 'btn go', type: 'button', text: 'send a line →', disabled: true });
+      var all = [keep, send, done].filter(Boolean);
       if (keep) keep.onclick = function () { act(all, msg, function () { return desk('keep', { id: n.id }); }); };
       done.onclick = function () { act(all, msg, function () { return desk('done', { id: n.id }); }); };
+      // The one line back: the box until it goes, then the line and when it
+      // went. A note with a line shows it on open; nothing more can be done to it.
+      var box = h('input', { class: 'oneline', type: 'text', maxlength: '200', placeholder: 'fixed in build …', 'aria-label': 'a line back' });
+      var slot = h('div', null, box);
+      function sent(line, whenAt) {
+        slot.textContent = '';
+        add(slot, h('div', { class: 'quote', text: line }));
+        add(slot, h('p', { class: 'line', text: 'sent ' + since(whenAt) + ' ago' }));
+        all.forEach(function (b) { b.disabled = true; });
+        send.hidden = true;
+      }
+      box.oninput = function () { send.disabled = !box.value.trim(); };
+      send.onclick = function () {
+        var line = box.value.trim();
+        if (!line) return;
+        var mine = gen;
+        all.forEach(function (b) { b.disabled = true; });
+        box.disabled = true;
+        msg.hidden = true;
+        desk('reply', { id: n.id, line: line }).then(function (r) {
+          if (mine === gen) sent(r.reply, r.replied_at);
+        }).catch(function (err) {
+          if (mine !== gen || guard(err)) return;
+          all.forEach(function (b) { b.disabled = false; });
+          box.disabled = false;
+          msg.textContent = COPY.failed;
+          msg.hidden = false;
+        });
+      };
+      if (n.reply) sent(n.reply, n.replied_at);
       show(itemBar(),
         h('div', { class: 'row' },
           h('div', { class: 't' }, h('strong', { text: at(n.handle) }), h('span', { text: meta })),
@@ -888,6 +920,7 @@
         h('div', { class: 'quote' + (compliment ? ' it' : ''), text: n.body }),
         shot ? h('a', { class: 'ph shot', href: shot, target: '_blank', rel: 'noopener noreferrer' },
           h('img', { src: shot, alt: 'screenshot' }), h('span', { text: 'screenshot' })) : null,
+        slot,
         h('div', { class: 'grow' }),
         msg,
         h('div', { class: 'acts dock' }, all));
