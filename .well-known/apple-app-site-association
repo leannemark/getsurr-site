@@ -1,0 +1,13 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["2P8M6QR4XZ.com.getsurr.app"],
+        "components": [
+          { "/": "/open", "comment": "the open surr button in surr's emails" },
+          { "/": "/open/" }
+        ]
+      }
+    ]
+  }
+}

@@ -1,6 +1,6 @@
 // Builds the pages that are copies or plain pages.
 // The one page is index.html — edit that, then run: node scripts/build.mjs
-// It writes: the deep-link copies (rings, map, nights, list, beta), the plain pages (deal, press, support, seen, 404),
+// It writes: the deep-link copies (rings, map, nights, list, beta), the plain pages (deal, press, support, seen, 404, open),
 // the legal pages (privacy, imprint — their text comes word for word from _legal/, which the site never serves),
 // and the forwarding pages under preview/ that send the old hidden addresses to the live ones.
 import { readFileSync, writeFileSync, mkdirSync, readdirSync, existsSync } from 'node:fs';
@@ -154,6 +154,23 @@ write(
 
 write('404.html', plain('surr', 'nothing here.', `<p><a href="${BASE}">the door →</a></p>`, '', ''));
 
+// open surr (brief email-opens-the-app in the app repo): the `open surr →` button in surr's emails links
+// https://getsurr.com/open. on an iphone with surr installed the app takes that link (it is the only address the app
+// claims, in .well-known/apple-app-site-association); everyone else lands here — a laptop, a phone without surr, or a mail
+// app that opens links in its own browser. surr:// is the app's own scheme, which iOS offers to open from a web page.
+write(
+  'open/index.html',
+  plain(
+    'open surr · surr',
+    'open surr',
+    `<p><a class="go" href="surr://">open surr →</a></p>
+<p>if the button doesn't open the app, open surr from your home screen.</p>
+<p>no app yet? <a href="${BASE}beta/">get it here →</a></p>`,
+    '',
+    'open/',
+  ).replace('<meta name="theme-color"', '<meta name="robots" content="noindex">\n<meta name="theme-color"'),
+);
+
 // the legal texts: word for word, wrapped in the plain page. the privacy policy is the generator's text as Till cleared it
 // (2026-09-30); the generator's seal badge is left out because it loads from another domain.
 const legal = (f) => `<div class="legal">\n${readFileSync(join(root, '_legal', f), 'utf8').trim()}\n</div>`;
@@ -247,4 +264,4 @@ const stamp = (dir) => {
 };
 stamp(root);
 
-console.log(`built: ${Object.keys(branches).length} deep-link copies, deal, support, seen, press, 404, privacy, imprint, terms, the allies door, ${moved.length} forwarding pages, guidelines`);
+console.log(`built: ${Object.keys(branches).length} deep-link copies, deal, support, seen, press, 404, open, privacy, imprint, terms, the allies door, ${moved.length} forwarding pages, guidelines`);
