@@ -87,6 +87,13 @@ body.is-desk{overflow:hidden}
 .acc ol{margin:0 0 12px;padding:0;list-style:none;color:var(--grey2);font-size:13px;display:grid;gap:8px}
 .acc ol li{display:grid;grid-template-columns:24px 1fr;gap:8px}
 .acc ol b{font-family:var(--mono);font-weight:400;font-size:10px;color:var(--grey);padding-top:3px}
+.dealdoor{margin:26px 0 12px}
+.dealdoor .l{font-family:var(--head);font-size:18px;letter-spacing:-.02em;margin:0 0 12px;color:var(--ink)}
+.acc .dealdoor a.btn{display:flex;align-items:center;justify-content:space-between;width:100%;box-sizing:border-box;text-decoration:none;font-family:var(--mono);font-size:12px;padding:14px 18px;border-radius:999px;margin-bottom:8px}
+.acc .dealdoor a.fill{background:var(--ink);color:#050505}
+.acc .dealdoor a.ghost{border:1px solid var(--grey2);color:var(--ink)}
+.acc .dealdoor a.fill:hover{background:#fff}
+.acc .dealdoor a.ghost:hover{border-color:var(--ink)}
 .acc .lead{margin:0 0 10px;font-size:13px}
 .acc .steps li{align-items:start}
 .acc .steps li>span{display:flex;gap:10px;align-items:flex-start}
