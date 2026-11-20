@@ -1,4 +1,4 @@
-// Weight check for the one page (index.html), the drive (drive/index.html) and the back pages (backpages/index.html). Run: node scripts/check-weight.mjs
+// Weight check for the one page (index.html), the drive (drive/index.html) and the back pages (backpages/index.html) and the made page (made/index.html). Run: node scripts/check-weight.mjs
 // Fails (exit 1) when: either page's first load is over 250 KB, a picture a page shows is over 110 KB,
 // site.css names a font that is not .woff2, or a src= points at a .png/.jpg/.jpeg other than the two icons.
 // Text files (html, css, js, svg) are counted gzipped (GitHub Pages gzips them); pictures and fonts as they are.
@@ -6,7 +6,7 @@
 // (the full .ttf files are in git history: git show b44fefd^:fonts/<Name>.ttf > <Name>.ttf)
 //   python3 -m fontTools.subset <Full>.ttf --unicodes="U+0020-00FF,U+00B7,U+00D7,U+2013,U+2014,U+2018,U+2019,U+201C,U+201D,U+2026,U+20AC,U+2190,U+2191,U+2192,U+2193" --layout-features='kern,liga' --flavor=woff2 --output-file=fonts/<Name>.woff2
 // To list the non-ASCII characters the pages use:
-//   cat index.html drive/index.html drive/drive.js deal/index.html press/index.html support/index.html privacy/index.html imprint/index.html terms/index.html 404.html | python3 -c "import sys;print(''.join(sorted(set(c for c in sys.stdin.read() if ord(c)>126))))"
+//   cat index.html drive/index.html drive/drive.js deal/index.html made/index.html press/index.html support/index.html privacy/index.html imprint/index.html terms/index.html 404.html | python3 -c "import sys;print(''.join(sorted(set(c for c in sys.stdin.read() if ord(c)>126))))"
 import { readFileSync, existsSync, statSync } from 'node:fs';
 import { gzipSync } from 'node:zlib';
 import { dirname, join } from 'node:path';
@@ -54,6 +54,8 @@ check('index.html');
 check('drive/index.html');
 // the back pages: the first load is the entrance (no pictures); the corner picture and the board's photos come later
 check('backpages/index.html');
+// the made page: html only, no script, no picture
+check('made/index.html');
 
 if (problems.length) {
   console.error(problems.map((p) => 'FAIL: ' + p).join('\n'));
