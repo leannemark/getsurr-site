@@ -1,0 +1,215 @@
+{
+ "note": [
+  "This file is the only thing a weekly change edits. Then run: node scripts/build.mjs (it writes made/index.html and the made line on the one page).",
+  "Entries are newest first. Put the new week at the top.",
+  "date: the Wednesday the line went out, like 18 nov. Never a week number.",
+  "label: the area in plain words, then ' · new' or ' · better' (it just works and heads down are always better). Areas: profiles, finding people, chats, nightlife, play, your choices, it just works, heads down.",
+  "headline: the story's big sentence, lowercase, no full stop. It says what a member can do now. Never how it works, never what is coming, never a number about people or money.",
+  "note: optional. Only what every app has, or what the site already says in public. Leave it out when unsure.",
+  "shipped: how many things were merged that week.",
+  "areas: five numbers that add up to shipped, in this order: people, chats, going out, play, under the hood.",
+  "kind: 'nobar' is an entry before the build began (no shipped, no areas, no bar). 'backstory' is the one grey entry at the end; its words about the four projects are written in scripts/build.mjs."
+ ],
+ "lines": [
+  {
+   "date": "18 nov",
+   "label": "nightlife · new",
+   "headline": "events are on the map now",
+   "note": "berlin nights, with when and where. tetas locas on 29 nov is one of the first.",
+   "shipped": 18,
+   "areas": [
+    2,
+    1,
+    3,
+    2,
+    10
+   ]
+  },
+  {
+   "date": "11 nov",
+   "label": "profiles · better",
+   "headline": "a bigger photo on every profile",
+   "note": "and a faster start on a weak connection.",
+   "shipped": 36,
+   "areas": [
+    7,
+    1,
+    2,
+    0,
+    26
+   ]
+  },
+  {
+   "date": "4 nov",
+   "label": "chats · better",
+   "headline": "a clearer way to ask someone out",
+   "note": "plus small fixes to chats and profiles.",
+   "shipped": 24,
+   "areas": [
+    7,
+    1,
+    0,
+    1,
+    15
+   ]
+  },
+  {
+   "date": "28 oct",
+   "label": "finding people · better",
+   "headline": "easier to look around",
+   "note": "small changes to the feed and the map, and a short guide for new members.",
+   "shipped": 71,
+   "areas": [
+    10,
+    10,
+    12,
+    3,
+    36
+   ]
+  },
+  {
+   "date": "21 oct",
+   "label": "chats · new",
+   "headline": "voice notes, photos and gifs in chat",
+   "shipped": 258,
+   "areas": [
+    31,
+    23,
+    16,
+    2,
+    186
+   ]
+  },
+  {
+   "date": "14 oct",
+   "label": "it just works · better",
+   "headline": "better on bad wi-fi",
+   "note": "apple approved the beta this week.",
+   "shipped": 122,
+   "areas": [
+    12,
+    1,
+    5,
+    4,
+    100
+   ]
+  },
+  {
+   "date": "7 oct",
+   "label": "the start · new",
+   "headline": "the website opens",
+   "note": "getsurr.com went live, with a list for people without a code.",
+   "shipped": 327,
+   "areas": [
+    22,
+    22,
+    11,
+    14,
+    258
+   ]
+  },
+  {
+   "date": "30 sep",
+   "label": "the start · new",
+   "headline": "the first testers",
+   "note": "a few friends got surr on their own phones.",
+   "shipped": 227,
+   "areas": [
+    20,
+    7,
+    29,
+    5,
+    166
+   ]
+  },
+  {
+   "date": "23 sep",
+   "label": "finding people · new",
+   "headline": "the map opens",
+   "note": "events and group chats came the same week.",
+   "shipped": 267,
+   "areas": [
+    31,
+    15,
+    10,
+    10,
+    201
+   ]
+  },
+  {
+   "date": "16 sep",
+   "label": "play · new",
+   "headline": "the mood reading",
+   "note": "the first thing you do in surr.",
+   "shipped": 52,
+   "areas": [
+    11,
+    3,
+    0,
+    5,
+    33
+   ]
+  },
+  {
+   "date": "9 sep",
+   "label": "the start · new",
+   "headline": "the app takes shape",
+   "note": "a feed of people, profiles, chats and a map. block, report and delete from the first week.",
+   "shipped": 58,
+   "areas": [
+    6,
+    4,
+    0,
+    5,
+    43
+   ]
+  },
+  {
+   "date": "26 aug",
+   "label": "the start",
+   "headline": "the foundations",
+   "note": "the tools and the structure the app is built on. nothing to look at yet.",
+   "shipped": 5,
+   "areas": [
+    0,
+    0,
+    0,
+    0,
+    5
+   ]
+  },
+  {
+   "date": "19 aug",
+   "label": "the start",
+   "headline": "we start building",
+   "note": "the first file, and a name: surr.",
+   "shipped": 2,
+   "areas": [
+    0,
+    0,
+    0,
+    0,
+    2
+   ]
+  },
+  {
+   "date": "june 2026",
+   "label": "the start",
+   "headline": "a plan on paper",
+   "note": "what surr is, what it is not, and the order to build it in. talked through with friends during pride.",
+   "kind": "nobar"
+  },
+  {
+   "date": "early 2026",
+   "label": "the start",
+   "headline": "from chats on the dance floor to sketches",
+   "note": "a nagging question turns into a concept. how do we bring more lesbians and sapphics together, beyond the groups and places we already know? how do we extend the invitation?",
+   "kind": "nobar"
+  },
+  {
+   "date": "since 2020",
+   "headline": "the days and nights before surr",
+   "kind": "backstory"
+  }
+ ]
+}

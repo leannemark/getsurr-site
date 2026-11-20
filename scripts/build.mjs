@@ -1,6 +1,6 @@
 // Builds the pages that are copies or plain pages.
 // The one page is index.html — edit that, then run: node scripts/build.mjs
-// It writes: the deep-link copies (rings, map, nights, list, beta), the plain pages (deal, press, support, seen, 404, open),
+// It writes: the deep-link copies (rings, map, nights, list, beta), the plain pages (deal, made, press, support, seen, 404, open),
 // the legal pages (privacy, imprint — their text comes word for word from _legal/, which the site never serves),
 // and the forwarding pages under preview/ that send the old hidden addresses to the live ones.
 import { readFileSync, writeFileSync, mkdirSync, readdirSync, existsSync } from 'node:fs';
@@ -11,7 +11,68 @@ import { fileURLToPath } from 'node:url';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const BASE = '/';
 const SITE = 'https://getsurr.com';
-const page = readFileSync(join(root, 'index.html'), 'utf8');
+
+// made (brief getsurr-site-made in the app repo): made/lines.json is the one file a weekly change edits. the page and the
+// one-page line are written from it. every value is escaped as text; only the backstory's four links are markup, and they live here.
+const esc = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+const madeFile = JSON.parse(readFileSync(join(root, 'made/lines.json'), 'utf8')).lines;
+madeFile.forEach((e, i) => {
+  const who = `made/lines.json, entry ${i + 1} (${e && e.date ? e.date : 'no date'})`;
+  for (const k of ['date', 'headline']) if (!e[k] || typeof e[k] !== 'string') throw new Error(`${who}: "${k}" is missing`);
+  if (e.kind === 'backstory') return;
+  if (!e.label) throw new Error(`${who}: "label" is missing`);
+  if (e.kind === 'nobar') return;
+  if (e.kind) throw new Error(`${who}: unknown kind "${e.kind}"`);
+  if (!Number.isInteger(e.shipped) || e.shipped < 1) throw new Error(`${who}: "shipped" must be a whole number above zero`);
+  if (!Array.isArray(e.areas) || e.areas.length !== 5 || !e.areas.every((n) => Number.isInteger(n) && n >= 0))
+    throw new Error(`${who}: "areas" must be five whole numbers`);
+  const sum = e.areas.reduce((a, n) => a + n, 0);
+  if (sum !== e.shipped) throw new Error(`${who}: the five areas add up to ${sum}, not ${e.shipped}`);
+});
+const barEntries = madeFile.filter((e) => !e.kind);
+const AREA_NAMES = ['people', 'chats', 'going out', 'play', 'under the hood'];
+const BACKSTORY = `surr was born out of years spent on the teams behind queer and lesbian initiatives, including ${[
+  ['FLOORGASM', 'floorgasm.official'],
+  ['MOTHER LOADING', 'mother.loading'],
+  ['radar', 'radar_worldwide'],
+  ['TETAS LOCAS', 'tetas__locas'],
+]
+  .map(([n, h]) => `<a href="https://www.instagram.com/${h}/" target="_blank" rel="noopener">${n}</a>`)
+  .join(', ')
+  .replace(/, ([^,]*)$/, ' and $1')}.`;
+const madeBar = (e) => {
+  const biggest = Math.max(...barEntries.map((x) => x.shipped));
+  const w = Math.max(16, Math.round(Math.sqrt(e.shipped / biggest) * 100));
+  const on = e.areas.map((n, i) => [n, i]).filter(([n]) => n > 0);
+  return `<div class="work"><div class="seg" aria-hidden="true" style="width:${w}%">${on.map(([n, i]) => `<i class="a${i}" style="flex:${n}"></i>`).join('')}</div>
+<p class="leg"><span>${e.shipped} things shipped</span>${on.map(([n, i]) => `<span><i class="a${i}" aria-hidden="true"></i>${AREA_NAMES[i]} ${n}</span>`).join('')}</p></div>`;
+};
+const madeEntry = (e) => {
+  const cls = e.kind === 'backstory' ? 'e fold' : e.kind === 'nobar' ? 'e nb' : 'e';
+  const note = e.kind === 'backstory' ? BACKSTORY : e.note ? esc(e.note) : '';
+  return `<article class="${cls}">
+<div class="meta"><span class="mono">${esc(e.date)}</span>${e.label ? `<span class="k">${esc(e.label)}</span>` : ''}</div>
+<div class="txt"><h2>${esc(e.headline)}</h2>${note ? `\n<p class="n">${note}</p>` : ''}</div>
+${e.kind ? '' : madeBar(e)}
+</article>`;
+};
+const madeBody = (() => {
+  const i = madeFile.findIndex((e) => e.kind === 'backstory');
+  return `<p class="sub">what we made, week by week, and where it came from.</p>
+<div class="made-list">
+${madeFile.slice(0, i).map(madeEntry).join('\n')}
+<p class="mono sep">backstory</p>
+${madeFile.slice(i).map(madeEntry).join('\n')}
+</div>`;
+})();
+const newest = barEntries[0];
+const madeLine = `<a class="made-one" href="/made/"><span>made · ${esc(newest.date)}</span><b>${esc(newest.headline)} →</b></a>`;
+
+let page = readFileSync(join(root, 'index.html'), 'utf8');
+const stamped = page.replace(/<!-- made-line -->[\s\S]*?<!-- \/made-line -->/g, `<!-- made-line -->${madeLine}<!-- /made-line -->`);
+if (stamped === page && !page.includes(madeLine)) throw new Error('index.html: the made-line marks are missing');
+if (stamped !== page) writeFileSync(join(root, 'index.html'), stamped);
+page = stamped;
 
 const write = (rel, html) => {
   const f = join(root, rel);
@@ -48,6 +109,7 @@ const DEAL = [
 const mail = '<a href="mailto:hello@getsurr.com">hello@getsurr.com</a>';
 const footer = (here) =>
   [
+    ['made', `${BASE}made/`],
     ['press', `${BASE}press/`],
     ['support', `${BASE}support/`],
     ['imprint', `${BASE}imprint/`],
@@ -138,6 +200,8 @@ write(
 const seenWords = (page.match(/<!-- seen-words -->\n([\s\S]*?)\n<!-- \/seen-words -->/) || [])[1];
 if (!seenWords) throw new Error('index.html: the seen-words marks are missing');
 write('seen/index.html', plain('seen, not tracked · surr', 'seen, not tracked', seenWords, '', 'seen/', true));
+
+write('made/index.html', plain('made · surr', 'made', madeBody, 'made', 'made/').replace('<div class="plain">', '<div class="plain made">'));
 
 write(
   'press/index.html',
