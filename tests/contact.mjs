@@ -12,8 +12,8 @@ import { serve } from './serve.mjs';
 const chars = (v) => [...v].length;
 function sendContactNote({ p_email, p_message, p_hp }, conn) {
   if (p_hp) return { status: 204, body: null };
-  const email = String(p_email || '').trim().toLowerCase(), body = String(p_message || '').replace(/^[ \t\r\n]+|[ \t\r\n]+$/g, '');
-  if (!/^[a-z0-9._%+-]+@[a-z0-9-]+(\.[a-z0-9-]+)*\.[a-z]{2,}$/.test(email) || email.length > 254) return { status: 400, body: { code: '22023', message: "that's not an email" } };
+  const email = String(p_email || '').trim(), body = String(p_message || '').replace(/^[ \t\r\n]+|[ \t\r\n]+$/g, '');
+  if (!/^[a-z0-9._%+'-]+@[a-z0-9-]+(\.[a-z0-9-]+)*\.[a-z0-9-]{2,}$/i.test(email) || email.length > 254) return { status: 400, body: { code: '22023', message: "that's not an email" } };
   if (!body) return { status: 400, body: { code: '22023', message: 'your message is empty' } };
   if (chars(body) > 4000) return { status: 400, body: { code: '22023', message: "that's too long. 4,000 characters at most." } };
   if (conn.written.some((w) => w.email === email && w.body === body)) return { status: 204, body: null };
@@ -33,6 +33,7 @@ const CASES = [
   { name: '4,001 characters', email: 'a@getsurr.de', message: 'x'.repeat(4001), expect: "That's too long. 4,000 characters at most.", writes: 0, kept: true },
   { name: '4,000 characters', email: 'a@getsurr.de', message: 'x'.repeat(4000), expect: SENT, writes: 1 },
   { name: 'html and a link', email: 'a@getsurr.de', message: '<b>hi</b> https://x.test', expect: SENT, writes: 1 },
+  { name: 'apostrophe and capitals', email: "O'Neill@Example.ie", message: 'hi', expect: SENT, writes: 1 },
   { name: 'emoji', email: 'a@getsurr.de', message: 'hi 🌈🏳️‍🌈', expect: SENT, writes: 1 },
   { name: 'double press', email: 'twice@getsurr.de', message: 'once', twice: true, expect: SENT, writes: 1 },
   { name: 'robot fills the trap', email: 'robot@getsurr.de', message: 'buy', trap: 'http://spam.example', expect: SENT, writes: 0 },

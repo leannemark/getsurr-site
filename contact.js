@@ -30,7 +30,7 @@
   form.addEventListener('submit', function (e) {
     e.preventDefault();
     if (btn.disabled) return;
-    var email = form.email.value.trim().toLowerCase(), message = form.message.value, hp = form.website.value;
+    var email = form.email.value.trim(), message = form.message.value, hp = form.website.value;
     btn.disabled = true; btn.textContent = 'Sending…'; err.hidden = true;
     fetch(URL_ + '/rest/v1/rpc/send_contact_note', {
       method: 'POST',
