@@ -18,7 +18,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" type="image/png" sizes="32x32" href="/img/icon-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/img/icon-180.png">
-<link rel="stylesheet" href="/site.css?v=e89c6a15">
+<link rel="stylesheet" href="/site.css?v=f5f24364">
 <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/ArchivoExpanded.woff2">
 <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/ArchivoSemiExpandedBold.woff2">
 <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/ArchivoRegular.woff2">
@@ -30,6 +30,16 @@
 <main>
 <h1>support</h1>
 <p>A person reads every email. <a href="mailto:hello@getsurr.com">hello@getsurr.com</a></p>
+<form class="contact" id="contact" novalidate>
+<p>Or write here. We answer within one working day.</p>
+<label for="cf-email">Your email</label>
+<input id="cf-email" name="email" type="email" inputmode="email" autocomplete="email" autocapitalize="none" spellcheck="false">
+<label for="cf-message">Your message</label>
+<textarea id="cf-message" name="message" rows="6"></textarea>
+<div class="hp" aria-hidden="true"><input name="website" type="text" tabindex="-1" autocomplete="off"></div>
+<button class="go" type="submit">Send</button>
+<p class="err" role="status" aria-live="polite" hidden></p>
+</form>
 <p>To delete your account: you tab → account → delete account. Everything goes with it.</p>
 <p>To pause instead: you tab → account → freeze account.</p>
 <p>To report or block someone: the ··· menu on their profile, or in the chat.</p>
@@ -38,5 +48,7 @@
 </main>
 <footer><a href="/made/">made</a><a href="/press/">press</a><a href="/support/" aria-current="page">support</a><a href="/imprint/">imprint</a><a href="/privacy/">privacy</a><a href="/deal/">the deal</a></footer>
 </div>
+<script src="/config.js?v=2f9f1b69"></script>
+<script src="/contact.js?v=601177ba"></script>
 </body>
 </html>

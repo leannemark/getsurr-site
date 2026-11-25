@@ -436,3 +436,14 @@ form.ask .err{margin:8px 0 0 16px}
 /* the made line inside surr on the one page */
 .made-one{display:grid;gap:3px;border-top:1px solid var(--line);padding-top:12px;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--grey2);line-height:1.6;text-decoration:none}
 .made-one b{font-weight:400;color:var(--ink)}
+
+/* the contact form on /support (brief imprint-personal-number-out): the list form's look, stacked, with visible labels */
+form.contact{display:flex;flex-direction:column;gap:8px;margin:6px 0 22px;max-width:34rem;scroll-margin-top:24px}
+form.contact p{margin:0 0 6px}
+form.contact label{font-family:var(--mono);font-size:11px;color:var(--grey);margin-top:6px}
+form.contact input,form.contact textarea{background:none;border:0;border-bottom:1px solid #333;border-radius:0;color:var(--ink);font-family:var(--mono);font-size:16px;padding:6px 0;width:100%;-webkit-appearance:none;appearance:none}
+form.contact textarea{resize:vertical;min-height:7.5em;line-height:1.5}
+form.contact input:focus,form.contact textarea:focus{outline:none;border-bottom-color:var(--ink)}
+form.contact .go{align-self:flex-start;margin-top:10px;color:var(--ink);background:none;cursor:pointer;font-size:13px;padding:10px 16px}
+form.contact .err{margin:4px 0 0}
+.plain main p.done{color:var(--ink);margin:6px 0 22px}
