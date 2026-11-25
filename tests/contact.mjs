@@ -13,12 +13,13 @@ const chars = (v) => [...v].length;
 function sendContactNote({ p_email, p_message, p_hp }, conn) {
   if (p_hp) return { status: 204, body: null };
   const email = String(p_email || '').trim().toLowerCase(), body = String(p_message || '').replace(/^[ \t\r\n]+|[ \t\r\n]+$/g, '');
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/u.test(email) || email.length > 254) return { status: 400, body: { code: '22023', message: "that's not an email" } };
+  if (!/^[a-z0-9._%+-]+@[a-z0-9-]+(\.[a-z0-9-]+)*\.[a-z]{2,}$/.test(email) || email.length > 254) return { status: 400, body: { code: '22023', message: "that's not an email" } };
   if (!body) return { status: 400, body: { code: '22023', message: 'your message is empty' } };
   if (chars(body) > 4000) return { status: 400, body: { code: '22023', message: "that's too long. 4,000 characters at most." } };
+  if (conn.written.some((w) => w.email === email && w.body === body)) return { status: 204, body: null };
   if (conn.hits >= 5) return { status: 400, body: { code: 'P0001', message: 'contact_form: too many' } };
   conn.hits++;
-  if (!conn.written.some((w) => w.email === email && w.body === body)) conn.written.push({ email, body });
+  conn.written.push({ email, body });
   return { status: 204, body: null };
 }
 
@@ -27,6 +28,7 @@ const FAIL = "That didn't go through";
 const CASES = [
   { name: 'nothing', email: '', message: '', expect: "That's not an email", writes: 0 },
   { name: 'bad address', email: 'not-an-email', message: 'hello', expect: "That's not an email", writes: 0 },
+  { name: 'comma in the address', email: 'jo,anne@getsurr.de', message: 'hello', expect: "That's not an email", writes: 0, kept: true },
   { name: 'spaces only', email: 'a@getsurr.de', message: '   \n  ', expect: 'Your message is empty', writes: 0 },
   { name: '4,001 characters', email: 'a@getsurr.de', message: 'x'.repeat(4001), expect: "That's too long. 4,000 characters at most.", writes: 0, kept: true },
   { name: '4,000 characters', email: 'a@getsurr.de', message: 'x'.repeat(4000), expect: SENT, writes: 1 },
