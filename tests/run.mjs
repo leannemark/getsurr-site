@@ -5,6 +5,7 @@ import { execFileSync } from 'node:child_process';
 import { links } from './links.mjs';
 import { shots } from './shots.mjs';
 import { form } from './form.mjs';
+import { contact } from './contact.mjs';
 import { a11y } from './a11y.mjs';
 import { paints } from './paints.mjs';
 import { frames } from './frames.mjs';
@@ -31,6 +32,7 @@ await step('weight (W8)', () => { try { return { out: execFileSync('node', ['scr
   (r) => (r.out.match(/total[^\n]*/) || [''])[0].replace(/\s+/g, ' ').trim());
 await step('links (W10)', () => links({ live: !process.env.OFFLINE }), (r) => `${r.checked} addresses${r.domain.length ? ', www/http → https://getsurr.com' : ''}`);
 await step('list form (W11)', form, (r) => `${r.rows.length} cases, chromium + webkit`);
+await step('contact form (CF)', contact, (r) => `${r.rows.length} cases, chromium + webkit`);
 await step('accessibility (W16)', a11y, (r) => `${r.rows.length} page × size, axe + keyboard`);
 await step('splash paints (W1/W9)', async () => { const r = await paints(); return { r, problems: r.filter((x) => x.paints > 30).map((x) => `${x.size}: ${x.paints} repaints during the cut`) }; },
   ({ r }) => r.map((x) => `${x.size}: ${x.paints} paints`).join(', '));

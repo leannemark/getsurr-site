@@ -179,12 +179,27 @@ write(
   ),
 );
 
+// the contact form (brief imprint-personal-number-out in the app repo): the imprint links /support/#contact. The markup is
+// here so the labels are real without a script; contact.js sends it to the send_contact_note function (and is the page's
+// only script, with config.js). Nothing is kept: the note is emailed to hello@getsurr.com and deleted.
+const contactForm = `<form class="contact" id="contact" novalidate>
+<p>Or write here. We answer within one working day.</p>
+<label for="cf-email">Your email</label>
+<input id="cf-email" name="email" type="email" inputmode="email" autocomplete="email" autocapitalize="none" spellcheck="false">
+<label for="cf-message">Your message</label>
+<textarea id="cf-message" name="message" rows="6"></textarea>
+<div class="hp" aria-hidden="true"><input name="website" type="text" tabindex="-1" autocomplete="off"></div>
+<button class="go" type="submit">Send</button>
+<p class="err" role="status" aria-live="polite" hidden></p>
+</form>`;
+
 write(
   'support/index.html',
   plain(
     'support · surr',
     'support',
     `<p>A person reads every email. ${mail}</p>
+${contactForm}
 <p>To delete your account: you tab → account → delete account. Everything goes with it.</p>
 <p>To pause instead: you tab → account → freeze account.</p>
 <p>To report or block someone: the ··· menu on their profile, or in the chat.</p>
@@ -192,7 +207,7 @@ write(
 <p>What the map knows about you, and what keeps you safe: <a href="${BASE}seen/">seen, not tracked →</a></p>`,
     'support',
     'support/',
-  ),
+  ).replace('</body>', `<script src="${BASE}config.js"></script>\n<script src="${BASE}contact.js"></script>\n</body>`),
 );
 
 // seen, not tracked: the words are set once, in the sheet at the end of index.html (between the seen-words marks), where the
