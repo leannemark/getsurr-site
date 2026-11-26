@@ -95,11 +95,32 @@ body.is-desk{overflow:hidden}
 .acc .dealdoor a.fill:hover{background:#fff}
 .acc .dealdoor a.ghost:hover{border-color:var(--ink)}
 .acc .lead{margin:0 0 10px;font-size:13px}
-.acc .steps li{align-items:start}
-.acc .steps li>span{display:flex;gap:10px;align-items:flex-start}
-.pic{flex:none;width:22px;height:22px;margin-top:-2px}
 .acc a{text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--grey)}
-.acc a.tf{display:inline-block;margin:0 0 12px;font-family:var(--mono);font-size:11px;color:var(--ink);text-decoration:none}
+/* the beta steps (brief getsurr-site-beta-steps, mock-up "a"): thin rows, a small pill at the end of each download's row (the whole
+   row is the link), a red dot on the step she is at. site.js ticks 01 once it was tapped in this tab (sessionStorage surr-tf). */
+.acc .bh{margin:2px 0 12px;color:var(--ink)}
+.acc ol.rows{display:block;margin:0 0 12px;gap:0;font-size:14px;color:var(--ink);border-bottom:1px solid var(--line)}
+.acc ol.rows li{display:block;border-top:1px solid var(--line)}
+.acc .rows .row{display:grid;grid-template-columns:24px 1fr auto;gap:8px;align-items:center;padding:11px 0;color:inherit;text-decoration:none}
+.acc .rows a.row{cursor:pointer;-webkit-tap-highlight-color:transparent}
+.acc .rows a.row:focus-visible{outline-offset:-1px}
+.acc .rows b{position:relative;align-self:start;padding-top:3px;font-family:var(--mono);font-weight:400;font-size:10px;color:var(--grey)}
+.acc .rows li.now b::before{content:'';position:absolute;left:-11px;top:7px;width:5px;height:5px;border-radius:50%;background:var(--red)}
+.acc .rows .w{min-width:0}
+.acc .rows .t{display:block;font-size:14px;line-height:1.25;color:var(--ink)}
+.acc .rows small{display:block;margin-top:2px;font-size:11.5px;line-height:1.4;color:var(--grey)}
+.acc .rows .pill{font-family:var(--mono);font-size:10.5px;line-height:1;padding:8px 12px;border-radius:999px;white-space:nowrap;border:1px solid #3a3a3a;color:var(--ink)}
+.acc .rows li.now .pill{background:var(--ink);border-color:var(--ink);color:#050505}
+.acc .rows a.row:hover .pill{border-color:var(--ink)}
+.acc .rows li.now a.row:hover .pill{background:#fff}
+.acc .rows a.row:not([href]){cursor:default}
+.acc .rows a.row:not([href]) .pill{display:none}
+.acc .rows .ck,.acc .rows .did{display:none}
+.acc .rows li.done .n,.acc .rows li.done .todo{display:none}
+.acc .rows li.done .ck,.acc .rows li.done .did{display:block}
+.acc .rows li.done b{color:var(--ink)}
+.acc .rows li.done .t{color:var(--grey)}
+.acc .rows li.done .pill{border-color:var(--line);color:#555}
 .inlink{background:none;border:0;padding:0;color:var(--ink);text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--grey);cursor:pointer;font:inherit}
 
 /* surr: the column attached to cell one */
@@ -279,6 +300,11 @@ form.ask .err{margin:8px 0 0 16px}
 .sec .bg .credit{left:auto;right:12px;bottom:6px;text-align:right;z-index:3}
 .sec .word{position:absolute;left:20px;right:20px;bottom:56%;font-size:32px;z-index:2;line-height:1}
 .sec.surr .word{font-size:28px}
+/* the phone, while the beta steps are open: no slogan, the surr mark small at the top left, the steps start high (site.js sets .beta-open) */
+.sec.surr.beta-open .word{display:none}
+.sec.surr.beta-open .bg{height:auto;justify-content:flex-start;align-items:flex-start;padding:calc(env(safe-area-inset-top) + 22px) 20px 6px}
+.sec.surr.beta-open .bg::after{display:none}
+.sec.surr.beta-open .bg .mark{font-size:30px;line-height:1;color:var(--grey2)}
 .sec .scrollwrap{flex:1;min-height:0;margin-bottom:calc(46px + env(safe-area-inset-bottom))}
 .sec .scrollwrap .more{right:20px;bottom:6px}
 .sec .scroll{padding:8px 20px 28px;display:flex;flex-direction:column;gap:12px;opacity:0;transform:translateY(12px);transition:opacity .6s .1s,transform .6s .1s}

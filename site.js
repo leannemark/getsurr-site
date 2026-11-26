@@ -60,10 +60,30 @@
       (N.offer ? '<div class="mono offer">' + N.offer + '</div>' : '');
   });
 
-  /* ————— shared: open in testflight ————— */
+  /* ————— shared: the beta steps' 02 (`install →`) goes to the public TestFlight link ————— */
   $$('[data-app]').forEach(function (a) {
     if (C.APP_URL) { a.href = C.APP_URL; a.hidden = false; }
   });
+
+  /* ————— shared: the beta steps remember a tap on 01 for this tab only (sessionStorage `surr-tf`; the site keeps no cookies and no
+     localStorage). then 01 is ticked and grey, the dot and the white pill move to 02. a browser that refuses storage stays in the
+     first state. coming back from the App Store does not reload the page, so the state is applied on pageshow and visibilitychange too. */
+  var tf = {
+    get: function () { try { return sessionStorage.getItem('surr-tf') === '1'; } catch (e) { return false; } },
+    set: function () { try { sessionStorage.setItem('surr-tf', '1'); } catch (e) { /* refused: stays in the first state */ } }
+  };
+  function tfApply() {
+    var done = tf.get();
+    $$('[data-tf]').forEach(function (ol) {
+      var one = ol.querySelector('[data-tf-step="1"]'), two = ol.querySelector('[data-tf-step="2"]');
+      if (one) { one.classList.toggle('done', done); one.classList.toggle('now', !done); }
+      if (two) two.classList.toggle('now', done);
+    });
+  }
+  $$('[data-tf-get]').forEach(function (a) { a.addEventListener('click', function () { tf.set(); setTimeout(tfApply, 300); }); });
+  tfApply();
+  addEventListener('pageshow', tfApply);
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) tfApply(); });
 
   /* ————— shared: the beta part — until APP_URL is set, one email box in place of the steps ————— */
   $$('[data-ask]').forEach(function (ask) {
@@ -187,7 +207,24 @@
     hints.push(upd); upd();
   });
   function hintAll() { hints.forEach(function (f) { f(); }); }
-  document.addEventListener('toggle', function () { setTimeout(hintAll, 0); }, true);
+  document.addEventListener('toggle', function (e) {
+    /* the phone's surr screen: while the beta steps are open the slogan steps aside and the steps start high (site.css .beta-open) */
+    var d = e.target;
+    if (d && d.matches && d.matches('details.beta')) {
+      var s = d.closest('.sec.surr');
+      if (s) {
+        s.classList.toggle('beta-open', d.open);
+        /* room under the steps so they can sit at the top of the box (no half-cut heading above them) */
+        var sc = d.closest('.scroll');
+        sc.style.paddingBottom = '';
+        if (d.open && sc.clientHeight) {
+          var need = sc.clientHeight - (sc.scrollHeight - (d.offsetTop - sc.offsetTop));
+          if (need > 0) sc.style.paddingBottom = (parseFloat(getComputedStyle(sc).paddingBottom) + need) + 'px';
+        }
+      }
+    }
+    setTimeout(hintAll, 0);
+  }, true);
 
   /* ————— shared: mood rings — four soft auras drifting, trading colours when they touch ————— */
   var MOODS = [[222, 10, 38], [255, 140, 0], [242, 201, 76], [120, 120, 130]];

@@ -153,7 +153,7 @@
   /* the drawn phone (decoration, aria-hidden): HTML and CSS only, 16s, four scenes. the same scenes, still, for reduce motion.
      the code's letters never appear: the paste fills the field with ten dots. */
   (function drawPhone() {
-    var STEPS = ['get testflight from the app store.', 'open the surr link and tap install.', 'open surr, tap create profile, paste the code.', 'you’ll get an email.'];
+    var STEPS = ['download testflight.', 'download surr.', 'open surr and paste your code.', 'wait for your email.'];
     var D = ['0s', '-12s', '-8s', '-4s'];
     function scene(i) {
       var d = ' style="--d:' + D[i] + '"';
@@ -197,7 +197,7 @@
      is the start. with reduce motion the loop does not run: the buttons are switched off (the four still phones show every scene). */
   (function steps() {
     var list = $('.steps'), loop = $('#ph-loop'), tapT = 0;
-    var btns = $$('button', list), lis = $$('li', list);
+    var btns = $$('button[data-step]', list), lis = $$('li', list);
     function dis() { btns.forEach(function (b) { b.disabled = STILL.matches; }); }
     dis();
     if (STILL.addEventListener) STILL.addEventListener('change', dis);
@@ -233,6 +233,22 @@
       show(id, id === 'back' && screen === 'gift' ? 'turn' : 'fade');
     });
   }
+  /* the steps remember a tap on 01's pill for this tab only (sessionStorage `surr-tf`, as /beta/ on the one page): 01 is ticked and
+     grey, the dot and the white pill move to 02. coming back from the App Store does not reload the page, so it is applied on
+     pageshow and visibilitychange too. a browser that refuses storage keeps it in memory for this visit only. */
+  function tfApply() {
+    var done = store.get('surr-tf') === '1';
+    $$('[data-tf]').forEach(function (ol) {
+      var one = $('[data-tf-step="1"]', ol), two = $('[data-tf-step="2"]', ol);
+      if (one) { one.classList.toggle('done', done); one.classList.toggle('now', !done); }
+      if (two) two.classList.toggle('now', done);
+    });
+  }
+  $$('[data-tf-get]').forEach(function (a) { a.addEventListener('click', function () { store.set('surr-tf', '1'); setTimeout(tfApply, 300); }); });
+  tfApply();
+  window.addEventListener('pageshow', tfApply);
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) tfApply(); });
+
   var copyBtn = $('#g-copy'), copyT = $('.t', copyBtn);
   copyBtn.addEventListener('click', function () {
     var c = code || '';

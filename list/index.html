@@ -18,12 +18,12 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" type="image/png" sizes="32x32" href="/img/icon-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/img/icon-180.png">
-<link rel="stylesheet" href="/site.css?v=f5f24364">
+<link rel="stylesheet" href="/site.css?v=ef823452">
 <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/ArchivoExpanded.woff2">
 <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/ArchivoSemiExpandedBold.woff2">
 <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/ArchivoRegular.woff2">
 <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/FragmentMono-Regular.woff2">
-<script src="/config.js?v=2f9f1b69"></script>
+<script src="/config.js?v=38abd9fe"></script>
 <script>(function(){var b=(window.SURR&&SURR.BASE)||'/',p=location.pathname;if(p!==b&&p!==b+'index.html')document.documentElement.className+=' deep';})();</script>
 <style>.deep .splash,.deep .ssplash{display:none}</style>
 <!-- without JavaScript: no door, the phone's screens as plain pages at every width (the band needs the script), the address where a form would be -->
@@ -70,10 +70,6 @@
     </symbol>
     <symbol id="cal" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2" fill="none" stroke="#BBBBBB" stroke-width="1.6"/><path d="M3 10h18M8 3v4M16 3v4" stroke="#BBBBBB" stroke-width="1.6" fill="none"/></symbol>
     <symbol id="arrow" viewBox="0 0 24 24"><path d="M21.5 2.5 2.5 10.6l9 2.2 2.2 9z" fill="#E8E8E8"/></symbol>
-    <symbol id="p-store" viewBox="0 0 24 24"><g fill="none" stroke="#BBBBBB" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="2.5" width="19" height="19" rx="5"/><path d="M8 16.5 12 7.5l4 9M9.3 13.5h5.4"/></g></symbol>
-    <symbol id="p-link" viewBox="0 0 24 24"><g fill="none" stroke="#BBBBBB" stroke-width="1.4" stroke-linecap="round"><path d="M10 14a4 4 0 0 0 5.7 0l3.5-3.5a4 4 0 0 0-5.7-5.7L12 6.3"/><path d="M14 10a4 4 0 0 0-5.7 0l-3.5 3.5a4 4 0 0 0 5.7 5.7l1.5-1.5"/></g></symbol>
-    <symbol id="p-code" viewBox="0 0 24 24"><g fill="none" stroke="#BBBBBB" stroke-width="1.4" stroke-linecap="round"><rect x="2.5" y="7" width="19" height="10" rx="3"/><path d="M16.5 9.8v4.4"/></g><g fill="#BBBBBB"><circle cx="7" cy="12" r="1"/><circle cx="10" cy="12" r="1"/><circle cx="13" cy="12" r="1"/></g></symbol>
-    <symbol id="p-mail" viewBox="0 0 24 24"><g fill="none" stroke="#BBBBBB" stroke-width="1.4" stroke-linejoin="round"><rect x="2.5" y="5.5" width="19" height="13" rx="2"/><path d="m3 6.5 9 6.5 9-6.5"/></g></symbol>
   </defs>
 </svg>
 
@@ -111,14 +107,13 @@
             <div data-ask-form></div><noscript><p class="body"><a href="mailto:hello@getsurr.com">hello@getsurr.com</a></p></noscript>
           </div>
           <div data-steps>
-          <p class="body lead">surr is in beta, so it comes through TestFlight, Apple's app for apps before they're out.</p>
-          <ol class="steps">
-            <li><b>01</b><span><svg class="pic" aria-hidden="true"><use href="#p-store"/></svg><span>Get TestFlight from the <a href="https://apps.apple.com/app/testflight/id899247664" target="_blank" rel="noopener">App Store</a>.</span></span></li>
-            <li><b>02</b><span><svg class="pic" aria-hidden="true"><use href="#p-link"/></svg><span>Open the surr link and tap install.</span></span></li>
-            <li><b>03</b><span><svg class="pic" aria-hidden="true"><use href="#p-code"/></svg><span>Open surr, tap create profile, type your code.</span></span></li>
-            <li><b>04</b><span><svg class="pic" aria-hidden="true"><use href="#p-mail"/></svg><span>A real person approves every profile. You'll get an email.</span></span></li>
+          <h3 class="bh">how to get surr</h3>
+          <ol class="rows" data-tf>
+            <li class="now" data-tf-step="1"><a class="row" href="https://apps.apple.com/app/testflight/id899247664" target="_blank" rel="noopener" data-tf-get><b><span class="n">01</span><span class="ck"><span aria-hidden="true">✓</span><span class="sr">done:</span></span></b><span class="w"><span class="t">Download TestFlight</span><small class="todo">Then come back to this page.</small><small class="did">Done.</small></span><span class="pill">download <span aria-hidden="true">→</span></span></a></li>
+            <li data-tf-step="2"><a class="row" data-app target="_blank" rel="noopener"><b><span class="n">02</span></b><span class="w"><span class="t">Download surr</span><small>Tap install, then open.</small></span><span class="pill">download <span aria-hidden="true">→</span></span></a></li>
+            <li><div class="row"><b><span class="n">03</span></b><span class="w"><span class="t">Open surr and enter your code</span><small>Not in TestFlight. You won't need TestFlight again.</small></span></div></li>
+            <li><div class="row"><b><span class="n">04</span></b><span class="w"><span class="t">Wait for your email</span><small>We approve every profile.</small></span></div></li>
           </ol>
-          <a class="tf" data-app hidden target="_blank" rel="noopener">open in testflight →</a>
           </div>
         </details>
         <!-- made-line --><a class="made-one" href="/made/"><span>made · 18 nov</span><b>events are on the map now →</b></a><!-- /made-line -->
@@ -206,14 +201,13 @@
             <div data-ask-form></div><noscript><p class="body"><a href="mailto:hello@getsurr.com">hello@getsurr.com</a></p></noscript>
           </div>
           <div data-steps>
-          <p class="body lead">surr is in beta, so it comes through TestFlight, Apple's app for apps before they're out.</p>
-          <ol class="steps">
-            <li><b>01</b><span><svg class="pic" aria-hidden="true"><use href="#p-store"/></svg><span>Get TestFlight from the <a href="https://apps.apple.com/app/testflight/id899247664" target="_blank" rel="noopener">App Store</a>.</span></span></li>
-            <li><b>02</b><span><svg class="pic" aria-hidden="true"><use href="#p-link"/></svg><span>Open the surr link and tap install.</span></span></li>
-            <li><b>03</b><span><svg class="pic" aria-hidden="true"><use href="#p-code"/></svg><span>Open surr, tap create profile, type your code.</span></span></li>
-            <li><b>04</b><span><svg class="pic" aria-hidden="true"><use href="#p-mail"/></svg><span>A real person approves every profile. You'll get an email.</span></span></li>
+          <h3 class="bh">how to get surr</h3>
+          <ol class="rows" data-tf>
+            <li class="now" data-tf-step="1"><a class="row" href="https://apps.apple.com/app/testflight/id899247664" target="_blank" rel="noopener" data-tf-get><b><span class="n">01</span><span class="ck"><span aria-hidden="true">✓</span><span class="sr">done:</span></span></b><span class="w"><span class="t">Download TestFlight</span><small class="todo">Then come back to this page.</small><small class="did">Done.</small></span><span class="pill">download <span aria-hidden="true">→</span></span></a></li>
+            <li data-tf-step="2"><a class="row" data-app target="_blank" rel="noopener"><b><span class="n">02</span></b><span class="w"><span class="t">Download surr</span><small>Tap install, then open.</small></span><span class="pill">download <span aria-hidden="true">→</span></span></a></li>
+            <li><div class="row"><b><span class="n">03</span></b><span class="w"><span class="t">Open surr and enter your code</span><small>Not in TestFlight. You won't need TestFlight again.</small></span></div></li>
+            <li><div class="row"><b><span class="n">04</span></b><span class="w"><span class="t">Wait for your email</span><small>We approve every profile.</small></span></div></li>
           </ol>
-          <a class="tf" data-app hidden target="_blank" rel="noopener">open in testflight →</a>
           </div>
         </details>
         <!-- made-line --><a class="made-one" href="/made/"><span>made · 18 nov</span><b>events are on the map now →</b></a><!-- /made-line -->
@@ -309,6 +303,6 @@
   </div>
 </div>
 
-<script src="/site.js?v=6741102c"></script>
+<script src="/site.js?v=edad451e"></script>
 </body>
 </html>
