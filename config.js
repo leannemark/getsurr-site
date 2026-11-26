@@ -14,7 +14,7 @@ window.SURR = {
     KEY: 'sb_publishable_Fqr-XXQVymA7AFwVqtqhDA_C_-6VlzY',
   },
 
-  /* the public TestFlight link for "open in testflight →". empty = the line is hidden. */
+  /* the public TestFlight link for the beta steps (02, `install →`). empty = the email box shows in place of the steps. */
   APP_URL: 'https://testflight.apple.com/join/U5TSYwqy',
 
   /* the radio ("the chip" on nights): SoundCloud's player does the sound, hidden under our chip, and loads only after the play tap.
